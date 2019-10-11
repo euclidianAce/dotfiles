@@ -15,8 +15,12 @@ set formatoptions=tcrq  " each letter corresponds to a text formatting option
                         " c  Auto-wrap comments
                         " r  Auto-insert comment header when hitting enter
                         " q  allow formatting of comments with gq
+set showcmd		" show command being typed
+let g:netrw_liststyle=3 " set tree style to default when viewing directories
+
 
 syntax enable           " syntax highlighting
 auto FileType lua setlocal comments+=:-- " recognize -- as a comment in lua files
 
+" let vim use as many colors as possible
 set term=screen-256color

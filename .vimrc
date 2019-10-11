@@ -9,12 +9,11 @@ set wildmenu	        " visual autocomplete stuffs
 set lazyredraw	        " redraw screen only when necessary
 set title               " let vim set the title of the window
 set titleold=Terminal   " reset title after exiting
-set formatoptions=tcroq " each letter corresponds to a text formatting option 
+set formatoptions=tcrq  " each letter corresponds to a text formatting option 
                         " from https://vimhelp.org/change.txt.html#fo-table
                         " t  Auto-wrap text
                         " c  Auto-wrap comments
                         " r  Auto-insert comment header when hitting enter
-                        " o  Auto-insert comment header when hitting o or O
                         " q  allow formatting of comments with gq
 
 syntax enable           " syntax highlighting

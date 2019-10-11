@@ -108,7 +108,7 @@ export PATH="$PATH:~/bin"
 
 # custom line header thingy whatever its called
 # colors match solarized dark theme
-WHITE="\[\e[97m\]"
+WHITE="\[\e[37m\]"
 GRAY="\[\e[94m\]"
 NORM="\[\e[0m\]"
 BOLD="\[\e[1m\]"

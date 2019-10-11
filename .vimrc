@@ -20,7 +20,16 @@ let g:netrw_liststyle=3 " set tree style to default when viewing directories
 
 
 syntax enable           " syntax highlighting
+
+
 auto FileType lua setlocal comments+=:-- " recognize -- as a comment in lua files
+" lua function snippet
+auto FileType lua nnoremap ,func :read $HOME/.vimsnippets/lua/function<CR>2w
+auto FileType lua inoremap ,func <ESC>:read $HOME/.vimsnippets/lua/function<CR>2wciw
+
+" tex begin-end block snippet
+auto FileType tex nnoremap ,begin :read $HOME/.vimsnippets/tex/begin-end<CR>:,+2s/BLOCK/
+auto FileType tex inoremap ,begin <ESC>:read $HOME/.vimsnippets/tex/begin-end<CR>:,+2s/BLOCK/
 
 " let vim use as many colors as possible
 set term=screen-256color

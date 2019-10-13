@@ -24,11 +24,9 @@ syntax enable           " syntax highlighting
 
 auto FileType lua setlocal comments+=:-- " recognize -- as a comment in lua files
 " lua function snippet
-auto FileType lua nnoremap ,func :-1read $HOME/.vimsnippets/lua/function<CR>2wciw
 auto FileType lua inoremap ,func <ESC>:-1read $HOME/.vimsnippets/lua/function<CR>2wciw
 
 " tex begin-end block snippet
-auto FileType tex nnoremap ,begin :read $HOME/.vimsnippets/tex/begin-end<CR>:,+2s/BLOCK/
 auto FileType tex inoremap ,begin <ESC>:read $HOME/.vimsnippets/tex/begin-end<CR>:,+2s/BLOCK/
 
 " let vim use as many colors as possible

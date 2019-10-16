@@ -1,10 +1,14 @@
 # bashrc from scratch 
+
+# vi mode: allows vi style commands within bash
+set -o vi
+
 shopt -s autocd # Automatically does a cd when you type a directory
 shopt -s checkwinsize # resize window automatically after each command
 
 # aliases
-alias ls="ls -hN --color=auto --group-directories-first"
-alias la="ls -A --color=auto --group-directories-first"
+alias ls="ls -hN --file-type --color=auto --group-directories-first"
+alias la="ls -AhN --file-type --color=auto --group-directories-first"
 alias v="vim"
 alias refresh="source ~/.bashrc" #reload bashrc
 alias grep="grep --color=auto"

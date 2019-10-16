@@ -44,11 +44,6 @@ bindsym $mod+o split v
 # enter fullscreen mode for the focused container
 bindsym $mod+f fullscreen toggle
 
-# change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
-
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
 
@@ -97,31 +92,14 @@ bindsym $mod+Shift+0 move container to workspace $ws10
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
-# resize window (you can also use the mouse for that)
-mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
-
-        # Pressing left will shrink the window’s width.
-        # Pressing right will grow the window’s width.
-        # Pressing up will shrink the window’s height.
-        # Pressing down will grow the window’s height.
-        bindsym $left resize shrink width 10 px or 10 ppt
-        bindsym $up resize grow height 10 px or 10 ppt
-        bindsym $down resize shrink height 10 px or 10 ppt
-        bindsym $right resize grow width 10 px or 10 ppt
-
-        # back to normal: Enter or Escape or $mod+r
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-        bindsym $mod+r mode "default"
-}
-
-bindsym $mod+r mode "resize"
+# window resizing
+bindsym $mod+v resize shrink width 5 px or 5 ppt
+bindsym $mod+b resize grow height 5 px or 5 ppt
+bindsym $mod+n resize shrink height 5 px or 5 ppt
+bindsym $mod+m resize grow width 5 px or 5 ppt
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
@@ -130,12 +108,13 @@ bar {
 }
 
 # gaps
-gaps inner 15
-gaps outer 5
+gaps inner 12
+gaps outer 3
 
 # get rid of titles
-for_window [class=".*"] border pixel 2
+for_window [class=".*"] border pixel 3
 
 # start compton
-exec --no-startup-id compton
-
+exec_always --no-startup-id compton
+# set background
+exec_always ~/.fehbg

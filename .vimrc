@@ -23,5 +23,7 @@ auto FileType lua setlocal comments+=:-- " recognize -- as a comment in lua file
 " auto FileType lua inoremap ,func <ESC>:-1read $HOME/.vimsnippets/lua/function<CR>2wciw
 " tex begin-end block snippet
 " auto FileType tex inoremap ,begin <ESC>:read $HOME/.vimsnippets/tex/begin-end<CR>:,+2s/BLOCK/
+auto FileType tex nnoremap ;comp :w<CR>:!pdflatex <C-R>% <CR><CR>
+
 " let vim use as many colors as possible
 set term=screen-256color

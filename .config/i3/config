@@ -130,8 +130,8 @@ bar {
 }
 
 # gaps
-gaps inner 30
-gaps outer 10
+gaps inner 15
+gaps outer 5
 
 # get rid of titles
 for_window [class=".*"] border pixel 2

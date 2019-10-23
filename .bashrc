@@ -22,25 +22,14 @@ alias emergev="emerge --ask"
 # custom scripts
 export PATH="$PATH:~/bin"
 
-# set the bash prompt
-WHITE="\[\e[37m\]"
-GRAY="\[\e[94m\]"
-NORM="\[\e[0m\]"
-BOLD="\[\e[1m\]"
-DBLUE="\[\e[34m\]"
-LB="$WHITE[$NORM"
-M="$WHITE|$NORM"
-RB="$WHITE]$NORM"
-
-PS1=""
-PS1+=$LB
-PS1+="$GRAY\@$NORM"
-PS1+=$M
-PS1+="\u"
-PS1+=$M
-PS1+="$DBLUE$BOLD\w$NORM"
-PS1+=$RB
-PS1+="$ "
-
 # set vim as the default editor
 export EDITOR=vim
+
+
+# offload getting ps1 to lua script
+PS1=""
+function update_ps1 {
+	PS1=$( lua ~/.ps1Getter.lua 2> /dev/null )
+}
+update_ps1
+PROMPT_COMMAND=update_ps1

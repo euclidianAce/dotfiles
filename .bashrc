@@ -13,6 +13,12 @@ alias v="vim"
 alias refresh="source ~/.bashrc" #reload bashrc
 alias grep="grep --color=auto"
 
+alias sdn="shutdown -h now"
+
+#always ask before emerging and do it quietly
+alias emerge="emerge --ask --quiet"
+alias emergev="emerge --ask"
+
 # custom scripts
 export PATH="$PATH:~/bin"
 
@@ -32,7 +38,7 @@ PS1+="$GRAY\@$NORM"
 PS1+=$M
 PS1+="\u"
 PS1+=$M
-PS1+="$DBLUE$BLUE\w$NORM"
+PS1+="$DBLUE$BOLD\w$NORM"
 PS1+=$RB
 PS1+="$ "
 

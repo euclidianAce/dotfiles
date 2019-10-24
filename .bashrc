@@ -27,7 +27,7 @@ export EDITOR=vim
 # offload getting ps1 to lua script
 PS1=""
 function update_ps1 {
-	PS1=$( lua ~/.ps1Getter.lua 2> /dev/null )
+	PS1=$( lua $HOME/.ps1Getter.lua 2> /dev/null )
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

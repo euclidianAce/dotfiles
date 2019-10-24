@@ -1,44 +1,53 @@
-! Colors
-urxvt.foreground:   #d8eae9
-urxvt.background:   #14191f
-urxvt.cursorColor:  #d8eae9
-
-! black
-urxvt.color0:       #211717
-urxvt.color8:       #873d3d
-
-! red
-urxvt.color1:       #9e1a1a
-urxvt.color9:       #a32626
-
-! green
-urxvt.color2:       #576b22
-urxvt.color10:      #909a2d
-
-! yellow
-urxvt.color3:       #ce7a3f
-urxvt.color11:      #dd7c38
-
-! blue
-urxvt.color4:       #2c5f89
-urxvt.color12:      #6eaee4
-
-! magenta
-urxvt.color5:       #714c7d
-urxvt.color13:      #cb8ade
-
-! cyan
-urxvt.color6:       #427e76
-urxvt.color14:      #7ec9bf
-! white
-urxvt.color7:       #8f9eae
-urxvt.color15:      #bed2e8
-
 ! Transparency
-urxvt*transparent:	true
-urxvt*shading:		15
+urxvt.transparent:	true
+urxvt.shading:		15
 
 ! Font
-urxvt*font:		xft:Inconsolata:size=14:antialias=true
+urxvt.font:		xft:Inconsolata:size=14:antialias=true
 
+! Get rid of scrollbar
 urxvt.scrollBar: 	false
+
+! Idk what this does
+urxvt.letterSpace: 	0
+urxvt.lineSpace:	0
+
+! Internal Border
+urxvt.internalBorder: 30
+
+! special
+urxvt.foreground:   #c8c8c8
+urxvt.background:   #1d1f21
+urxvt.cursorColor:  #c8c8c8
+
+! black
+urxvt.color0:       #282a2e
+urxvt.color8:       #373b41
+
+! red
+urxvt.color1:       #893030
+urxvt.color9:       #c14f4f
+
+! green
+urxvt.color2:       #608431
+urxvt.color10:      #7aed6b
+
+! yellow
+urxvt.color3:       #a1ad78
+urxvt.color11:      #acd78f
+
+! blue
+urxvt.color4:       #58748d
+urxvt.color12:      #3c80ba
+
+! magenta
+urxvt.color5:       #72567c
+urxvt.color13:      #a963be
+
+! cyan
+urxvt.color6:       #5b837f
+urxvt.color14:      #7ac6bc
+
+! white
+urxvt.color7:       #717c85
+urxvt.color15:      #b5cdc4

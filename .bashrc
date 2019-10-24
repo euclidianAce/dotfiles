@@ -13,8 +13,6 @@ alias v="vim"
 alias refresh="source ~/.bashrc" #reload bashrc
 alias grep="grep --color=auto"
 
-alias sdn="shutdown -h now"
-
 #always ask before emerging and do it quietly
 alias emerge="emerge --ask --quiet"
 alias emergev="emerge --ask"

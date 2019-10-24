@@ -1,16 +1,22 @@
 #!/bin/env lua
 
-function bashEval(expr)
+function bashEchoInto(expr)
 	local f = io.popen("echo "..expr)
 	local out = f:read()
 	f:close()
 	return out
 end
+function bashExec(expr)
+	local f = io.popen(expr)
+	local out = f:read()
+	f:close()
+	return out
+end
 
-local columns 	= tonumber( bashEval("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil ) 
-local user 	= bashEval("$USER")
-local workDir	= bashEval("$DIRSTACK")
-
+local columns 	= tonumber( bashEchoInto("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil ) 
+local user 	= bashEchoInto("$USER")
+local workDir	= bashEchoInto("$DIRSTACK")
+local gitBranch = bashExec("git branch | grep \\*")
 --allcaps if root
 user = (user=="root" and user:upper()) or user
 
@@ -39,11 +45,12 @@ local function norm()
 	return esc("0m")
 end
 
--- new string
--- 	normal chars have length 1 and nothing special
--- 	box drawing chars have actual length 3
--- 	escaped sequences have length 0
-
+-- chunk object
+-- 	basically a string except when you want the length to be different
+-- 	since the box drawing characters count as length 3 we want to accurately calculate the length of the string
+-- 	also escaped characters for colors and bold should count as length 0
+--
+-- 	this is an object that lets you define the length of the string you give it
 local chunk = {}
 local chunkMt 
 
@@ -80,8 +87,10 @@ chunk.esc.reset = newChunk(norm(),0)
 
 chunk.newl = newChunk('\n',0)
 
+local time = newChunk(os.date("%X"))
 user = newChunk(user)
 workDir = newChunk(workDir)
+gitBranch = newChunk(gitBranch)
 
 local str = newChunk("",0)
 local function append(...)
@@ -92,9 +101,10 @@ end
 
 append(
 	chunk.esc.gray, chunk.box.tlcorner, chunk.box.hline:rep(8), 
-	chunk.box.tleft, chunk.esc.red,   	user,	 				chunk.esc.gray, chunk.box.tright, 
-	chunk.box.tleft, chunk.esc.lightBlue,  	workDir, 				chunk.esc.reset, chunk.esc.gray, chunk.box.tright,
-	chunk.box.tleft, chunk.esc.green, 	newChunk("Insert Git Branch Here"), 	chunk.esc.reset, chunk.esc.gray, chunk.box.tright
+	chunk.box.tleft, chunk.esc.gray,	time,		chunk.box.tright,
+	chunk.box.tleft, chunk.esc.red,   	user,	 	chunk.esc.gray,  chunk.box.tright, 
+	chunk.box.tleft, chunk.esc.lightBlue,  	workDir, 	chunk.esc.reset, chunk.esc.gray, chunk.box.tright,
+	chunk.box.tleft, chunk.esc.green, 	gitBranch, 	chunk.esc.reset, chunk.esc.gray, chunk.box.tright
 )
 local columnsLeft = columns - str.len - 1
 append(

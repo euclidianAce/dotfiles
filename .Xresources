@@ -3,17 +3,20 @@ urxvt.transparent:	true
 urxvt.shading:		15
 
 ! Font
-urxvt.font:		xft:Inconsolata:size=14:antialias=true
+urxvt.font:		xft:UbuntuMono:size=14:antialias=true
 
 ! Get rid of scrollbar
 urxvt.scrollBar: 	false
 
-! Idk what this does
+! Letter spacing
 urxvt.letterSpace: 	0
 urxvt.lineSpace:	0
 
 ! Internal Border
-urxvt.internalBorder: 30
+urxvt.internalBorder: 	30
+
+! Blur
+urxvt.blurRadius:	15
 
 ! special
 urxvt.foreground:   #c8c8c8

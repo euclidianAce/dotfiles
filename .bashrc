@@ -1,4 +1,12 @@
-# bashrc from scratch 
+######                  #
+##   ##                 #
+##   ##  ####    ###### # ###   # ####   #####
+######       #  #       ##   #  ##    # #     #
+##   ##  ####    #####  #     # #       #
+##   ## #   ##        # #     # #       #     #
+######   ###  # ######  #     # #        #####  
+
+
 
 # vi mode: allows vi style commands within bash
 set -o vi
@@ -6,28 +14,44 @@ set -o vi
 shopt -s autocd # Automatically does a cd when you type a directory
 shopt -s checkwinsize # resize window automatically after each command
 
-# aliases
+#################
+#### ALIASES ####
+#################
+
+# default options
 alias ls="ls -hN --file-type --color=auto --group-directories-first"
 alias la="ls -AhN --file-type --color=auto --group-directories-first"
-alias v="vim"
-alias refresh="source ~/.bashrc" #reload bashrc
 alias grep="grep --color=auto"
 
 #always ask before emerging and do it quietly
 alias emerge="emerge --ask --quiet"
 alias emergev="emerge --ask"
+alias emergef="emerge --ask --fetchonly --quiet"
 
-# custom scripts
-export PATH="$PATH:~/bin"
+# config file editing and reloading
+alias refresh="source ~/.bashrc" #reload bashrc
+alias vbrc="vim ~/.bashrc && source ~/.bashrc"
+alias vxr="vim ~/.Xresources && xrdb ~/.Xresources"
+alias vvrc="vim ~/.vimrc"
+alias vps1="vim ~/.ps1Getter.lua"
+
+# actual "aliases"
+alias v="vim"
+
+
+##########################
+#### ENVIRONMENT VARS ####
+##########################
 
 # set vim as the default editor
 export EDITOR=vim
 
+# custom scripts
+export PATH="$PATH:~/bin"
 
 # offload getting ps1 to lua script
-PS1=""
-function update_ps1 {
-	PS1=$( lua $HOME/.ps1Getter.lua 2> /dev/null )
+function update_ps1 { 
+	PS1=$( lua $HOME/.ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

@@ -37,11 +37,11 @@ local ansiColors = {
 
 local function esc(str)
 	return table.concat{
-		string.char(31),  	-- non printing ascii char
-		string.char(27),	-- escape
+		"\\[",			-- surrounding brackets so bash knows not to count length
+		string.char(27),	-- escape, aka \e, \033, etc.
 		"[",
 		str, 		 	-- escaped command
-		string.char(31)   	-- non printing ascii char
+		"\\]"
 	}
 end
 
@@ -67,6 +67,9 @@ chunkMt = {
 	__index = {
 		rep = function(self, num)
 			return newChunk( self.str:rep(num), self.len*num )
+		end,
+		color = function(self, colorName)
+			return chunk.esc[colorName] .. self .. chunk.esc.reset
 		end
 	}
 }
@@ -77,8 +80,13 @@ chunk.box.vline 	= newChunk("│",1)
 chunk.box.hline 	= newChunk("─",1)
 chunk.box.tlcorner 	= newChunk("┌",1)
 chunk.box.blcorner 	= newChunk("└",1)
+chunk.box.trcorner	= newChunk("┐",1)
+chunk.box.brcorner	= newChunk("┘",1)
 chunk.box.tleft 	= newChunk("┤",1)
 chunk.box.tright 	= newChunk("├",1)
+chunk.box.tdown		= newChunk("┬",1)
+chunk.box.tup		= newChunk("┴",1)
+chunk.box.cross		= newChunk("┼",1)
 
 chunk.esc = {}
 for i, v in pairs(ansiColors) do
@@ -91,65 +99,73 @@ chunk.newl 	= newChunk('\n',0)
 
 -- User and terminal info
 
-local columns 	= tonumber( 
-			bashEchoInto("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil 
-		) 
+local columns 	= tonumber( bashEchoInto("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil )
+
 local user 	= newChunk(
 			bashEchoInto("$USER") .. "@" .. bashEchoInto("$HOSTNAME")
 		)
-local workDir	= newChunk(
-			bashEchoInto("$DIRSTACK")
-		)
+
+local workDir	= bashEchoInto("$DIRSTACK")
+      workDir	= newChunk( workDir..(" "):rep(10-#workDir) )
+
+local gitNoBranchStr = "* none"
 local gitBranch = bashExec("git branch 2> /dev/null | grep \\*")
       gitBranch = (gitBranch and newChunk(gitBranch)) 
-      		or newChunk("* no repo here")
+      		or newChunk(gitNoBranchStr)
 
 local time 	= newChunk(os.date("%X"))
 
-
--- PS1
-local str = newChunk("",0)
-function append(...)
+-- Helper functions
+function concat(...)
+	local rChunk = newChunk("")
 	for _, v in ipairs{...} do
-		if type(v) == "table" and getmetatable(v) ~= "chunk" then
-			for __, w in ipairs(v) do
-				str = str..w
-			end
-		else
-			str = str..v
-		end
+		rChunk = rChunk..v
 	end
-end
-local unpack = table.unpack or unpack
-local function container(color, ...)
-	local args = {...}
-	table.insert(args, 1, chunk.box.tleft)
-	table.insert(args, 2, chunk.esc[color])
-	table.insert(args, chunk.esc.reset)
-	table.insert(args, chunk.esc.darkCyan)
-	table.insert(args, chunk.box.tright)
-	return unpack{args}
+	return rChunk
 end
 
-append(
-	chunk.esc.darkCyan, chunk.box.tlcorner, chunk.box.hline:rep(4), 
-	container("darkWhite", 	time), 
-	container("red", 	user),
-	container("blue", 	
-	      chunk.esc.bold, 	workDir),
-	container(
-	(gitBranch.str=="* no repo here" and "green") or "darkGreen",
-				gitBranch)
+local lineColor = "darkCyan"
+local timeColor = "darkWhite"
+local userColor = "red"
+local workDirColor = "blue"
+local gitColor = (gitBranch.str ~= gitNoBranchStr and "green") or "yellow"
+-- PS1
+
+-- first line
+local firstLine = concat(
+	chunk.esc[lineColor], 
+	
+	newChunk((" "):rep(3)), 
+	chunk.box.tlcorner, chunk.box.hline:rep(time.len), chunk.box.tdown,
+	chunk.box.hline:rep(user.len), chunk.box.tdown,
+	chunk.box.hline:rep(workDir.len), chunk.box.tdown,
+	chunk.box.hline:rep(gitBranch.len), 
+	chunk.box.trcorner
 )
-local columnsLeft = columns - str.len - 1
-append(
-	chunk.box.hline:rep(columnsLeft), chunk.box.tleft, chunk.esc.reset, chunk.newl,
-	chunk.esc.darkCyan, chunk.box.blcorner, chunk.box.hline:rep(2), chunk.box.tleft,
-	chunk.esc.darkMagenta, newChunk("$ "), chunk.esc.reset
+local secondLine = concat(	
+	chunk.box.tright, chunk.box.hline:rep(2), 
+	chunk.box.tleft, 
+	time:color(timeColor), chunk.box.vline:color(lineColor),
+	user:color(userColor), chunk.box.vline:color(lineColor), 
+	workDir:color(workDirColor), chunk.box.vline:color(lineColor), 
+	gitBranch:color(gitColor), chunk.box.tright:color(lineColor)
+)
+local columnsLeft = columns - secondLine.len - 1
+secondLine = concat(secondLine,
+	chunk.esc[lineColor], chunk.box.hline:rep(columnsLeft), chunk.box.tleft
+)
+local thirdLine = concat(
+	newChunk((" "):rep(3)), chunk.box.blcorner, chunk.box.hline:rep(time.len), chunk.box.tup, 
+	chunk.box.hline:rep(user.len),
+
+	chunk.box.tup, chunk.box.hline:rep(workDir.len),
+	chunk.box.tup, chunk.box.hline:rep(gitBranch.len), chunk.box.brcorner
 )
 
+local fourthLine = newChunk("$ "):color("darkMagenta")
 
 
-local ps1 = str.str
+
+local ps1 = concat(firstLine, chunk.newl,  secondLine, chunk.newl, thirdLine, chunk.newl, fourthLine)
 -- "return" the string to bash
-io.write(ps1)
+io.write(ps1.str)

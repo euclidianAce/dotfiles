@@ -1,3 +1,4 @@
+
 ######                  #
 ##   ##                 #
 ##   ##  ####    ###### # ###   # ####   #####
@@ -23,10 +24,14 @@ alias ls="ls -hN --file-type --color=auto --group-directories-first"
 alias la="ls -AhN --file-type --color=auto --group-directories-first"
 alias grep="grep --color=auto"
 
-#always ask before emerging and do it quietly
-alias emerge="emerge --ask --quiet"
-alias emergev="emerge --ask"
-alias emergef="emerge --ask --fetchonly --quiet"
+# always ask before emerging and do it quietly
+alias emerge="sudo emerge --ask --quiet"
+alias emergev="sudo emerge --ask"
+alias emergef="sudo emerge --ask --fetchonly --quiet"
+
+# turn the computer off
+alias sdn="sudo shutdown -h now"
+alias rb="sudo reboot"
 
 # config file editing and reloading
 alias refresh="source ~/.bashrc" #reload bashrc

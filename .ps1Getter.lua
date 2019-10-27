@@ -1,5 +1,9 @@
 #!/bin/env lua
 
+-- TODO:
+-- 	- find way of truncating things when terminal is too thin
+
+
 -- Functions to call bash functions and get varaibles
 function bashExec(expr)
 	local f = io.popen(expr)
@@ -9,10 +13,10 @@ function bashExec(expr)
 end
 
 -- catches the output of a command by putting the echo into a temporary file and returns it
+-- basically VAR=$( < `expr`)
 function bashEchoInto(expr)
 	return bashExec("echo "..expr)
 end
-
 
 local ansiColors = {
 	black	= "90m",
@@ -134,21 +138,24 @@ local gitColor = (gitBranch.str ~= gitNoBranchStr and "green") or "yellow"
 -- first line
 local firstLine = concat(
 	chunk.esc[lineColor], 
-	
-	newChunk((" "):rep(3)), 
+	-- Initial Spaces
+	newChunk((" "):rep(3)),
+	-- Corner and T above time
 	chunk.box.tlcorner, chunk.box.hline:rep(time.len), chunk.box.tdown,
+	-- Ts above username
 	chunk.box.hline:rep(user.len), chunk.box.tdown,
+	-- Ts above working directory
 	chunk.box.hline:rep(workDir.len), chunk.box.tdown,
-	chunk.box.hline:rep(gitBranch.len), 
-	chunk.box.trcorner
+	-- T and corner above git branch
+	chunk.box.hline:rep(gitBranch.len), chunk.box.trcorner
 )
 local secondLine = concat(	
 	chunk.box.tright, chunk.box.hline:rep(2), 
 	chunk.box.tleft, 
-	time:color(timeColor), chunk.box.vline:color(lineColor),
-	user:color(userColor), chunk.box.vline:color(lineColor), 
-	workDir:color(workDirColor), chunk.box.vline:color(lineColor), 
-	gitBranch:color(gitColor), chunk.box.tright:color(lineColor)
+	time:color(timeColor), 		chunk.box.vline:color(lineColor),
+	user:color(userColor), 		chunk.box.vline:color(lineColor), 
+	workDir:color(workDirColor), 	chunk.box.vline:color(lineColor), 
+	gitBranch:color(gitColor), 	chunk.box.tright:color(lineColor)
 )
 local columnsLeft = columns - secondLine.len - 1
 secondLine = concat(secondLine,

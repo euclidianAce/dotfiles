@@ -1,6 +1,6 @@
 ! Transparency
 urxvt.transparent:	true
-urxvt.shading:		15
+urxvt.shading:		60
 
 ! Font
 urxvt.font:		xft:UbuntuMono:size=14:antialias=true
@@ -16,7 +16,7 @@ urxvt.lineSpace:	0
 urxvt.internalBorder: 	30
 
 ! Blur
-urxvt.blurRadius:	15
+urxvt.blurRadius:	10
 
 ! special
 urxvt.foreground:   #c8c8c8

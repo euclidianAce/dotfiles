@@ -229,7 +229,7 @@ globalkeys = gears.table.join(
 
 clientkeys = gears.table.join(
 	
-	awful.key({}, "f", 		function(c)
+	awful.key({m}, "f", 		function(c)
 						c.fullscreen = not c.fullscreen
 						c:raise()
 					end,				{description	="toggle fullscreen",

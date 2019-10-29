@@ -16,7 +16,7 @@ urxvt.lineSpace:	0
 urxvt.internalBorder: 	30
 
 ! Blur
-urxvt.blurRadius:	10
+urxvt.blurRadius:	5
 
 ! special
 urxvt.foreground:   #c8c8c8

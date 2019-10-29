@@ -1,8 +1,9 @@
 #!/bin/env lua
 
 -- TODO:
--- 	- find way of truncating things when terminal is too thin
-
+-- 	- move some stuff to other files so they dont have to be reloaded everytime the script is run
+-- 	- find a nice looking way of truncating things when terminal is too thin
+--	- less verbose variable names for chunks
 
 -- Functions to call bash functions and get varaibles
 function bashExec(expr)
@@ -38,13 +39,13 @@ local ansiColors = {
 	darkWhite	= "37m"
 }
 
-
+-- but a string between non-printing characters so bash doesnt get confused when calculating length
 local function esc(str)
 	return table.concat{
-		"\\[",			-- surrounding brackets so bash knows not to count length
-		string.char(27),	-- escape, aka \e, \033, etc.
+		"\\[",		 -- surrounding brackets so bash knows not to count length
+		string.char(27), -- escape, aka \e, \033, etc.
 		"[",
-		str, 		 	-- escaped command
+		str, 		 -- escaped command
 		"\\]"
 	}
 end
@@ -110,8 +111,8 @@ local user 	= newChunk(
 		)
 
 local workDir	= bashEchoInto("$DIRSTACK")
-      workDir	= newChunk( workDir..(" "):rep(10-#workDir) )
-
+      workDir	= newChunk( workDir..(" "):rep(10-#workDir) ) -- Make the working directory at least 10 chars long 
+      
 local gitNoBranchStr = "* none"
 local gitBranch = bashExec("git branch 2> /dev/null | grep \\*")
       gitBranch = (gitBranch and newChunk(gitBranch)) 

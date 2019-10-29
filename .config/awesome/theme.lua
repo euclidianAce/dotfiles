@@ -15,7 +15,7 @@ local theme = dofile(themes_path.."default/theme.lua")
 
 -- load vector assets' generators for this theme
 
-theme.font          = "sans 8"
+theme.font          = "UbuntuMono"
 
 theme.bg_normal     = xrdb.background
 theme.bg_focus      = xrdb.color12

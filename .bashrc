@@ -1,11 +1,11 @@
 
-######                  #
-##   ##                 #
-##   ##  ####    ###### # ###   # ####   #####
-######       #  #       ##   #  ##    # #     #
-##   ##  ####    #####  #     # #       #
-##   ## #   ##        # #     # #       #     #
-######   ###  # ######  #     # #        #####  
+    ######                  #
+    ##   ##                 #
+    ##   ##  ####    ###### # ###   # ####   #####
+    ######       #  #       ##   #  ##    # #     #
+    ##   ##  ####    #####  #     # #       #
+##  ##   ## #   ##        # #     # #       #     #
+##  ######   ###  # ######  #     # #        #####  
 
 
 
@@ -29,7 +29,7 @@ alias emerge="sudo emerge --ask --quiet"
 alias emergev="sudo emerge --ask"
 alias emergef="sudo emerge --ask --fetchonly --quiet"
 
-# turn the computer off
+# power stuffs 
 alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
 

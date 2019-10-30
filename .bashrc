@@ -38,7 +38,7 @@ alias refresh="source ~/.bashrc" #reload bashrc
 alias vbrc="vim ~/.bashrc && source ~/.bashrc"
 alias vxr="vim ~/.Xresources && xrdb ~/.Xresources"
 alias vvrc="vim ~/.vimrc"
-alias vps1="vim ~/.ps1Getter.lua"
+alias vps1="vim ~/.config/.ps1Getter.lua"
 
 # actual "aliases"
 alias v="vim"
@@ -56,7 +56,7 @@ export PATH="$PATH:~/bin"
 
 # offload getting ps1 to lua script
 function update_ps1 { 
-	PS1=$( lua $HOME/.ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
+	PS1=$( lua $HOME/.config/.ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

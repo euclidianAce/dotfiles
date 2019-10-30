@@ -1,56 +1,56 @@
 ! Transparency
-urxvt.transparent:	true
-urxvt.shading:		60
+*.transparent:	true
+*.shading:		60
 
 ! Font
-urxvt.font:		xft:UbuntuMono:size=14:antialias=true
+*.font:		xft:UbuntuMono:size=14:antialias=true
 
 ! Get rid of scrollbar
-urxvt.scrollBar: 	false
+*.scrollBar: 	false
 
 ! Letter spacing
-urxvt.letterSpace: 	0
-urxvt.lineSpace:	0
+*.letterSpace: 	0
+*.lineSpace:	0
 
 ! Internal Border
-urxvt.internalBorder: 	30
+*.internalBorder: 	30
 
 ! Blur
-urxvt.blurRadius:	5
+*.blurRadius:	5
 
 ! special
-urxvt.foreground:   #c8c8c8
-urxvt.background:   #1d1f21
-urxvt.cursorColor:  #c8c8c8
+*.foreground:   #c8c8c8
+*.background:   #1d1f21
+*.cursorColor:  #c8c8c8
 
 ! black
-urxvt.color0:       #282a2e
-urxvt.color8:       #373b41
+*.color0:       #282a2e
+*.color8:       #373b41
 
 ! red
-urxvt.color1:       #893030
-urxvt.color9:       #c14f4f
+*.color1:       #893030
+*.color9:       #c14f4f
 
 ! green
-urxvt.color2:       #608431
-urxvt.color10:      #7aed6b
+*.color2:       #608431
+*.color10:      #7aed6b
 
 ! yellow
-urxvt.color3:       #a1ad78
-urxvt.color11:      #acd78f
+*.color3:       #a1ad78
+*.color11:      #acd78f
 
 ! blue
-urxvt.color4:       #58748d
-urxvt.color12:      #3c80ba
+*.color4:       #58748d
+*.color12:      #3c80ba
 
 ! magenta
-urxvt.color5:       #72567c
-urxvt.color13:      #a963be
+*.color5:       #72567c
+*.color13:      #a963be
 
 ! cyan
-urxvt.color6:       #5b837f
-urxvt.color14:      #7ac6bc
+*.color6:       #5b837f
+*.color14:      #7ac6bc
 
 ! white
-urxvt.color7:       #717c85
-urxvt.color15:      #b5cdc4
+*.color7:       #717c85
+*.color15:      #b5cdc4

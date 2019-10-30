@@ -1,3 +1,4 @@
+-- {{{ Requires
 -- Standard lib
 local gears 		= require "gears"
 local awful 		= require "awful"
@@ -16,9 +17,9 @@ local hotkeys_popup	= require("awful.hotkeys_popup").widget
 
 -- Enable hotkeys help widget for vim and other things
 			  require "awful.hotkeys_popup.keys"
+-- }}}
 
-
----- Error handling from default rc.lua
+-- {{{ Error handling from default rc.lua
 
 -- Check for startup errors
 if awesome.startup_errors then
@@ -42,43 +43,35 @@ do
 		end)
 end
 
--- use custom theme
+-- }}}
+
+-- {{{ Themes and defaults
+
+-- Use custom theme
 beautiful.init("~/.config/awesome/theme.lua")
 
--- set wallpaper
+-- Set Wallpaper
 for s = 1, screen.count() do
 	gears.wallpaper.maximized(beautiful.wallpaper, s, true)
 end
 
--- default terminal and editor
+-- Set default terminal and editor
 terminal   = "urxvt"
 editor     = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 
--- modkey is Win
+-- Set modkey to Win
 modkey = "Mod4"
 
--- layouts for dyamic window management
+-- Layouts for window tiling
 awful.layout.layouts = {
     awful.layout.suit.tile,
-    --awful.layout.suit.magnifier,
-    --awful.layout.suit.floating,
-    --awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
-    --awful.layout.suit.tile.top,
-    --awful.layout.suit.fair,
-    --awful.layout.suit.fair.horizontal,
-    --awful.layout.suit.spiral,
-    --awful.layout.suit.spiral.dwindle,
-    --awful.layout.suit.max,
-    --awful.layout.suit.max.fullscreen,
-    --awful.layout.suit.corner.nw,
-    -- awful.layout.suit.corner.ne,
-    -- awful.layout.suit.corner.sw,
-    -- awful.layout.suit.corner.se,
 }
 
--- menubar
+-- }}}
+
+-- {{{ Menubar
 
 menubar.utils.terminal = terminal
 
@@ -128,9 +121,7 @@ local tags = {"1","2","3","4","5","6","7","8","9"}
 
 awful.screen.connect_for_each_screen(function(s)
 	-- each screens tag layout
-	awful.tag(tags, 
-		s, 
-		awful.layout.layouts[1])
+	awful.tag(tags, s, awful.layout.layouts[1])
 
 	-- each screens prompt box
 	s.mypromptbox = awful.widget.prompt()
@@ -148,30 +139,33 @@ awful.screen.connect_for_each_screen(function(s)
 		layout = wibox.layout.align.horizontal,
 		{ -- Left Widgets
 			layout = wibox.layout.fixed.horizontal,
-			mylauncher,
-			s.mytaglist,
+			wibox.widget.textclock()
+		},
+		{ -- Center
+			layout = wibox.layout.fixed.horizontal,
 			s.mypromptbox,
+			mylauncher,
+			wibox.widget.textbox(""),
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
-			awful.widget.keyboardlayout(),
-			wibox.widget.systray(),
-			wibox.widget.textclock()
+			s.mytaglist,
 		},
 	}
 end)
+-- }}}
 
--- Key binds
+-- {{{ Key Bindings 
 local m, crtl, shft = modkey, "Control", "Shift" -- Aliases for convenience 
 globalkeys = gears.table.join(
 --	awful.key(KEYS			FUNCTION			DESCRIPTION)
 	awful.key({m},"s", 		hotkeys_popup.show_help, 	{description="show help", 
 									 group="awesome"					}),
 	
-	awful.key({m},"h", 		awful.tag.viewprev, 		{description="view previous", 
+	awful.key({m,shft},"h",		awful.tag.viewprev, 		{description="view previous", 
 									 group="tag"						}),
 	
-	awful.key({m},"l", 		awful.tag.viewnext, 		{description="view next", 
+	awful.key({m,shft},"l", 	awful.tag.viewnext, 		{description="view next", 
 									 group="tag"						}),
 	
 	awful.key({m},"k", 		function() 
@@ -184,11 +178,11 @@ globalkeys = gears.table.join(
 					end, 				{description="focus next by index", 
 									 group="client"						}),
 	-- Layouts
-	awful.key({m},"j", 		function() 
+	awful.key({m,shft},"j",		function() 
 						awful.client.swap.byidx(1)
 					end,				{description	="swap with next client by index", 
 									 group		="client"				}),
-	awful.key({m},"k",		function()
+	awful.key({m,shft},"k",		function()
 						awful.client.swap.byidx(-1)
 					end,				{description	="swap with previous client by index", 
 									 group		="client"				}),
@@ -204,8 +198,12 @@ globalkeys = gears.table.join(
 						awful.spawn(terminal)
 					end,				{description	="open a terminal",
 									 group		="launcher"				}),
+	awful.key({m},"space",		function()
+						awful.layout.inc(1)
+					end,				{description	="Toggle tiling method",
+									 group		="client"				}),
 
-	awful.key({m,crtl},"r", 	awful.restart,			{description	="restart awesome",
+	awful.key({m,crtl},"r", 	awesome.restart,		{description	="restart awesome",
 									 group		="awesome"				}),
 
 	awful.key({m,shft},"q", 	awesome.quit,			{description	="quit awesome",
@@ -250,7 +248,7 @@ clientkeys = gears.table.join(
 for i = 1, #tags do
 	globalkeys = gears.table.join(
 		globalkeys,
-		awful.key({m}, "#" .. i+9,
+		awful.key({"Mod1"}, "#" .. i+9,
 			function()
 				local screen = awful.screen.focused()
 				local tag    = screen.tags[i]
@@ -275,7 +273,7 @@ for i = 1, #tags do
 			 group	     = "tag"}
 		),
 
-		awful.key({m,crtl}, "#" .. i+9,
+		awful.key({"Mod1",shft}, "#" .. i+9,
 			function()
 				local screen = awful.screen.focused()
 				local tag    = screen.tags[i]
@@ -304,9 +302,9 @@ for i = 1, #tags do
 end
 
 root.keys(globalkeys)
+-- }}}
 
-
--- Rules
+-- {{{ Rules
 
 awful.rules.rules = {
 	{rule = {},
@@ -319,12 +317,11 @@ awful.rules.rules = {
 			screen		= awful.screen.preferred,
 			honor_padding	= true,
 			size_hints_honor= false,
-			placement 	= awful.placement.no_overlap + awful.placement.no_offscreen }
-	}
+			placement 	= awful.placement.no_overlap + awful.placement.no_offscreen }}
 }
+-- }}}
 
-
--- Signals
+-- {{{ Signals
 
 client.connect_signal("manage", 
 	function(c)
@@ -346,6 +343,8 @@ client.connect_signal("mouse::enter",
 	end
 )
 
+
+-- Change border when focused
 client.connect_signal("focus", 
 	function(c)
 		c.border_color = beautiful.border_focus
@@ -356,3 +355,4 @@ client.connect_signal("unfocus",
 		c.border_color = beautiful.border_normal
 	end
 )
+-- }}}

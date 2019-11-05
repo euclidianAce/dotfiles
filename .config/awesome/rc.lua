@@ -156,6 +156,23 @@ end)
 -- }}}
 
 -- {{{ Key Bindings 
+-- function for adjusting gaps
+
+local function change_gaps(amount)
+	beautiful.useless_gap = math.max(beautiful.useless_gap + amount, 0)
+	-- show notification of new gap size
+	naughty.notify{
+		position = "top_middle",
+		text = "Gap Size: "..beautiful.useless_gap,
+		timeout = 1,
+	}
+
+	-- update clients
+	for _, c in ipairs(client.get()) do
+		c:emit_signal("manage") -- figure out better way of updating sizes dynamically
+	end
+end
+
 local m, crtl, shft = modkey, "Control", "Shift" -- Aliases for convenience 
 globalkeys = gears.table.join(
 --	awful.key(KEYS			FUNCTION			DESCRIPTION)
@@ -222,7 +239,16 @@ globalkeys = gears.table.join(
 	awful.key({m},"r", 		function()
 						awful.screen.focused().mypromptbox:run()
 					end,				{description	="run prompt",
-									 group		="launcher"				})
+									 group		="launcher"				}),
+	awful.key({m},"g",		function() 
+						change_gaps(1)
+					end,				{description	="increase gaps",
+									 group		="layout"				}),
+
+	awful.key({m,shft},"g",		function() 
+						change_gaps(-1)
+					end,				{description	="decrease gaps",
+									 group		="layout"				})
 )
 
 clientkeys = gears.table.join(
@@ -329,7 +355,6 @@ client.connect_signal("manage",
 		not c.size_hints.user_position then
 			awful.placement.no_offscreen(c)
 		end
-			
 	end
 )
 
@@ -356,3 +381,6 @@ client.connect_signal("unfocus",
 	end
 )
 -- }}}
+
+
+

@@ -28,6 +28,7 @@ alias grep="grep --color=auto"
 alias emerge="sudo emerge --ask --quiet"
 alias emergev="sudo emerge --ask"
 alias emergef="sudo emerge --ask --fetchonly --quiet"
+alias etc-update="sudo etc-update"
 
 # power stuffs 
 alias sdn="sudo shutdown -h now"

@@ -33,8 +33,9 @@ set term=screen-256color
 "}}}
 
 "{{{Text formatting
-
-set formatoptions=toj	" each letter corresponds to a text formatting option 
+set linebreak
+set wrap
+set formatoptions=ltcroj " each letter corresponds to a text formatting option 
                         " from https://vimhelp.org/change.txt.html#fo-table
 "}}}
 

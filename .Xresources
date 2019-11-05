@@ -1,6 +1,6 @@
 ! Transparency
 *.transparent:	true
-*.shading:		60
+*.shading:	10
 
 ! Font
 *.font:		xft:UbuntuMono:size=14:antialias=true
@@ -13,7 +13,7 @@
 *.lineSpace:	0
 
 ! Internal Border
-*.internalBorder: 	30
+*.internalBorder: 	10
 
 ! Blur
 *.blurRadius:	5

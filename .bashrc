@@ -8,7 +8,6 @@
 ##  ######   ###  # ######  #     # #        #####  
 
 
-
 # vi mode: allows vi style commands within bash
 set -o vi
 

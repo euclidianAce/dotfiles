@@ -35,13 +35,13 @@ alias rb="sudo reboot"
 
 # config file editing and reloading
 alias refresh="source ~/.bashrc" #reload bashrc
-alias vbrc="vim ~/.bashrc && source ~/.bashrc"
-alias vxr="vim ~/.Xresources && xrdb ~/.Xresources"
-alias vvrc="vim ~/.vimrc"
-alias vps1="vim ~/.config/.ps1Getter.lua"
+alias vbrc="nvim ~/.bashrc && source ~/.bashrc"
+alias vxr="nvim ~/.Xresources && xrdb ~/.Xresources"
+alias vvrc="nvim ~/.vimrc"
+alias vps1="nvim ~/.config/.ps1Getter.lua"
 
 # actual "aliases"
-alias v="vim"
+alias v="nvim"
 
 
 ##########################

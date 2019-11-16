@@ -136,6 +136,16 @@ local workDirColor = "blue"
 local gitColor = (gitBranch.str ~= gitNoBranchStr and "green") or "yellow"
 -- PS1
 
+if 10+time.len+user.len+workDir.len+gitBranch.len > columns then -- compact mode
+	workDir = newChunk(bashEchoInto("$DIRSTACK")):color(workDirColor)
+	local ps1 = concat(
+		workDir, newChunk("$ "):color("magenta") 
+	)
+
+	io.write(ps1.str)
+	return
+end
+
 -- first line
 local firstLine = concat(
 	chunk.esc[lineColor], 

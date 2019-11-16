@@ -5,12 +5,9 @@ set autoindent          " auto indents
 set smartindent         " indent for code
 syntax enable           " syntax highlighting
 
-
-auto FileType lua setlocal comments+=:-- " recognize -- as a comment in lua files
-
 " tex save and compile command
-auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>% <CR>
-auto FileType tex nnoremap ;comp :w<CR>:!pdflatex <C-R>% <CR><CR>
+auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>=expand("%:p:r").".pdf"<CR> &<CR><CR>
+auto FileType tex nnoremap ;comp :w<CR>:!pdflatex <C-R>=expand("%:p")<CR><CR>
 
 "}}}
 
@@ -24,11 +21,9 @@ set cursorline 	        " highlight current line
 set wildmenu	        " visual autocomplete stuffs
 set lazyredraw	        " redraw screen only when necessary
 set showcmd		" show command being typed
-set nowrap		" dont wrap text
+set breakindent
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
 set background=dark
-" let vim use as many colors as possible
-set term=screen-256color
 
 "}}}
 

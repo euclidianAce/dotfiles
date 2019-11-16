@@ -265,7 +265,7 @@ clientkeys = gears.table.join(
 									 group		="client"}),
 	
 	awful.key({m,crtl},"Return",	function(c) 
-						c:swap(awful.clent.getmaster()) 
+						c:swap(awful.client.getmaster()) 
 					end, 				{description	="swap with master",
 									 group		="client"})
 )

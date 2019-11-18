@@ -48,8 +48,8 @@ alias v="nvim"
 #### ENVIRONMENT VARS ####
 ##########################
 
-# set vim as the default editor
-export EDITOR=vim
+# set neovim as the default editor
+export EDITOR=nvim
 
 # custom scripts
 export PATH="$PATH:~/bin"
@@ -60,3 +60,4 @@ function update_ps1 {
 }
 update_ps1
 PROMPT_COMMAND=update_ps1
+

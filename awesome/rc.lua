@@ -57,7 +57,7 @@ end
 
 -- Set default terminal and editor
 terminal   = "urxvt"
-editor     = os.getenv("EDITOR") or "vim"
+editor     = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
 -- Set modkey to Win

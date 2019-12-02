@@ -107,7 +107,7 @@ chunk.newl 	= newChunk('\n',0)
 local columns 	= tonumber( bashEchoInto("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil )
 
 local user 	= newChunk(
-			bashEchoInto("$USER") .. "@" .. bashEchoInto("$HOSTNAME")
+			bashEchoInto("$USER") .. "@" .. bashExec("hostname")
 		)
 
 local workDir	= bashEchoInto("$DIRSTACK")

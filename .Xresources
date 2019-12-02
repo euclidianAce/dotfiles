@@ -3,7 +3,7 @@
 *.shading:	10
 
 ! Font
-*.font:		xft:UbuntuMono:size=14:antialias=true
+*.font:		xft:UbuntuMono:size=12:antialias=true
 
 ! Get rid of scrollbar
 *.scrollBar: 	false

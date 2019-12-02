@@ -169,7 +169,8 @@ local function change_gaps(amount)
 
 	-- update clients
 	for _, c in ipairs(client.get()) do
-		c:emit_signal("manage") -- figure out better way of updating sizes dynamically
+		c:emit_signal("property::window")
+		c:emit_signal("list")
 	end
 end
 
@@ -358,6 +359,19 @@ client.connect_signal("manage",
 	end
 )
 
+client.connect_signal("property::window",
+	function(c)
+		if beautiful.useless_gap > 0 then
+			c.shape = function(cr, width, height)
+				gears.shape.rounded_rect(cr, width, height, 10)
+			end
+		else
+			c.shape = gears.shape.rect
+		end
+	end
+)
+
+
 -- Enable sloppy focus
 client.connect_signal("mouse::enter",
 	function(c)
@@ -381,6 +395,4 @@ client.connect_signal("unfocus",
 	end
 )
 -- }}}
-
-
 

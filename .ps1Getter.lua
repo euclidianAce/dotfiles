@@ -40,14 +40,13 @@ local ansiColors = {
 }
 
 -- but a string between non-printing characters so bash doesnt get confused when calculating length
+local escStr =  table.concat{
+	"\\[",		 -- surrounding brackets so bash knows not to count length
+	string.char(27), -- escape, aka \e, \033, etc.
+	"[%s\\]"	 -- command to be filled with str:format
+}
 local function esc(str)
-	return table.concat{
-		"\\[",		 -- surrounding brackets so bash knows not to count length
-		string.char(27), -- escape, aka \e, \033, etc.
-		"[",
-		str, 		 -- escaped command
-		"\\]"
-	}
+	return escStr:format(str)
 end
 
 -- chunk object
@@ -110,8 +109,11 @@ local user 	= newChunk(
 			bashEchoInto("$USER") .. "@" .. bashExec("hostname")
 		)
 
-local workDir	= bashEchoInto("$DIRSTACK")
-      workDir	= newChunk( workDir..(" "):rep(10-#workDir) ) -- Make the working directory at least 10 chars long 
+local workDir	= bashEchoInto("$DIRSTACK") or ""
+if workDir == "" then
+	workDir = bashExec("pwd"):gsub("/home/"..bashEchoInto("$USER"), "~")
+end
+workDir	= newChunk( workDir..(" "):rep(10-#workDir) ) -- Make the working directory at least 10 chars long 
       
 local gitNoBranchStr = "* none"
 local gitBranch = bashExec("git branch 2> /dev/null | grep \\*")
@@ -139,7 +141,7 @@ local gitColor = (gitBranch.str ~= gitNoBranchStr and "green") or "yellow"
 if 10+time.len+user.len+workDir.len+gitBranch.len > columns then -- compact mode
 	workDir = newChunk(bashEchoInto("$DIRSTACK")):color(workDirColor)
 	local ps1 = concat(
-		workDir, newChunk("$ "):color("magenta") 
+		workDir, newChunk(" $ "):color("magenta") 
 	)
 
 	io.write(ps1.str)

@@ -29,7 +29,7 @@ theme.fg_urgent     = theme.bg_normal
 theme.fg_minimize   = theme.bg_normal
 
 theme.useless_gap   = 3
-theme.border_width  = dpi(1)
+theme.border_width  = dpi(2)
 theme.border_normal = xrdb.color0
 theme.border_focus  = theme.bg_focus
 theme.border_marked = xrdb.color10

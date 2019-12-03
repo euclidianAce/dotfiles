@@ -69,73 +69,102 @@ awful.layout.layouts = {
     awful.layout.suit.tile.bottom,
 }
 
+-- function for adjusting gaps
+local current_gap_index = 1
+local gap_sizes = {0, 2, 5, 10, 15, 20}
+local function change_gaps(delta)
+	current_gap_index = math.min(math.max(current_gap_index + delta, 1), #gap_sizes)
+	beautiful.useless_gap = gap_sizes[current_gap_index]
+	-- show notification of new gap size
+	naughty.notify{
+		position = "top_middle",
+		text = "Gap Size: "..beautiful.useless_gap,
+		timeout = 1,
+	}
+
+	-- update clients
+	for _, c in ipairs(client.get()) do
+		c:emit_signal("property::window") -- fixes corners
+		c:emit_signal("list")		  -- resizes windows
+	end
+end
 -- }}}
 
--- {{{ Menubar
-
+-- {{{ Status Bar
 menubar.utils.terminal = terminal
-
+menubar.show_categories = false
+menubar.refresh()
 -- create a wibox for each screen
-local taglist_buttons = gears.table.join(
-	awful.button({}, 1, function(t) t:view_only() end),
-	awful.button({modkey}, 1, function(t)
-				  	if client.focus then
-						client.focus:move_to_tag(t)
-					end
-				  end),
-	awful.button({}, 3, awful.tag.viewtoggle),
-	awful.button({modkey}, 3, function(t)
-					if client.focus then
-						client.focus:toggle_tag(t)
-					end
-				  end),
-	awful.button({}, 4, function(t) awful.tag.viewnext(t.screen) end),
-	awful.button({}, 5, function(t) awful.tag.viewprev(t.screen) end)
-)
-
-local tasklist_buttons = gears.table.join(
-	awful.button({}, 1, function(c)
-		if c == client.focus then
-			c.minimized = true
-		else
-			c:emit_signal(
-				"request::activate",
-				"tasklist",
-				{raise = true}
-			)
-		end
-	end),
-
-	awful.button({}, 3, function()
-		awful.menu.client_list({ theme = {width = 250}})
-	end),
-	awful.button({}, 4, function()
-		awful.client.focus.byidx(1)
-	end),
-	awful.button({}, 5, function()
-		awful.client.focus.byidx(-1)
-	end)
-)
-
-local tags = {"1","2","3","4","5","6","7","8","9"}
-
+local tags = {"1","2","3","4"}
 awful.screen.connect_for_each_screen(function(s)
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])
-
+	
 	-- each screens prompt box
 	s.mypromptbox = awful.widget.prompt()
 
 	-- tags	
 	s.mytaglist = awful.widget.taglist(
 		s, -- screen
-		awful.widget.taglist.filter.all, --filter
-		taglist_buttons --buttons
+		awful.widget.taglist.filter.all --filter
 	)
+	
+	s.ramgraph = wibox.widget.graph()
+	s.ramgraph.forced_width = 36
+	s.ramgraph.step_width = 6
+
+	-- if a battery is present make an indicator for it
+	
+	local battery_dir = "/sys/class/power_supply/BAT0/"
+
+	local file = io.open(battery_dir.."charge_full")
+	local update_battery_percent
+	if file then
+		local full_battery_charge = tonumber(file:read())
+		file:close()
+		file = io.open(battery_dir.."charge_now")
+		local current_battery_charge = tonumber(file:read())
+		file:close()
+		s.batteryindicatortextbox = wibox.widget.textbox("")
+		s.batteryindicatorbar  = wibox.widget.progressbar()
+		s.batteryindicator = wibox.widget {
+			layout = wibox.layout.stack,
+			{ -- Progress Bar
+				widget 		= s.batteryindicatorbar,
+				max_value 	= full_battery_charge,
+				value		= current_battery_charge,
+				paddings	= 1,
+				border_width	= 1,
+				border_color	= beautiful.border_color,
+				shape		= function(cr, w, h)
+					gears.shape.rounded_rect(cr, w, 5)
+				end,
+				forced_width	= 25,
+				height		= 10,
+			},
+			{ -- Percent Text
+				widget 		= s.batteryindicatortextbox,
+				text 		= ("%.0f%%"):format( current_battery_charge / full_battery_charge * 100 ),
+			},
+		}
+
+		function update_battery_percent()
+			local file = io.open(battery_dir .. "charge_full")
+			local full_battery_charge = tonumber(file:read())
+			file:close()
+			file = io.open(battery_dir .. "charge_now")
+			local current_battery_charge = tonumber(file:read())
+			file:close()
+			
+			local battery_percent = current_battery_charge / full_battery_charge * 100
+			s.batteryindicatorbar.value = battery_percent
+			s.batteryindicatortextbox.text = ("%.0f%%"):format( battery_percent )
+		end
+	end
 
 	-- setup the bar
-	s.mywibox = awful.wibar{ position = "top", screen = s }
-	s.mywibox:setup {
+	s.statusbar = awful.wibar{ position = "top", screen = s }
+	s.statusbar:setup {
 		layout = wibox.layout.align.horizontal,
 		{ -- Left Widgets
 			layout = wibox.layout.fixed.horizontal,
@@ -149,6 +178,37 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
+			
+			-- Ram Histogram
+			wibox.widget.textbox("Ram:"),
+			s.ramgraph,
+			awful.widget.watch("free -m | grep Mem:", 10, function(_, stdout)
+				-- first number is total ram, second is used
+				local total, used
+				local f, l = stdout:find("%d+")
+				total = tonumber(stdout:sub(f, l))
+				used  = tonumber(stdout:sub(
+					stdout:find("%d+", l+1)
+				))
+				s.ramgraph.max_value = total
+				s.ramgraph:add_value(used)
+
+				-- Have the battery widget piggyback off of this watch
+				if update_battery_percent then update_battery_percent() end
+			end),
+			wibox.widget.textbox("  "),
+
+			-- Wifi Network Name
+			awful.widget.watch("iwgetid -r", 60, function(widget, stdout)
+				widget:set_text("Wifi: "..stdout)
+			end),
+			wibox.widget.textbox("  "),
+
+			-- Battery Percentage
+			s.batteryindicator or wibox.widget.textbox(" "),
+			
+			wibox.widget.textbox(" "),
+			-- Tags
 			s.mytaglist,
 		},
 	}
@@ -156,23 +216,6 @@ end)
 -- }}}
 
 -- {{{ Key Bindings 
--- function for adjusting gaps
-
-local function change_gaps(amount)
-	beautiful.useless_gap = math.max(beautiful.useless_gap + amount, 0)
-	-- show notification of new gap size
-	naughty.notify{
-		position = "top_middle",
-		text = "Gap Size: "..beautiful.useless_gap,
-		timeout = 1,
-	}
-
-	-- update clients
-	for _, c in ipairs(client.get()) do
-		c:emit_signal("property::window")
-		c:emit_signal("list")
-	end
-end
 
 local m, crtl, shft = modkey, "Control", "Shift" -- Aliases for convenience 
 globalkeys = gears.table.join(
@@ -238,7 +281,7 @@ globalkeys = gears.table.join(
 									 group		="layout"				}),
 
 	awful.key({m},"r", 		function()
-						awful.screen.focused().mypromptbox:run()
+						menubar.show()
 					end,				{description	="run prompt",
 									 group		="launcher"				}),
 	awful.key({m},"g",		function() 

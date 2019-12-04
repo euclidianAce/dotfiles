@@ -3,7 +3,11 @@
 -- TODO:
 -- 	- find a nice looking way of truncating things when terminal is too thin
 
+-- make chunk library gets loaded from the relative file location
+package.path = package.path .. ";/home/corey/.config/?.lua"
 local chunk = require "chunk"
+
+
 local box = chunk.box
 local color = chunk.color
 -- Functions to call bash functions and get varaibles
@@ -40,9 +44,7 @@ local gitBranch = bashExec("git branch 2> /dev/null | grep \\*")
       		or chunk.new(gitNoBranchStr)
 
 local time 	= chunk.new(os.date("%X"))
-
--- Helper functions
-
+-- corresponding colors
 local lineColor = "cyan"
 local timeColor = "white"
 local userColor = "lightRed"

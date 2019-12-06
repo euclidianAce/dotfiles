@@ -56,7 +56,7 @@ export PATH="$PATH:~/bin"
 
 # offload getting ps1 to lua script
 function update_ps1 { 
-	PS1=$( lua $HOME/.config/.ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
+	PS1=$( lua $HOME/.config/ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

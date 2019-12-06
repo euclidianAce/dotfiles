@@ -53,17 +53,16 @@ local gitColor = (gitBranch.str ~= gitNoBranchStr and "lightGreen") or "lightYel
 
 -- PS1
 
---[[
 if 10+time.len+user.len+workDir.len+gitBranch.len > columns then -- compact mode
+	
 	workDir = chunk.new(bashEchoInto("$DIRSTACK")):color(workDirColor)
-	local ps1 = concat(
-		workDir, chunk.new(" $ "):color("lightMagenta") 
-	)
+	local ps1 = chunk.concat{
+		workDir, chunk.new( " $ " ):color("lightMagenta")
+	}
 
 	io.write(ps1.str)
 	return
 end
-]]
 
 local ps1 = {
 	chunk.concat{
@@ -77,6 +76,7 @@ local ps1 = {
 	--[[ corner above git branch ]] box.line.horizontal:rep(gitBranch.len), box.corner.topRight,
 					chunk.newl,
 	},
+
 	chunk.concat{
 		-- line 2, the info and the separators for it
 		

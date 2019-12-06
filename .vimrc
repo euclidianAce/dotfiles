@@ -15,12 +15,10 @@ auto FileType lua nnoremap ;run :w<CR>:!./<C-R>%<CR>
 "}}}
 
 "{{{ Visuals
-
 set number              " line number
 set relativenumber      " relative line numbers based on cursor position
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
-set cursorline 	        " highlight current line
 set wildmenu	        " visual autocomplete stuffs
 set lazyredraw	        " redraw screen only when necessary
 set showcmd		" show command being typed

@@ -71,8 +71,6 @@ modkey = "Mod4"
 -- Layouts for window tiling
 awful.layout.layouts = {
 	layout,
-	awful.layout.suit.tile,
-	awful.layout.suit.fair.horizontal,
 }
 
 -- function for adjusting gaps
@@ -101,6 +99,7 @@ menubar.utils.terminal = terminal
 menubar.show_categories = false
 -- create a wibox for each screen
 local tags = {"1","2","3","4"}
+
 awful.screen.connect_for_each_screen(function(s)
 	local spacer = wibox.widget.textbox("  ")
 
@@ -230,7 +229,7 @@ globalkeys = gears.table.join(
 	
 	awful.key({m,shft},"h",		awful.tag.viewprev, 		{description="view previous", 
 									 group="tag"						}),
-	
+
 	awful.key({m,shft},"l", 	awful.tag.viewnext, 		{description="view next", 
 									 group="tag"						}),
 	
@@ -286,7 +285,6 @@ globalkeys = gears.table.join(
 									 group		="layout"				}),
 
 	awful.key({m},"r", 		function()
-						menubar.refresh()
 						menubar.show()
 					end,				{description	="run prompt",
 									 group		="launcher"				}),
@@ -311,7 +309,11 @@ clientkeys = gears.table.join(
 	awful.key({m,shft},"c",		function(c) c:kill() end,	{description	="close",
 									 group		="client"}),
 
-	awful.key({m,crtl},"space", 	awful.client.floating.toggle,	{description	="toggle floating",
+	awful.key({m,crtl},"space", 	function(c) 
+						awful.client.floating.toggle(c)
+						c:emit_signal("request::titlebars")
+						if c.floating then c:raise() else c:lower() end
+					end,				{description	="toggle floating",
 									 group		="client"}),
 	
 	awful.key({m,crtl},"Return",	function(c) 
@@ -378,6 +380,23 @@ for i = 1, #tags do
 end
 
 root.keys(globalkeys)
+
+-- Floating window resizing with the mouse
+clientbuttons = gears.table.join(
+	awful.button({}, 1, function(c)
+		c:emit_signal("request::activate", "mouse_click", {raise = true})
+	end),
+	awful.button({m}, 1, function(c)
+		c:emit_signal("request::activate", "mouse_click", {raise = true})
+		awful.mouse.client.move(c)
+	end),
+	awful.button({m}, 3, function(c)
+		c:emit_signal("request::activate", "mouse_click", {raise = true})
+		awful.mouse.client.resize(c)
+	end)
+)
+
+
 -- }}}
 
 -- {{{ Rules
@@ -393,7 +412,8 @@ awful.rules.rules = {
 			screen		= awful.screen.preferred,
 			honor_padding	= true,
 			size_hints_honor= false,
-			placement 	= awful.placement.no_overlap + awful.placement.no_offscreen }}
+			placement 	= awful.placement.no_offscreen }},
+
 }
 -- }}}
 
@@ -405,6 +425,39 @@ client.connect_signal("manage",
 		not c.size_hints.user_position then
 			awful.placement.no_offscreen(c)
 		end
+		
+		local buttons = gears.table.join(
+			awful.button({}, 1, function()
+				c:emit_signal("request::activate", "titlebar", {raise=true})
+				awful.mouse.client.move(c)
+			end),
+			awful.button({}, 3, function()
+				c:emit_signal("request::activate", "titlebar", {raise=true})
+				awful.mouse.client.resize(c)
+			end)
+		)
+
+		awful.titlebar(c):setup {
+			{
+				awful.titlebar.widget.iconwidget(c),
+				layout = wibox.layout.fixed.horizontal,
+			}, 
+			{
+				{
+					align = "center",
+					widget = awful.titlebar.widget.titlewidget(c),
+				},
+				buttons = buttons,
+				layout = wibox.layout.flex.horizontal
+			}, 
+			{
+				awful.titlebar.widget.closebutton(c),
+				layout = wibox.layout.fixed.horizontal
+			},
+			layout = wibox.layout.align.horizontal
+		}
+		c:lower()
+		awful.titlebar.hide(c)
 	end
 )
 
@@ -419,6 +472,15 @@ client.connect_signal("property::window",
 		end
 	end
 )
+
+-- Titlebar stuffs
+client.connect_signal("request::titlebars", function(c)
+	if c.floating then
+		awful.titlebar.show(c)
+	else
+		awful.titlebar.hide(c)
+	end
+end)
 
 
 -- Enable sloppy focus

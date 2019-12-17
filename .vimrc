@@ -7,6 +7,7 @@ syntax enable           " syntax highlighting
 " tex open, save, and compile command
 auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>=expand("%:p:r").".pdf"<CR> &<CR><CR>
 auto FileType tex nnoremap ;comp :w<CR>:!pdflatex <C-R>=expand("%:p")<CR><CR>
+auto FileType tex nnoremap ;xcomp :w<CR>:!xelatex <C-R>=expand("%p")<CR><CR>
 
 " lua run command
 " figure out a way to make this only avaliable to executables
@@ -23,9 +24,17 @@ set wildmenu	        " visual autocomplete stuffs
 set lazyredraw	        " redraw screen only when necessary
 set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
-let g:netrw_liststyle=3 " set tree style to default when viewing directories
 set background=dark
+
+autocmd BufRead,BufNewFile *.etlua set filetype=html
 "}}}
+
+" {{{ NERDtree imitation
+let g:netrw_liststyle=3 " set tree style to default when viewing directories
+let g:netrw_banner=0	" get rid of the banner
+let g:netrw_browse_split=3 " open files in a new tab
+let g:netrw_winsize=20	" have netrw take up 20% of the window
+" }}}
 
 "{{{ Text formatting
 set linebreak
@@ -38,3 +47,4 @@ set formatoptions=ltcroj " each letter corresponds to a text formatting option
 set foldmethod=marker	" allow folding
 "}}}
 
+set mouse=a

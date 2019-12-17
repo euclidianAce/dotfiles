@@ -38,7 +38,7 @@ alias refresh="source ~/.bashrc" #reload bashrc
 alias vbrc="nvim ~/.bashrc && source ~/.bashrc"
 alias vxr="nvim ~/.Xresources && xrdb ~/.Xresources"
 alias vvrc="nvim ~/.vimrc"
-alias vps1="nvim ~/.config/.ps1Getter.lua"
+alias vps1="nvim ~/.config/ps1Getter.lua"
 
 # actual "aliases"
 alias v="nvim"
@@ -51,8 +51,13 @@ alias v="nvim"
 # set neovim as the default editor
 export EDITOR=nvim
 
-# custom scripts
+# Additions to PATH
 export PATH="$PATH:~/bin"
+export PATH=/usr/local/openresty/bin:$PATH
+
+# Change the lua path so it can see luarocks packages
+eval $(luarocks path --bin)
+
 
 # offload getting ps1 to lua script
 function update_ps1 { 

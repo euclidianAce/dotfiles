@@ -74,17 +74,21 @@ awful.layout.layouts = {
 }
 
 -- function for adjusting gaps
-local current_gap_index = 1
-local gap_sizes = {0, 2, 5, 10, 15, 20}
+local auto_change_gaps = false
+local gap_sizes = {20, 10, 5, 0}
+local current_gap_index = #gap_sizes
 local function change_gaps(delta)
-	current_gap_index = math.min(math.max(current_gap_index + delta, 1), #gap_sizes)
+	current_gap_index = math.min(math.max(current_gap_index - delta, 1), #gap_sizes)
 	beautiful.useless_gap = gap_sizes[current_gap_index]
+	
+	--[[
 	-- show notification of new gap size
 	naughty.notify{
 		position = "top_middle",
 		text = "Gap Size: "..beautiful.useless_gap,
 		timeout = 1,
 	}
+	]]
 
 	-- update clients
 	for _, c in ipairs(client.get()) do
@@ -92,6 +96,8 @@ local function change_gaps(delta)
 		c:emit_signal("list")		  -- resizes windows
 	end
 end
+beautiful.useless_gap = gap_sizes[current_gap_index]
+
 -- }}}
 
 -- {{{ Status Bar
@@ -220,8 +226,13 @@ end)
 -- }}}
 
 -- {{{ Key Bindings 
+--
+-- Aliases for convenience 
+local m 	= modkey
+local crtl 	= "Control" 
+local shft 	= "Shift" 
+local alt 	= "Mod1"
 
-local m, crtl, shft = modkey, "Control", "Shift" -- Aliases for convenience 
 globalkeys = gears.table.join(
 --	awful.key(KEYS			FUNCTION			DESCRIPTION)
 	awful.key({m},"s", 		hotkeys_popup.show_help, 	{description="show help", 
@@ -263,6 +274,15 @@ globalkeys = gears.table.join(
 						awful.spawn(terminal)
 					end,				{description	="open a terminal",
 									 group		="launcher"				}),
+	
+	awful.key({m,shft},"Return",	function()
+						awful.spawn(terminal, {
+							floating = true,
+							tag = mouse.screen.selected_tag,
+							placement = awful.placement.under_mouse
+						})
+					end,				{description	="open a floating terminal",
+									 group		="launcher"				}),
 	awful.key({m},"space",		function()
 						awful.layout.inc(1)
 					end,				{description	="Toggle tiling method",
@@ -296,6 +316,11 @@ globalkeys = gears.table.join(
 	awful.key({m,shft},"g",		function() 
 						change_gaps(-1)
 					end,				{description	="decrease gaps",
+									 group		="layout"				}),
+
+	awful.key({m,alt},"g",		function()
+						auto_change_gaps = not auto_change_gaps
+					end, 				{description	="toggle auto gap size changes",
 									 group		="layout"				})
 )
 
@@ -401,6 +426,8 @@ clientbuttons = gears.table.join(
 
 -- {{{ Rules
 
+awful.mouse.snap.edge_enabled = false
+
 awful.rules.rules = {
 	{rule = {},
 	 properties = { border_width	= beautiful.border_width,
@@ -421,6 +448,10 @@ awful.rules.rules = {
 
 client.connect_signal("manage", 
 	function(c)
+		local client_amount = #client.get()
+		if current_gap_index ~= client_amount and auto_change_gaps then
+			change_gaps(current_gap_index - client_amount)
+		end
 		if awesome.startup and
 		not c.size_hints.user_position then
 			awful.placement.no_offscreen(c)
@@ -456,14 +487,23 @@ client.connect_signal("manage",
 			},
 			layout = wibox.layout.align.horizontal
 		}
-		c:lower()
-		awful.titlebar.hide(c)
+		if not c.floating then
+			c:lower()
+			awful.titlebar.hide(c)
+		end
 	end
 )
 
+client.connect_signal("unmanage", function(c)
+	local client_amount = #client.get()
+	if current_gap_index ~= client_amount and auto_change_gaps then
+		change_gaps(current_gap_index - client_amount)
+	end
+end)
+
 client.connect_signal("property::window",
 	function(c)
-		if beautiful.useless_gap > 0 then
+		if beautiful.useless_gap > 0 or c.floating then
 			c.shape = function(cr, width, height)
 				gears.shape.rounded_rect(cr, width, height, 10)
 			end

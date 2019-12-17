@@ -57,7 +57,7 @@ if 10+time.len+user.len+workDir.len+gitBranch.len > columns then -- compact mode
 	
 	workDir = chunk.new(bashEchoInto("$DIRSTACK")):color(workDirColor)
 	local ps1 = chunk.concat{
-		workDir, chunk.new( " $ " ):color("lightMagenta")
+		workDir, chunk.newl, chunk.new("$ "):color("lightMagenta")
 	}
 
 	io.write(ps1.str)

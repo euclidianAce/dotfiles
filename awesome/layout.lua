@@ -9,7 +9,6 @@ local layout = {}
 local function organize(p)
 	-- p has clients and the work area
 	-- 	p.clients, p.workarea
-	
 
 	for index, client in ipairs(p.clients) do
 		-- a clients geometry table has
@@ -17,7 +16,6 @@ local function organize(p)
 		-- 	width and height
 		local geometry = {}
 		
-		-- the math for all the tiling and such
 
 		--[[
 		-- just as an exercise, just tile everything vertically
@@ -38,6 +36,7 @@ local function organize(p)
 		geometry.y = p.workarea.y + (index-1) * geometry.height
 		]]--
 
+		-- the math for all the tiling and such
 		if #p.clients == 3 then
 			geometry.width = p.workarea.width / 2
 			if index == 1 then

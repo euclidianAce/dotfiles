@@ -1,3 +1,10 @@
+! URxvt extensions
+URxvt.keysym.Shift-Control-V: eval:paste_clipboard
+URxvt.keysym.Shift-Control-C: eval:selection_to_clipboard
+URxvt.iso14755: False
+
+URxvt.perl-ext-common: default,resize-font
+
 ! Transparency
 *.transparent:	true
 *.shading:	10

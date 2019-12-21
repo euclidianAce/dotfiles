@@ -11,8 +11,8 @@
 # vi mode: allows vi style commands within bash
 set -o vi
 
-shopt -s autocd # Automatically does a cd when you type a directory
-shopt -s checkwinsize # resize window automatically after each command
+shopt -s autocd		# Automatically does a cd when you type a directory
+shopt -s checkwinsize 	# resize window automatically after each command
 
 #################
 #### ALIASES ####
@@ -55,9 +55,8 @@ export EDITOR=nvim
 export PATH="$PATH:~/bin"
 export PATH=/usr/local/openresty/bin:$PATH
 
-# Change the lua path so it can see luarocks packages
+# Change the LUA_PATH so it can see luarocks packages
 eval $(luarocks path --bin)
-
 
 # offload getting ps1 to lua script
 function update_ps1 { 

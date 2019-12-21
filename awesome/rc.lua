@@ -19,9 +19,10 @@ local hotkeys_popup	= require("awful.hotkeys_popup").widget
 			  require "awful.hotkeys_popup.keys"
 
 -- Custom things
-local system 		= require "system"
+local system 		= require "sys"
 local layout		= require "layout"
 -- }}}
+
 
 -- {{{ Error handling from default rc.lua
 
@@ -124,12 +125,7 @@ awful.screen.connect_for_each_screen(function(s)
 	end)
 	local ram_icon = gears.color.recolor_image(icon_path .. "ram.png", beautiful.bg_focus)
 	
-	s.ram = wibox.widget{
-		layout = wibox.layout.align.horizontal,
-		{widget = wibox.widget.imagebox(ram_icon)	},
-		{widget = ramgraph				},
-		{widget = ramclock				}
-	}
+	s.ram = require("customWidgets.ramgraph")
 
 	-- Wifi Icon and Network Name
 	local wifi_good_icon = icon_path .. "wifi.svg"

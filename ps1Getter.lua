@@ -2,6 +2,7 @@
 
 -- TODO:
 -- 	- find a nice looking way of truncating things when terminal is too thin
+-- 	- clean up this code
 
 -- make chunk library gets loaded from the relative file location
 package.path = package.path .. ";/home/corey/.config/?.lua"

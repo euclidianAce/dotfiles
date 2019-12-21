@@ -23,11 +23,10 @@ alias ls="ls -hN --file-type --color=auto --group-directories-first"
 alias la="ls -AhN --file-type --color=auto --group-directories-first"
 alias grep="grep --color=auto"
 
-# always ask before emerging and do it quietly
-alias emerge="sudo emerge --ask --quiet"
-alias emergev="sudo emerge --ask"
-alias emergef="sudo emerge --ask --fetchonly --quiet"
-alias etc-update="sudo etc-update"
+# xbps stuffs
+alias xbpsi="sudo xbps-install"
+alias xbpsq="xbps-query -Rs "
+alias xbpsr="sudo xbps-remove"
 
 # power stuffs 
 alias sdn="sudo shutdown -h now"
@@ -52,6 +51,7 @@ alias v="nvim"
 export EDITOR=nvim
 
 # Additions to PATH
+source /etc/profile
 export PATH="$PATH:~/bin"
 export PATH=/usr/local/openresty/bin:$PATH
 

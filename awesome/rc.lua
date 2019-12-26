@@ -336,14 +336,15 @@ clientkeys = gears.table.join(
 
 	awful.key({m,crtl},"space", 	function(c) 
 						awful.client.floating.toggle(c)
-						c:emit_signal("request::titlebars")
-						if c.floating then c:raise() else c:lower() end
+						if c.floating then
+							awful.titlebar.show(c)
+							c:raise() 
+						else
+							awful.titlebar.hide(c)
+							c:lower() 
+						end
+
 					end,				{description	="toggle floating",
-									 group		="client"}),
-	
-	awful.key({m,crtl},"Return",	function(c) 
-						c:swap(awful.client.getmaster()) 
-					end, 				{description	="swap with master",
 									 group		="client"})
 )
 
@@ -487,8 +488,8 @@ client.connect_signal("manage",
 			},
 			layout = wibox.layout.align.horizontal
 		}
+		awful.titlebar.show(c)
 		if not c.floating then
-			c:lower()
 			awful.titlebar.hide(c)
 		end
 	end
@@ -513,23 +514,10 @@ client.connect_signal("property::window",
 	end
 )
 
--- Titlebar stuffs
-client.connect_signal("request::titlebars", function(c)
-	if c.floating then
-		awful.titlebar.show(c)
-	else
-		awful.titlebar.hide(c)
-	end
-end)
-
-
 -- Enable sloppy focus
 client.connect_signal("mouse::enter",
 	function(c)
-		if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier and
-		awful.client.focus.filter(c) then
-			client.focus = c
-		end
+		client.focus = c
 	end
 )
 

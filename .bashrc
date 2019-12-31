@@ -31,6 +31,7 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit"
 # default options
 alias ls="ls -hN --file-type --color=auto --group-directories-first"
 alias la="ls -AhN --file-type --color=auto --group-directories-first"
+alias ll="ls -AhNl --file-type --color=auto --group-directories-first"
 alias grep="grep --color=auto"
 
 # always ask before emerging and do it quietly

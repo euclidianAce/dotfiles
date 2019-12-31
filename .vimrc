@@ -4,10 +4,8 @@ set autoindent          " auto indents
 set smartindent         " indent for code
 syntax enable           " syntax highlighting
 
-" tex open, save, and compile command
+" quick shortcut to open pdf of the tex file
 auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>=expand("%:p:r").".pdf"<CR> &<CR><CR>
-auto FileType tex nnoremap ;comp :w<CR>:!pdflatex <C-R>=expand("%:p")<CR><CR>
-auto FileType tex nnoremap ;xcomp :w<CR>:!xelatex <C-R>=expand("%p")<CR><CR>
 
 " lua run command
 " figure out a way to make this only avaliable to executables

@@ -25,56 +25,51 @@ function bashEchoInto(expr)
 	return bashExec("echo "..expr)
 end
 
--- User and terminal info
-
-local columns 	= tonumber( bashEchoInto("$(stty size)"):gsub("(%d+)%s+(%d+)", "%2"), nil )
-
-local user 	= chunk.new(
-			bashEchoInto("$USER") .. "@" .. bashExec("hostname")
-		)
-
-local workDir	= bashEchoInto("$DIRSTACK") or ""
-if workDir == "" then
-	workDir = bashExec("pwd"):gsub("/home/"..bashEchoInto("$USER"), "~")
+-- User/Environment and terminal info
+local columns 	= tonumber( bashExec("stty size"):gsub("(%d+)%s+(%d+)", "%2"), nil )
+local env = {
+	time		= {str = os.date("%X"), 
+			   color = "white"},
+	user 		= {str = os.getenv("USER") .. "@" .. bashExec("hostname"), 
+			   color = "lightRed"},
+	workDir 	= {str = bashExec("pwd"):gsub("/home/" .. os.getenv("USER"), "~"), 
+			   color = "lightBlue"},
+	branch 		= {str = bashExec("git branch 2> /dev/null | grep \\*") or "* none", 
+			   color = "lightGreen"}
+}
+local __env = {}
+function __env:__len()
+	return #(self.chunk)
 end
-workDir	= chunk.new( workDir..(" "):rep(10-#workDir) ) -- Make the working directory at least 10 chars long 
-      
-local gitNoBranchStr = "* none"
-local gitBranch = bashExec("git branch 2> /dev/null | grep \\*")
-      gitBranch = (gitBranch and chunk.new(gitBranch)) 
-      		or chunk.new(gitNoBranchStr)
+env.workDir.str = env.workDir.str .. (" "):rep(10 - #env.workDir.str)
+local len = 0
+for _, v in pairs(env) do
+	setmetatable(v, __env)
+	v.chunk = chunk.new(v.str):color(v.color)
+	len = len + #v
+end
 
-local time 	= chunk.new(os.date("%X"))
--- corresponding colors
-local lineColor = "cyan"
-local timeColor = "white"
-local userColor = "lightRed"
-local workDirColor = "lightBlue"
-local gitColor = (gitBranch.str ~= gitNoBranchStr and "lightGreen") or "lightYellow"
 
 -- PS1
-
-if 10+time.len+user.len+workDir.len+gitBranch.len > columns then -- compact mode
-	
-	workDir = chunk.new(bashEchoInto("$DIRSTACK")):color(workDirColor)
+if 10 + len > columns then
 	local ps1 = chunk.concat{
-		workDir, chunk.newl, chunk.new("$ "):color("lightMagenta")
+		env.workDir.chunk, chunk.newl, chunk.new("$ "):color("lightMagenta")
 	}
-
 	io.write(ps1.str)
 	return
 end
+local lineColor = "cyan"
 
 local ps1 = {
 	chunk.concat{
 	-- line 1, the hats to the info
 
-	--[[ Set the lineColor ]] 	color[lineColor],
-	--[[ Initial Spaces ]] 		chunk.new(" "):rep(3),
-	--[[ Corner and T above time]] 	box.corner.topLeft, box.line.horizontal:rep(time.len), box.t.down,
-	--[[ Ts above user@host ]] 	box.line.horizontal:rep(user.len), box.t.down,
-	--[[ Ts above directory ]] 	box.line.horizontal:rep(workDir.len), box.t.down,
-	--[[ corner above git branch ]] box.line.horizontal:rep(gitBranch.len), box.corner.topRight,
+	--[[ Set the lineColor       ]] color[lineColor],
+	--[[ Initial Spaces 	     ]] chunk.new(" "):rep(3),
+	--[[ Corner and T above time ]] box.corner.topLeft, box.line.horizontal:rep(#env.time), box.t.down,
+	--[[ Ts above user@host      ]] box.line.horizontal:rep(#env.user), box.t.down,
+	--[[ Ts above directory      ]] box.line.horizontal:rep(#env.workDir), box.t.down,
+	--[[ corner above git branch ]] box.line.horizontal:rep(#env.branch), box.corner.topRight,
 					chunk.newl,
 	},
 
@@ -83,21 +78,21 @@ local ps1 = {
 		
 		-- initial stuffs
 		box.corner.topLeft, box.line.horizontal:rep(2), box.t.left, chunk.reset,
-		--   INFO				SEPARATOR
-		time:color(timeColor), 		box.line.vertical:color(lineColor),
-		user:color(userColor),		box.line.vertical:color(lineColor),
-		workDir:color(workDirColor),	box.line.vertical:color(lineColor),
-		gitBranch:color(gitColor),	color[lineColor], box.t.right,
+		--   INFO			SEPARATOR
+		env.time.chunk, 	box.line.vertical:color(lineColor),
+		env.user.chunk,		box.line.vertical:color(lineColor),
+		env.workDir.chunk,	box.line.vertical:color(lineColor),
+		env.branch.chunk,	color[lineColor], box.t.right,
 	},
 
 	-- line 3, the bottom bits
 	chunk.concat{
-	--[[ Set the lineColor ]] 	color[lineColor], box.line.vertical,
-	--[[ Initial Spaces ]] 		chunk.new(" "):rep(2),
-	--[[ Corner and T above time]] 	box.corner.bottomLeft, box.line.horizontal:rep(time.len), box.t.up,
-	--[[ Ts above user@host ]] 	box.line.horizontal:rep(user.len), box.t.up,
-	--[[ Ts above directory ]] 	box.line.horizontal:rep(workDir.len), box.t.up,
-	--[[ corner above git branch ]] box.line.horizontal:rep(gitBranch.len), box.corner.bottomRight,
+	--[[ Set the lineColor       ]] color[lineColor], box.line.vertical,
+	--[[ Initial Spaces          ]] chunk.new(" "):rep(2),
+	--[[ Corner and T above time ]] box.corner.bottomLeft, box.line.horizontal:rep(#env.time), box.t.up,
+	--[[ Ts above user@host      ]] box.line.horizontal:rep(#env.user), box.t.up,
+	--[[ Ts above directory      ]] box.line.horizontal:rep(#env.workDir), box.t.up,
+	--[[ corner above git branch ]] box.line.horizontal:rep(#env.branch), box.corner.bottomRight,
 					chunk.reset, chunk.newl,
 
 	},

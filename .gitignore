@@ -15,3 +15,8 @@ pulse*
 qt*
 unity*
 libre*
+vlc/
+/pulse
+/neofetch
+qtfm*
+glib*

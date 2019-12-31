@@ -55,7 +55,10 @@ __chunk = {
 		color = function(self, colorName)
 			return chunk.new(esc(ANSIColors[colorName]), 0) .. self .. chunk.new(resetString,0)
 		end
-	}
+	},
+	__len = function(self)
+		return self.len
+	end
 }
 
 

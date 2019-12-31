@@ -1,0 +1,3 @@
+[submodule "urxvt/ext"]
+	path = urxvt/ext
+	url = https://github.com/simmel/urxvt-resize-font

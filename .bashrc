@@ -15,6 +15,16 @@ shopt -s autocd		# Automatically does a cd when you type a directory
 shopt -s checkwinsize 	# resize window automatically after each command
 
 #################
+#### HISTORY ####
+#################
+
+export HISTFILESIZE=20000
+export HISTSIZE=10000
+shopt -s histappend
+HISTCONTROL=ignoredups
+export HISTIGNORE="&:ls:[bf]g:clear:exit"
+
+#################
 #### ALIASES ####
 #################
 
@@ -43,7 +53,6 @@ alias vps1="nvim ~/.config/ps1Getter.lua"
 # actual "aliases"
 alias v="nvim"
 
-
 ##########################
 #### ENVIRONMENT VARS ####
 ##########################
@@ -52,6 +61,7 @@ alias v="nvim"
 export EDITOR=nvim
 
 # Additions to PATH
+source /etc/profile
 export PATH="$PATH:~/bin"
 export PATH=/usr/local/openresty/bin:$PATH
 

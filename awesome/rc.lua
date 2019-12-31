@@ -135,7 +135,7 @@ awful.screen.connect_for_each_screen(function(s)
 		layout = wibox.layout.align.horizontal,
 		{widget = wifi_icon_widget		},
 		{	
-			widget = awful.widget.watch("iwgetid -r", 60, function(widget, stdout)
+			widget = awful.widget.watch("iwgetid -r", 10, function(widget, stdout)
 				if stdout ~= "" then
 					widget:set_text(" " .. stdout)
 					wifi_icon_widget:set_image(

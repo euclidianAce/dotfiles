@@ -126,6 +126,7 @@ awful.screen.connect_for_each_screen(function(s)
 	local ram_icon = gears.color.recolor_image(icon_path .. "ram.png", beautiful.bg_focus)
 	
 	s.ram = require("customWidgets.ramgraph")
+	s.cpu = require("customWidgets.cpugraph")
 
 	-- Wifi Icon and Network Name
 	local wifi_good_icon = icon_path .. "wifi.svg"
@@ -211,6 +212,7 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
+			--s.cpu, spacer,
 			s.ram, spacer,
 			s.wifi, 
 			s.batteryindicator or wibox.widget.textbox(" "), 

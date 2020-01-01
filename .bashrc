@@ -22,7 +22,7 @@ export HISTFILESIZE=20000
 export HISTSIZE=10000
 shopt -s histappend
 HISTCONTROL=ignoredups
-export HISTIGNORE="&:ls:[bf]g:clear:exit"
+export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 
 #################
 #### ALIASES ####
@@ -45,11 +45,10 @@ alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
 
 # config file editing and reloading
-alias refresh="source ~/.bashrc" #reload bashrc
-alias vbrc="nvim ~/.bashrc && source ~/.bashrc"
-alias vxr="nvim ~/.Xresources && xrdb ~/.Xresources"
-alias vvrc="nvim ~/.vimrc"
-alias vps1="nvim ~/.config/ps1Getter.lua"
+alias ebrc="$EDITOR ~/.bashrc && source ~/.bashrc"
+alias exr="$EDITOR ~/.Xresources && xrdb ~/.Xresources"
+alias evrc="$EDITOR ~/.vimrc"
+alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 
 # actual "aliases"
 alias v="nvim"
@@ -59,14 +58,14 @@ alias v="nvim"
 ##########################
 
 # set neovim as the default editor
-export EDITOR=nvim
+export EDITOR=vim
 
 # Additions to PATH
 source /etc/profile
 export PATH="$PATH:~/bin"
 export PATH=/usr/local/openresty/bin:$PATH
 
-# Change the LUA_PATH so it can see luarocks packages
+# Change the LUA_PATH and LUA_CPATH so they can see luarocks packages
 eval $(luarocks path --bin)
 
 # offload getting ps1 to lua script

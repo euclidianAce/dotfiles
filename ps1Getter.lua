@@ -52,7 +52,7 @@ if 10 + len > columns then -- if terminal is too small for the full thing
 	io.write(ps1.str)
 	return
 end
-local lineColor = "cyan"
+local lineColor = userName == "root" and "lightRed" or "cyan"
 
 local ps1 = {
 	chunk.concat{

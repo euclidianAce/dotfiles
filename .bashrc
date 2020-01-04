@@ -24,6 +24,21 @@ shopt -s histappend
 HISTCONTROL=ignoredups
 export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 
+##########################
+#### ENVIRONMENT VARS ####
+##########################
+
+# set neovim as the default editor
+export EDITOR=nvim
+
+# Additions to PATH
+source /etc/profile
+export PATH="$PATH:~/bin"
+export PATH=/usr/local/openresty/bin:$PATH
+
+# Change the LUA_PATH and LUA_CPATH so they can see luarocks packages
+eval $(luarocks path --bin)
+
 #################
 #### ALIASES ####
 #################
@@ -44,29 +59,19 @@ alias etc-update="sudo etc-update"
 alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
 
+# actual "aliases"
+alias v="nvim"
+
 # config file editing and reloading
 alias ebrc="$EDITOR ~/.bashrc && source ~/.bashrc"
 alias exr="$EDITOR ~/.Xresources && xrdb ~/.Xresources"
 alias evrc="$EDITOR ~/.vimrc"
 alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 
-# actual "aliases"
-alias v="nvim"
 
 ##########################
-#### ENVIRONMENT VARS ####
+####    PS1 STUFFS    ####
 ##########################
-
-# set neovim as the default editor
-export EDITOR=vim
-
-# Additions to PATH
-source /etc/profile
-export PATH="$PATH:~/bin"
-export PATH=/usr/local/openresty/bin:$PATH
-
-# Change the LUA_PATH and LUA_CPATH so they can see luarocks packages
-eval $(luarocks path --bin)
 
 # offload getting ps1 to lua script
 function update_ps1 { 

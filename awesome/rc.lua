@@ -23,7 +23,6 @@ local system 		= require "sys"
 local layout		= require "layout"
 -- }}}
 
-
 -- {{{ Error handling from default rc.lua
 
 -- Check for startup errors
@@ -151,7 +150,7 @@ awful.screen.connect_for_each_screen(function(s)
 	}
 
 	-- if a battery is present make an indicator for it
-	local battery_percent = system.battery.get_percent() --or .12
+	local battery_percent = system.battery.get_percent()
 	local update_battery_percent
 	if battery_percent then
 		local battery_text = wibox.widget.textbox("")
@@ -212,7 +211,7 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
-			--s.cpu, spacer,
+			s.cpu, spacer,
 			s.ram, spacer,
 			s.wifi, 
 			s.batteryindicator or wibox.widget.textbox(" "), 

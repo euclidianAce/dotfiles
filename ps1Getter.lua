@@ -47,7 +47,7 @@ end
 -- PS1
 if 10 + len > columns then -- if terminal is too small for the full thing
 	local ps1 = chunk.concat{
-		chunk.new(string.char(27).."[1m",0), env.workDir. chunk.reset, chunk.newl, env.prompt, chunk.new(" ")
+		chunk.new(string.char(27).."[1m",0), env.workDir, chunk.reset, chunk.newl, env.prompt, chunk.new(" ")
 	}
 	io.write(ps1.str)
 	return

@@ -15,18 +15,12 @@ local ramgraph = wibox.widget.graph()
 ramgraph.forced_width = 36
 ramgraph.step_width = 6
 ramgraph.max_value = total
-local ramclock = awful.widget.watch("free | grep Mem:", 10, function(widget, stdout)
+
+awful.widget.watch("free | grep Mem:", 10, function(widget, stdout)
 	local used = stdout:match("Mem:%s+%d+%s+(%d+)")
 	used = tonumber(used)
-	ramgraph:add_value(used)
-end)
-
-local ramwidget = wibox.widget {
-	layout = wibox.layout.align.horizontal,
-	{widget = ramgraph},
-	{widget = ramclock},
-}
+	widget:add_value(used)
+end, ramgraph)
 
 
-
-return ramwidget
+return ramgraph

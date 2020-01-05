@@ -19,7 +19,7 @@ local hotkeys_popup	= require("awful.hotkeys_popup").widget
 			  require "awful.hotkeys_popup.keys"
 
 -- Custom things
-local system 		= require "system"
+local system 		= require "sys"
 local layout		= require "layout"
 -- }}}
 
@@ -124,12 +124,8 @@ awful.screen.connect_for_each_screen(function(s)
 	end)
 	local ram_icon = gears.color.recolor_image(icon_path .. "ram.png", beautiful.bg_focus)
 	
-	s.ram = wibox.widget{
-		layout = wibox.layout.align.horizontal,
-		{widget = wibox.widget.imagebox(ram_icon)	},
-		{widget = ramgraph				},
-		{widget = ramclock				}
-	}
+	s.ram = require("customWidgets.ramgraph")
+	s.cpu = require("customWidgets.cpugraph")
 
 	-- Wifi Icon and Network Name
 	local wifi_good_icon = icon_path .. "wifi.svg"
@@ -139,7 +135,7 @@ awful.screen.connect_for_each_screen(function(s)
 		layout = wibox.layout.align.horizontal,
 		{widget = wifi_icon_widget		},
 		{	
-			widget = awful.widget.watch("iwgetid -r", 60, function(widget, stdout)
+			widget = awful.widget.watch("iwgetid -r", 10, function(widget, stdout)
 				if stdout ~= "" then
 					widget:set_text(" " .. stdout)
 					wifi_icon_widget:set_image(
@@ -154,7 +150,7 @@ awful.screen.connect_for_each_screen(function(s)
 	}
 
 	-- if a battery is present make an indicator for it
-	local battery_percent = system.battery.get_percent() --or .12
+	local battery_percent = system.battery.get_percent()
 	local update_battery_percent
 	if battery_percent then
 		local battery_text = wibox.widget.textbox("")
@@ -215,6 +211,7 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
+			s.cpu, spacer,
 			s.ram, spacer,
 			s.wifi, 
 			s.batteryindicator or wibox.widget.textbox(" "), 

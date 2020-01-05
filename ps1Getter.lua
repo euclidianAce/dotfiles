@@ -1,8 +1,5 @@
 #!/bin/env lua
 
--- TODO:
--- 	- find a nice looking way of truncating things when terminal is too thin
-
 -- make chunk library gets loaded from the relative file location
 package.path = package.path .. ";/home/corey/.config/?.lua"
 local chunk = require "chunk"
@@ -25,39 +22,37 @@ function bashEchoInto(expr)
 end
 
 -- User/Environment and terminal info
-local columns 	= tonumber( bashExec("stty size"):gsub("(%d+)%s+(%d+)", "%2"), nil )
+local columns  = tonumber( bashExec("stty size"):gsub("(%d+)%s+(%d+)", "%2"), nil )
+local userName = os.getenv("USER")
 local env = {
 	time		= {str = os.date("%X"), 
 			   color = "white"},
-	user 		= {str = os.getenv("USER") .. "@" .. bashExec("hostname"), 
+	user 		= {str = userName .. "@" .. bashExec("hostname"), 
 			   color = "lightRed"},
-	workDir 	= {str = bashExec("pwd"):gsub("/home/" .. os.getenv("USER"), "~"), 
+	workDir 	= {str = bashExec("pwd"):gsub("/home/" .. userName, "~"), 
 			   color = "lightBlue"},
 	branch 		= {str = bashExec("git branch 2> /dev/null | grep \\*") or "* none", 
-			   color = "lightGreen"}
+			   color = "lightGreen"},
+	prompt		= {str = (userName == "root" and "#") or "$",
+			   color = (userName == "root" and "red") or "lightMagenta"}
 }
-local __env = {}
-function __env:__len()
-	return #(self.chunk)
-end
+
 env.workDir.str = env.workDir.str .. (" "):rep(10 - #env.workDir.str)
 local len = 0
-for _, v in pairs(env) do
-	setmetatable(v, __env)
-	v.chunk = chunk.new(v.str):color(v.color)
-	len = len + #v
+for key in pairs(env) do
+	len = len + #env[key].str
+	env[key] = chunk.new(env[key].str):color(env[key].color)
 end
 
-
 -- PS1
-if 10 + len > columns then
+if 10 + len > columns then -- if terminal is too small for the full thing
 	local ps1 = chunk.concat{
-		env.workDir.chunk, chunk.newl, chunk.new("$ "):color("lightMagenta")
+		chunk.new(string.char(27).."[1m",0), env.workDir, chunk.reset, chunk.newl, env.prompt, chunk.new(" ")
 	}
 	io.write(ps1.str)
 	return
 end
-local lineColor = "cyan"
+local lineColor = userName == "root" and "lightRed" or "cyan"
 
 local ps1 = {
 	chunk.concat{
@@ -65,10 +60,10 @@ local ps1 = {
 
 	--[[ Set the lineColor       ]] color[lineColor],
 	--[[ Initial Spaces 	     ]] chunk.new(" "):rep(3),
-	--[[ Corner and T above time ]] box.corner.topLeft, box.line.horizontal:rep(#env.time), box.t.down,
-	--[[ Ts above user@host      ]] box.line.horizontal:rep(#env.user), box.t.down,
-	--[[ Ts above directory      ]] box.line.horizontal:rep(#env.workDir), box.t.down,
-	--[[ corner above git branch ]] box.line.horizontal:rep(#env.branch), box.corner.topRight,
+	--[[ Corner and T above time ]] box.corner.topLeft, box.line.horizontal:rep(env.time.len), box.t.down,
+	--[[ Ts above user@host      ]] box.line.horizontal:rep(env.user.len), box.t.down,
+	--[[ Ts above directory      ]] box.line.horizontal:rep(env.workDir.len), box.t.down,
+	--[[ corner above git branch ]] box.line.horizontal:rep(env.branch.len), box.corner.topRight,
 					chunk.newl,
 	},
 
@@ -78,20 +73,20 @@ local ps1 = {
 		-- initial stuffs
 		box.corner.topLeft, box.line.horizontal:rep(2), box.t.left, chunk.reset,
 		--   INFO			SEPARATOR
-		env.time.chunk, 	box.line.vertical:color(lineColor),
-		env.user.chunk,		box.line.vertical:color(lineColor),
-		env.workDir.chunk,	box.line.vertical:color(lineColor),
-		env.branch.chunk,	color[lineColor], box.t.right,
+		env.time, 	box.line.vertical:color(lineColor),
+		env.user,		box.line.vertical:color(lineColor),
+		env.workDir,	box.line.vertical:color(lineColor),
+		env.branch,	color[lineColor], box.t.right,
 	},
 
 	-- line 3, the bottom bits
 	chunk.concat{
 	--[[ Set the lineColor       ]] color[lineColor], box.line.vertical,
 	--[[ Initial Spaces          ]] chunk.new(" "):rep(2),
-	--[[ Corner and T above time ]] box.corner.bottomLeft, box.line.horizontal:rep(#env.time), box.t.up,
-	--[[ Ts above user@host      ]] box.line.horizontal:rep(#env.user), box.t.up,
-	--[[ Ts above directory      ]] box.line.horizontal:rep(#env.workDir), box.t.up,
-	--[[ corner above git branch ]] box.line.horizontal:rep(#env.branch), box.corner.bottomRight,
+	--[[ Corner and T above time ]] box.corner.bottomLeft, box.line.horizontal:rep(env.time.len), box.t.up,
+	--[[ Ts above user@host      ]] box.line.horizontal:rep(env.user.len), box.t.up,
+	--[[ Ts above directory      ]] box.line.horizontal:rep(env.workDir.len), box.t.up,
+	--[[ corner above git branch ]] box.line.horizontal:rep(env.branch.len), box.corner.bottomRight,
 					chunk.reset, chunk.newl,
 
 	},
@@ -100,7 +95,7 @@ local ps1 = {
 	chunk.concat{
 		color[lineColor],
 		box.corner.bottomLeft, box.t.left, 
-		chunk.new("$ "):color("magenta"), chunk.reset,
+		env.prompt, chunk.reset, chunk.new(" ")
 	},
 }
 

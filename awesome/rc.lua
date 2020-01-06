@@ -19,7 +19,6 @@ local hotkeys_popup	= require("awful.hotkeys_popup").widget
 			  require "awful.hotkeys_popup.keys"
 
 -- Custom things
-local system 		= require "sys"
 local layout		= require "layout"
 -- }}}
 
@@ -112,83 +111,10 @@ awful.screen.connect_for_each_screen(function(s)
 	-- text clock
 	s.clock = wibox.widget.textclock()
 
-
-	-- Graph for RAM usage
-	local ramgraph = wibox.widget.graph()
-	ramgraph.forced_width = 36
-	ramgraph.step_width = 6
-	local ramclock = awful.widget.watch("echo :)", 10, function(_, stdout)
-		local ram_info = system.memory.get_info()
-		ramgraph.max_value = ram_info.total
-		ramgraph:add_value( ram_info.used )
-	end)
-	local ram_icon = gears.color.recolor_image(icon_path .. "ram.png", beautiful.bg_focus)
-	
-	s.ram = require("customWidgets.ramgraph")
-	s.cpu = require("customWidgets.cpugraph")
-
-	-- Wifi Icon and Network Name
-	local wifi_good_icon = icon_path .. "wifi.svg"
-	local wifi_bad_icon = icon_path .. "wifi-off.svg"
-	local wifi_icon_widget = wibox.widget.imagebox()
-	s.wifi = wibox.widget {
-		layout = wibox.layout.align.horizontal,
-		{widget = wifi_icon_widget		},
-		{	
-			widget = awful.widget.watch("iwgetid -r", 10, function(widget, stdout)
-				if stdout ~= "" then
-					widget:set_text(" " .. stdout)
-					wifi_icon_widget:set_image(
-						gears.color.recolor_image(wifi_good_icon, beautiful.bg_focus)
-					)
-				else
-					widget:set_text(" " ..  "Not Connected")
-					wifi_icon_widget:set_image(gears.color.recolor_image(wifi_bad_icon, beautiful.bg_focus))
-				end
-			end),
-		}
-	}
-
-	-- if a battery is present make an indicator for it
-	local battery_percent = system.battery.get_percent()
-	local update_battery_percent
-	if battery_percent then
-		local battery_text = wibox.widget.textbox("")
-		local battery_bar  = wibox.widget.progressbar()
-		local battery_icon = wibox.widget.imagebox(gears.color.recolor_image(icon_path .. "battery.svg", beautiful.bg_focus))
-		function update_battery_percent()
-			local battery_percent = system.battery.get_percent() -- or math.random()
-			battery_bar.value = battery_percent
-			battery_text.text = ("%.0f%%"):format(battery_percent*100)
-		end
-
-		s.batteryindicator = wibox.widget{
-			layout = wibox.layout.align.horizontal,
-			battery_icon, wibox.widget.textbox(" "),
-			wibox.widget {
-				layout = wibox.layout.stack,
-				{ -- Progress Bar
-					widget 		= battery_bar,
-					max_value 	= 1,
-					value		= battery_percent,
-					paddings	= 1,
-					border_width	= 1,
-					border_color	= beautiful.border_color,
-					shape		= function(cr, w, h)
-								gears.shape.rounded_rect(cr, w, 5)
-							  end,
-					forced_width	= 25,
-				},
-				{ -- Percent Text
-					widget 		= battery_text,
-					text 		= ("%.0f%%"):format(battery_percent*100),
-				},
-				{ -- Watch to update text
-					widget 		= awful.widget.watch("echo :)", 60, update_battery_percent)
-				}
-			}
-		}
-	end
+	s.ram 		= require("customWidgets.ramgraph")
+	s.cpu 		= require("customWidgets.cpugraph")
+	s.wifi 		= require("customWidgets.wifi")
+	s.battery 	= require("customWidgets.battery")
 	
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])	
@@ -213,9 +139,9 @@ awful.screen.connect_for_each_screen(function(s)
 			layout = wibox.layout.fixed.horizontal,
 			s.cpu, spacer,
 			s.ram, spacer,
-			s.wifi, 
-			s.batteryindicator or wibox.widget.textbox(" "), 
-			s.batteryindicator and spacer or wibox.widget.textbox(" "),
+			s.wifi, spacer,
+			s.battery or wibox.widget.textbox(" "), 
+			s.battery and spacer or wibox.widget.textbox(" "),
 			s.mytaglist,
 		},
 	}

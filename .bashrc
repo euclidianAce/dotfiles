@@ -51,7 +51,7 @@ alias grep="grep --color=auto"
 
 # xbps stuffs
 alias xbpsi="sudo xbps-install"
-alias xbpsq="xbps-query -Rs "
+alias xbpsq="xbps-query -Rs"
 alias xbpsr="sudo xbps-remove"
 
 # power stuffs 

@@ -340,6 +340,7 @@ clientkeys = gears.table.join(
 							awful.titlebar.hide(c)
 							c:lower() 
 						end
+						c:emit_signal("property::window")
 
 					end,				{description	="toggle floating",
 									 group		="client"})
@@ -489,6 +490,7 @@ client.connect_signal("manage",
 		if not c.floating then
 			awful.titlebar.hide(c)
 		end
+		c:emit_signal("property::window")
 	end
 )
 

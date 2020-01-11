@@ -34,10 +34,8 @@ export EDITOR=nvim
 # Additions to PATH
 source /etc/profile
 export PATH="$PATH:~/bin"
-export PATH=/usr/local/openresty/bin:$PATH
-
-# Change the LUA_PATH and LUA_CPATH so they can see luarocks packages
 eval $(luarocks path --bin)
+
 
 #################
 #### ALIASES ####
@@ -74,8 +72,12 @@ alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 ##########################
 
 # offload getting ps1 to lua script
+DEFAULT_PS1=$PS1
 function update_ps1 { 
-	PS1=$( lua $HOME/.config/ps1Getter.lua 2> /dev/null || echo "(Error getting PS1) $ ") 
+	PS1=$(luajit $HOME/.config/ps1Getter.lua 2> /dev/null)
+	if [ "$PS1" = "" ]; then
+		PS1=$DEFAULT_PS1
+	fi
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

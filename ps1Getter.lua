@@ -74,7 +74,7 @@ local ps1 = {
 		box.corner.topLeft, box.line.horizontal:rep(2), box.t.left, chunk.reset,
 		--   INFO			SEPARATOR
 		env.time, 	box.line.vertical:color(lineColor),
-		env.user,		box.line.vertical:color(lineColor),
+		env.user,	box.line.vertical:color(lineColor),
 		env.workDir,	box.line.vertical:color(lineColor),
 		env.branch,	color[lineColor], box.t.right,
 	},

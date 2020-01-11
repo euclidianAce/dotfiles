@@ -25,6 +25,8 @@ set breakindent		" have word wrapping follow indent of wrapped line
 set background=dark
 
 autocmd BufRead,BufNewFile *.etlua set filetype=html
+
+colorscheme elflord
 "}}}
 
 " {{{ NERDtree imitation

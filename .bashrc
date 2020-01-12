@@ -56,6 +56,8 @@ alias etc-update="sudo etc-update"
 # power stuffs 
 alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
+alias reboot="sudo reboot"
+
 
 # actual "aliases"
 alias v="nvim"

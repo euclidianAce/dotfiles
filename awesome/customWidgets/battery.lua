@@ -3,6 +3,16 @@ local awful = require "awful"
 local beautiful = require "beautiful"
 local gears = require "gears"
 
+-- check if battery exists
+do
+	local f = io.open("/sys/class/power_supply/BAT0/charge_now", "r")
+	if not f then
+		return wibox.widget.textbox("")
+	end
+	f:close()
+end
+
+
 local bar = wibox.widget.progressbar()
 local text = wibox.widget.textbox()
 local watch = awful.widget.watch("cat /sys/class/power_supply/BAT0/charge_now && cat /sys/class/power_supply/BAT0/charge_full", 60, function(widget, stdout)

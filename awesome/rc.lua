@@ -102,6 +102,8 @@ beautiful.useless_gap = gap_sizes[current_gap_index]
 -- {{{ Status Bar
 menubar.utils.terminal = terminal
 menubar.show_categories = false
+menubar.refresh()
+
 -- create a wibox for each screen
 local tags = {"1","2","3","4"}
 
@@ -370,10 +372,10 @@ awful.rules.rules = {
 -- }}}
 
 -- {{{ Signals
-
+local default_border_width = beautiful.border_width
 client.connect_signal("manage", 
 	function(c)
-		local client_amount = #client.get()
+		local client_amount = #c.screen.tiled_clients
 		if current_gap_index ~= client_amount and auto_change_gaps then
 			change_gaps(current_gap_index - client_amount)
 		end
@@ -421,14 +423,22 @@ client.connect_signal("manage",
 )
 
 client.connect_signal("unmanage", function(c)
-	local client_amount = #client.get()
 	if current_gap_index ~= client_amount and auto_change_gaps then
 		change_gaps(current_gap_index - client_amount)
+	end
+	c:emit_signal("property::window")
+end)
+
+client.connect_signal("request::border", function(c)
+	local client_amount = #c.screen.tiled_clients
+	for _, cl in ipairs(c.screen.tiled_clients) do
+		cl.border_width = client_amount == 1 and 0 or default_border_width
 	end
 end)
 
 client.connect_signal("property::window",
 	function(c)
+		local client_amount = #c.screen.tiled_clients
 		if beautiful.useless_gap > 0 or c.floating then
 			c.shape = function(cr, width, height)
 				gears.shape.rounded_rect(cr, width, height, 10)
@@ -436,6 +446,7 @@ client.connect_signal("property::window",
 		else
 			c.shape = gears.shape.rect
 		end
+		c:emit_signal("request::border")
 	end
 )
 

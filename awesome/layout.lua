@@ -15,26 +15,6 @@ local function organize(p)
 		-- 	x,y coordinates
 		-- 	width and height
 		local geometry = {}
-		
-
-		--[[
-		-- just as an exercise, just tile everything vertically
-
-		geometry.height = p.workarea.height
-		geometry.width = p.workarea.width / #p.clients
-		
-		geometry.y = p.workarea.y
-		geometry.x = p.workarea.x + (index-1) * geometry.width 
-		--]]
-
-		--[[
-		-- tile everything horizontally
-		geometry.width = p.workarea.width
-		geometry.height = p.workarea.height / #p.clients
-
-		geometry.x = p.workarea.x
-		geometry.y = p.workarea.y + (index-1) * geometry.height
-		]]--
 
 		-- the math for all the tiling and such
 		if #p.clients == 3 then

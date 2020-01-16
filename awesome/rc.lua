@@ -253,7 +253,9 @@ clientkeys = gears.table.join(
 	
 	awful.key({m}, "f", 		function(c)
 						c.fullscreen = not c.fullscreen
-						c:raise()
+						if c.floating then
+							c:raise()
+						end
 					end,				{description	="toggle fullscreen",
 									 group		="client"}),
 	awful.key({m,shft},"c",		function(c) c:kill() end,	{description	="close",
@@ -336,7 +338,9 @@ root.keys(globalkeys)
 -- Floating window resizing with the mouse
 clientbuttons = gears.table.join(
 	awful.button({}, 1, function(c)
-		c:emit_signal("request::activate", "mouse_click", {raise = true})
+		if c.floating then
+			c:emit_signal("request::activate", "mouse_click", {raise = true})
+		end
 	end),
 	awful.button({m}, 1, function(c)
 		c:emit_signal("request::activate", "mouse_click", {raise = true})

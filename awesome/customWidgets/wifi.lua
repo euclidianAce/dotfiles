@@ -11,7 +11,7 @@ local text = wibox.widget.textbox(badText)
 
 local wifi = wibox.widget {
 	layout = wibox.layout.align.horizontal,
-	{widget = awful.widget.watch(("sh -c '%s'"):format(cmd), 1, function(widget, stdout)
+	{widget = awful.widget.watch(("sh -c '%s'"):format(cmd), 5, function(widget, stdout)
 		
 		local start = stdout:find("\t")
 		if not start then

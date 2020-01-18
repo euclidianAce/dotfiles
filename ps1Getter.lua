@@ -1,4 +1,4 @@
-#!/bin/env lua
+#!usr/bin/env lua
 
 -- make chunk library gets loaded from the relative file location
 package.path = package.path .. ";/home/corey/.config/?.lua"
@@ -89,10 +89,7 @@ local ps1 = {
 	--[[ corner above git branch ]] box.line.horizontal:rep(env.branch.len), box.corner.bottomRight,
 					chunk.reset, chunk.newl,
 
-	},
-
 	-- line 4, the $
-	chunk.concat{
 		color[lineColor],
 		box.corner.bottomLeft, box.t.left, 
 		env.prompt, chunk.reset, chunk.new(" ")

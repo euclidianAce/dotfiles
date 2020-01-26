@@ -61,7 +61,7 @@ end
 
 -- Set default terminal and editor
 terminal   = "urxvt"
-editor     = os.getenv("EDITOR") or "nano"
+editor     = os.getenv("EDITOR") or "vi"
 editor_cmd = terminal .. " -e " .. editor
 
 -- Set modkey to Win
@@ -73,29 +73,20 @@ awful.layout.layouts = {
 }
 
 -- function for adjusting gaps
-local auto_change_gaps = false
-local gap_sizes = {20, 10, 5, 0}
-local current_gap_index = #gap_sizes
-local function change_gaps(delta)
-	current_gap_index = math.min(math.max(current_gap_index - delta, 1), #gap_sizes)
-	beautiful.useless_gap = gap_sizes[current_gap_index]
-	
-	--[[
-	-- show notification of new gap size
-	naughty.notify{
-		position = "top_middle",
-		text = "Gap Size: "..beautiful.useless_gap,
-		timeout = 1,
-	}
-	]]
-
-	-- update clients
-	for _, c in ipairs(client.get()) do
-		c:emit_signal("property::window") -- fixes corners
-		c:emit_signal("list")		  -- resizes windows
-	end
-end
-beautiful.useless_gap = gap_sizes[current_gap_index]
+--local auto_change_gaps = false
+--local gap_sizes = {20, 10, 5, 0}
+--local current_gap_index = #gap_sizes
+--local function change_gaps(delta)
+--	current_gap_index = math.min(math.max(current_gap_index - delta, 1), #gap_sizes)
+--	beautiful.useless_gap = gap_sizes[current_gap_index]
+--	
+--	-- update clients
+--	for _, c in ipairs(client.get()) do
+--		c:emit_signal("property::window") -- fixes corners
+--		c:emit_signal("list")		  -- resizes windows
+--	end
+--end
+--beautiful.useless_gap = gap_sizes[current_gap_index]
 
 -- }}}
 
@@ -208,10 +199,6 @@ globalkeys = gears.table.join(
 						})
 					end,				{description	="open a floating terminal",
 									 group		="launcher"				}),
-	awful.key({m},"space",		function()
-						awful.layout.inc(1)
-					end,				{description	="Toggle tiling method",
-									 group		="client"				}),
 
 	awful.key({m,crtl},"r", 	awesome.restart,		{description	="restart awesome",
 									 group		="awesome"				}),
@@ -261,17 +248,19 @@ clientkeys = gears.table.join(
 	awful.key({m,shft},"c",		function(c) c:kill() end,	{description	="close",
 									 group		="client"}),
 
-	awful.key({m,crtl},"space", 	function(c) 
+	awful.key({m},"space", 	function(c) 
 						awful.client.floating.toggle(c)
 						if c.floating then
-							awful.titlebar.show(c)
-							c:raise() 
+							--awful.titlebar.show(c)
+							c:raise()
+							c.border_width = beautiful.border_width
+							c.opacity = 0.5
 						else
-							awful.titlebar.hide(c)
+							--awful.titlebar.hide(c)
 							c:lower() 
+							c.opacity = 1
 						end
 						c:emit_signal("property::window")
-
 					end,				{description	="toggle floating",
 									 group		="client"})
 )
@@ -343,11 +332,11 @@ clientbuttons = gears.table.join(
 		end
 	end),
 	awful.button({m}, 1, function(c)
-		c:emit_signal("request::activate", "mouse_click", {raise = true})
+		c:emit_signal("request::activate", "mouse_click", {raise = c.floating})
 		awful.mouse.client.move(c)
 	end),
 	awful.button({m}, 3, function(c)
-		c:emit_signal("request::activate", "mouse_click", {raise = true})
+		c:emit_signal("request::activate", "mouse_click", {raise = c.floating})
 		awful.mouse.client.resize(c)
 	end)
 )
@@ -367,6 +356,7 @@ awful.rules.rules = {
 			raise		= true,
 			keys		= clientkeys,
 			buttons		= clientbuttons,
+			titlebars_enabled=false,
 			screen		= awful.screen.preferred,
 			honor_padding	= true,
 			size_hints_honor= false,
@@ -399,29 +389,29 @@ client.connect_signal("manage",
 			end)
 		)
 
-		awful.titlebar(c):setup {
-			{
-				awful.titlebar.widget.iconwidget(c),
-				layout = wibox.layout.fixed.horizontal,
-			}, 
-			{
-				{
-					align = "center",
-					widget = awful.titlebar.widget.titlewidget(c),
-				},
-				buttons = buttons,
-				layout = wibox.layout.flex.horizontal
-			}, 
-			{
-				awful.titlebar.widget.closebutton(c),
-				layout = wibox.layout.fixed.horizontal
-			},
-			layout = wibox.layout.align.horizontal
-		}
-		awful.titlebar.show(c)
-		if not c.floating then
-			awful.titlebar.hide(c)
-		end
+--		awful.titlebar(c):setup {
+--			{
+--				awful.titlebar.widget.iconwidget(c),
+--				layout = wibox.layout.fixed.horizontal,
+--			}, 
+--			{
+--				{
+--					align = "center",
+--					widget = awful.titlebar.widget.titlewidget(c),
+--				},
+--				buttons = buttons,
+--				layout = wibox.layout.flex.horizontal
+--			}, 
+--			{
+--				awful.titlebar.widget.closebutton(c),
+--				layout = wibox.layout.fixed.horizontal
+--			},
+--			layout = wibox.layout.align.horizontal
+--		}
+--		awful.titlebar.show(c)
+--		if not c.floating then
+--			awful.titlebar.hide(c)
+--		end
 		c:emit_signal("property::window")
 	end
 )
@@ -442,14 +432,13 @@ end)
 
 client.connect_signal("property::window",
 	function(c)
-		local client_amount = #c.screen.tiled_clients
-		if beautiful.useless_gap > 0 or c.floating then
-			c.shape = function(cr, width, height)
-				gears.shape.rounded_rect(cr, width, height, 10)
-			end
-		else
-			c.shape = gears.shape.rect
-		end
+--		if beautiful.useless_gap > 0 or c.floating then
+--			c.shape = function(cr, width, height)
+--				gears.shape.rounded_rect(cr, width, height, 10)
+--			end
+--		else
+--			c.shape = gears.shape.rect
+--		end
 		c:emit_signal("request::border")
 	end
 )

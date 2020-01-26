@@ -10,7 +10,6 @@ auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>=expand("%:p:r").".pdf"<CR
 " lua run command
 " figure out a way to make this only avaliable to executables
 auto FileType lua nnoremap ;run :w<CR>:!./<C-R>%<CR>
-
 "}}}
 
 "{{{ Visuals
@@ -116,4 +115,9 @@ set formatoptions=ltcroj " each letter corresponds to a text formatting option
 set foldmethod=marker	" allow folding
 "}}}
 
-set mouse=a
+" {{{ Navigation
+noremap <Up> <nop>
+noremap <Down> <nop>
+noremap <Left> <nop>
+noremap <Right> <nop>
+" }}}

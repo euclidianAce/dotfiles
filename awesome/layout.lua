@@ -52,5 +52,5 @@ local function organize(p)
 end
 
 
-return {arrange = organize, name = "Custom"}
+return {arrange = organize, name = "Tiled"}
 

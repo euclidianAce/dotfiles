@@ -60,7 +60,7 @@ for s = 1, screen.count() do
 end
 
 -- Set default terminal and editor
-terminal   = "urxvt"
+terminal   = "qterminal"
 editor     = os.getenv("EDITOR") or "vi"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -71,22 +71,6 @@ modkey = "Mod4"
 awful.layout.layouts = {
 	layout,
 }
-
--- function for adjusting gaps
---local auto_change_gaps = false
---local gap_sizes = {20, 10, 5, 0}
---local current_gap_index = #gap_sizes
---local function change_gaps(delta)
---	current_gap_index = math.min(math.max(current_gap_index - delta, 1), #gap_sizes)
---	beautiful.useless_gap = gap_sizes[current_gap_index]
---	
---	-- update clients
---	for _, c in ipairs(client.get()) do
---		c:emit_signal("property::window") -- fixes corners
---		c:emit_signal("list")		  -- resizes windows
---	end
---end
---beautiful.useless_gap = gap_sizes[current_gap_index]
 
 -- }}}
 
@@ -108,7 +92,7 @@ awful.screen.connect_for_each_screen(function(s)
 	s.cpu 		= require("customWidgets.cpugraph")
 	s.wifi 		= require("customWidgets.wifi")
 	s.battery 	= require("customWidgets.battery")
-	
+
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])	
 	-- tags	
@@ -141,36 +125,36 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 -- }}}
 
--- {{{ Key Bindings 
---
--- Aliases for convenience 
+-- {{{ Key Bindings
+
+-- Aliases for convenience
 local m 	= modkey
-local crtl 	= "Control" 
-local shft 	= "Shift" 
+local crtl 	= "Control"
+local shft 	= "Shift"
 local alt 	= "Mod1"
 
 globalkeys = gears.table.join(
 --	awful.key(KEYS			FUNCTION			DESCRIPTION)
 	awful.key({m},"s", 		hotkeys_popup.show_help, 	{description="show help", 
 									 group="awesome"					}),
-	
+
 	awful.key({m,shft},"h",		awful.tag.viewprev, 		{description="view previous", 
 									 group="tag"						}),
 
 	awful.key({m,shft},"l", 	awful.tag.viewnext, 		{description="view next", 
 									 group="tag"						}),
-	
-	awful.key({m},"k", 		function() 
-						awful.client.focus.byidx(-1) 
+
+	awful.key({m},"k", 		function()
+						awful.client.focus.byidx(-1)
 					end, 				{description="focus previous by index", 
 									 group="client"						}),
-	
-	awful.key({m},"j", 		function() 
-						awful.client.focus.byidx(1) 
+
+	awful.key({m},"j", 		function()
+						awful.client.focus.byidx(1)
 					end, 				{description="focus next by index", 
 									 group="client"						}),
 	-- Layouts
-	awful.key({m,shft},"j",		function() 
+	awful.key({m,shft},"j",		function()
 						awful.client.swap.byidx(1)
 					end,				{description	="swap with next client by index", 
 									 group		="client"				}),
@@ -190,8 +174,8 @@ globalkeys = gears.table.join(
 						awful.spawn(terminal)
 					end,				{description	="open a terminal",
 									 group		="launcher"				}),
-	
-	awful.key({m,shft},"Return",	function()
+
+--[[	awful.key({m,shft},"Return",	function()
 						awful.spawn(terminal, {
 							floating = true,
 							tag = mouse.screen.selected_tag,
@@ -199,67 +183,36 @@ globalkeys = gears.table.join(
 						})
 					end,				{description	="open a floating terminal",
 									 group		="launcher"				}),
-
+--]]
 	awful.key({m,crtl},"r", 	awesome.restart,		{description	="restart awesome",
 									 group		="awesome"				}),
 
 	awful.key({m,shft},"q", 	awesome.quit,			{description	="quit awesome",
 									 group		="awesome"				}),
 
-	awful.key({m},"l", 		function()
-						awful.tag.incmwfact(0.05)
-					end,				{description	="increase width",
-									 group		="layout"				}),
-
-	awful.key({m},"h", 		function()
-						awful.tag.incmwfact(-0.05)
-					end,				{description	="decrease width",
-									 group		="layout"				}),
-
 	awful.key({m},"r", 		function()
 						menubar.show()
 					end,				{description	="run prompt",
 									 group		="launcher"				}),
-	awful.key({m},"g",		function() 
-						change_gaps(1)
-					end,				{description	="increase gaps",
-									 group		="layout"				}),
-
-	awful.key({m,shft},"g",		function() 
-						change_gaps(-1)
-					end,				{description	="decrease gaps",
-									 group		="layout"				}),
-
-	awful.key({m,alt},"g",		function()
-						auto_change_gaps = not auto_change_gaps
-					end, 				{description	="toggle auto gap size changes",
-									 group		="layout"				})
+	awful.key({m,shft},"r",		function()
+						menubar.refresh()
+						menubar.show()
+					end,				{description	="reload and run prompt",
+									 group		="launcher"				})
 )
 
 clientkeys = gears.table.join(
-	
+
 	awful.key({m}, "f", 		function(c)
 						c.fullscreen = not c.fullscreen
-						if c.floating then
-							c:raise()
-						end
+						c:emit_signal("property::window")
 					end,				{description	="toggle fullscreen",
 									 group		="client"}),
 	awful.key({m,shft},"c",		function(c) c:kill() end,	{description	="close",
 									 group		="client"}),
 
-	awful.key({m},"space", 	function(c) 
+	awful.key({m},"space", 		function(c)
 						awful.client.floating.toggle(c)
-						if c.floating then
-							--awful.titlebar.show(c)
-							c:raise()
-							c.border_width = beautiful.border_width
-							c.opacity = 0.5
-						else
-							--awful.titlebar.hide(c)
-							c:lower() 
-							c.opacity = 1
-						end
 						c:emit_signal("property::window")
 					end,				{description	="toggle floating",
 									 group		="client"})
@@ -327,9 +280,7 @@ root.keys(globalkeys)
 -- Floating window resizing with the mouse
 clientbuttons = gears.table.join(
 	awful.button({}, 1, function(c)
-		if c.floating then
-			c:emit_signal("request::activate", "mouse_click", {raise = true})
-		end
+		c:emit_signal("request::activate", "mouse_click", {raise = c.floating})
 	end),
 	awful.button({m}, 1, function(c)
 		c:emit_signal("request::activate", "mouse_click", {raise = c.floating})
@@ -340,7 +291,6 @@ clientbuttons = gears.table.join(
 		awful.mouse.client.resize(c)
 	end)
 )
-
 
 -- }}}
 
@@ -367,17 +317,13 @@ awful.rules.rules = {
 
 -- {{{ Signals
 local default_border_width = beautiful.border_width
-client.connect_signal("manage", 
+client.connect_signal("manage",
 	function(c)
-		local client_amount = #c.screen.tiled_clients
-		if current_gap_index ~= client_amount and auto_change_gaps then
-			change_gaps(current_gap_index - client_amount)
-		end
 		if awesome.startup and
 		not c.size_hints.user_position then
 			awful.placement.no_offscreen(c)
 		end
-		
+
 		local buttons = gears.table.join(
 			awful.button({}, 1, function()
 				c:emit_signal("request::activate", "titlebar", {raise=true})
@@ -388,79 +334,44 @@ client.connect_signal("manage",
 				awful.mouse.client.resize(c)
 			end)
 		)
-
---		awful.titlebar(c):setup {
---			{
---				awful.titlebar.widget.iconwidget(c),
---				layout = wibox.layout.fixed.horizontal,
---			}, 
---			{
---				{
---					align = "center",
---					widget = awful.titlebar.widget.titlewidget(c),
---				},
---				buttons = buttons,
---				layout = wibox.layout.flex.horizontal
---			}, 
---			{
---				awful.titlebar.widget.closebutton(c),
---				layout = wibox.layout.fixed.horizontal
---			},
---			layout = wibox.layout.align.horizontal
---		}
---		awful.titlebar.show(c)
---		if not c.floating then
---			awful.titlebar.hide(c)
---		end
 		c:emit_signal("property::window")
 	end
 )
 
 client.connect_signal("unmanage", function(c)
-	if current_gap_index ~= client_amount and auto_change_gaps then
-		change_gaps(current_gap_index - client_amount)
+	c:emit_signal("request::border")
+end)
+
+client.connect_signal("property::window", function(c)
+	if c.floating then
+		c:raise()
+	else
+		c:lower()
 	end
-	c:emit_signal("property::window")
+	c:emit_signal("request::border")
 end)
 
 client.connect_signal("request::border", function(c)
-	local client_amount = #c.screen.tiled_clients
-	for _, cl in ipairs(c.screen.tiled_clients) do
-		cl.border_width = client_amount == 1 and 0 or default_border_width
+	if c.floating then
+		c.border_width = default_border_width
+	else
+		local client_amount = #c.screen.tiled_clients
+		for _, cl in ipairs(c.screen.tiled_clients) do
+			cl.border_width = client_amount == 1 and 0 or default_border_width
+		end
 	end
 end)
 
-client.connect_signal("property::window",
-	function(c)
---		if beautiful.useless_gap > 0 or c.floating then
---			c.shape = function(cr, width, height)
---				gears.shape.rounded_rect(cr, width, height, 10)
---			end
---		else
---			c.shape = gears.shape.rect
---		end
-		c:emit_signal("request::border")
-	end
-)
-
 -- Enable sloppy focus
-client.connect_signal("mouse::enter",
-	function(c)
-		client.focus = c
-	end
-)
-
+client.connect_signal("mouse::enter", function(c)
+	client.focus = c
+end)
 
 -- Change border when focused
-client.connect_signal("focus", 
-	function(c)
-		c.border_color = beautiful.border_focus
-	end
-)
-client.connect_signal("unfocus",
-	function(c)
-		c.border_color = beautiful.border_normal
-	end
-)
+client.connect_signal("focus", function(c)
+	c.border_color = beautiful.border_focus
+end)
+client.connect_signal("unfocus", function(c)
+	c.border_color = beautiful.border_normal
+end)
 -- }}}
-

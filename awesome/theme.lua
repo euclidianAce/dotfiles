@@ -28,7 +28,7 @@ theme.fg_focus      = theme.bg_normal
 theme.fg_urgent     = theme.bg_normal
 theme.fg_minimize   = theme.bg_normal
 
-theme.useless_gap   = 5
+theme.useless_gap   = 0
 theme.border_width  = dpi(2)
 theme.border_normal = xrdb.color0
 theme.border_focus  = theme.bg_focus
@@ -119,7 +119,7 @@ for s in theme.bg_normal:gmatch("[a-fA-F0-9][a-fA-F0-9]") do
 end
 local is_dark_bg = (bg_numberic_value < 383)
 
-theme.wallpaper = "~/.config/awesome/bitterblossom.png"
+theme.wallpaper = "~/.config/awesome/img/purp.png"
 return theme
 
 -- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80

@@ -7,7 +7,11 @@ URxvt.perl-ext-common: default,resize-font
 
 ! Transparency
 *.transparent:	true
-*.shading:	10
+*.shading:	20
+
+! Blur
+*.blurRadius:	5
+
 
 ! Font
 *.font:		xft:UbuntuMono:size=12:antialias=true
@@ -20,14 +24,12 @@ URxvt.perl-ext-common: default,resize-font
 *.lineSpace:	0
 
 ! Internal Border
-*.internalBorder: 	10
+!*.internalBorder: 	10
 
-! Blur
-*.blurRadius:	5
 
 ! special
 *.foreground:   #c8c8c8
-*.background:   #1d1f21
+!*.background:   #373c41
 *.cursorColor:  #c8c8c8
 
 ! black

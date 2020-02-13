@@ -35,7 +35,7 @@ export EDITOR=nvim
 source /etc/profile
 export PATH="$PATH:~/bin"
 eval $(luarocks path --bin)
-
+PATH+=":~/VSCode-linux-x64/bin"
 
 #################
 #### ALIASES ####
@@ -60,12 +60,13 @@ alias reboot="sudo reboot"
 
 
 # actual "aliases"
-alias v="nvim"
+alias v="vim"
+alias nv="nvim"
 
 # config file editing and reloading
-alias ebrc="$EDITOR ~/.bashrc && source ~/.bashrc"
-alias exr="$EDITOR ~/.Xresources && xrdb ~/.Xresources"
-alias evrc="$EDITOR ~/.vimrc"
+alias ebrc="$EDITOR ~/.config/.bashrc && source ~/.bashrc"
+alias exr="$EDITOR ~/.config/.Xresources && xrdb ~/.Xresources"
+alias evrc="$EDITOR ~/.config/.vimrc"
 alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 
 
@@ -83,4 +84,3 @@ function update_ps1 {
 }
 update_ps1
 PROMPT_COMMAND=update_ps1
-

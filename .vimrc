@@ -1,17 +1,32 @@
+set nocompatible " no compatability with vi
 
 "{{{ Code Editing
-set autoindent          " auto indents
-set smartindent         " indent for code
+"set autoindent          " auto indents
+"set smartindent         " indent for code
 syntax enable           " syntax highlighting
+
+" set .etlua to use html syntax
+autocmd BufRead,BufNewFile *.etlua set filetype=html
 
 " quick shortcut to open pdf of the tex file
 auto FileType tex nnoremap ;open :w<CR>:!zathura <C-R>=expand("%:p:r").".pdf"<CR> &<CR><CR>
 
 " lua run command
 " figure out a way to make this only avaliable to executables
-auto FileType lua nnoremap ;run :w<CR>:!./<C-R>%<CR>
-"}}}
+function! RunCode()
+	" generates a tmp file and executes the current file
+	" while redirecting its output to the tmp file
+	let out = system("./" . bufname("%") . " 2>&1")
 
+	:10split __out__
+	normal! ggdG
+	setlocal buftype=nofile
+
+	call append(0, split(out, '\v\n'))
+endfunction
+nnoremap ;run :w<CR>:execute RunCode()<CR>
+set splitbelow
+"}}}
 "{{{ Visuals
 set number              " line number
 set relativenumber      " relative line numbers based on cursor position
@@ -23,9 +38,7 @@ set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set background=dark
 
-autocmd BufRead,BufNewFile *.etlua set filetype=html
-
-colorscheme elflord
+colorscheme peachpuff
 
 " Custom Tabline, see :help statusline for details about some stuff
 function! GetTabline()
@@ -96,28 +109,28 @@ endfunction
 set tabline=%!GetTabline()
 
 "}}}
-
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
 let g:netrw_banner=0	" get rid of the banner
 let g:netrw_browse_split=3 " open files in a new tab
 let g:netrw_winsize=20	" have netrw take up 20% of the window
 " }}}
-
 "{{{ Text formatting
 set linebreak
 set wrap
 set formatoptions=ltcroj " each letter corresponds to a text formatting option 
                          " from https://vimhelp.org/change.txt.html#fo-table
 "}}}
-
 "{{{ Marks
 set foldmethod=marker	" allow folding
 "}}}
-
 " {{{ Navigation
 noremap <Up> <nop>
 noremap <Down> <nop>
 noremap <Left> <nop>
 noremap <Right> <nop>
+noremap! <Up> <nop>
+noremap! <Down> <nop>
+noremap! <Left> <nop>
+noremap! <Right> <nop>
 " }}}

@@ -53,7 +53,10 @@ __chunk = {
 			return chunk.new( self.str:rep(num), self.len * num )
 		end,
 		color = function(self, colorName)
-			return chunk.new(esc(ANSIColors[colorName]), 0) .. self .. chunk.new(resetString,0)
+			return chunk.new(esc(ANSIColors[colorName]), 0) .. self .. chunk.new(resetString, 0)
+		end,
+		bold = function(self)
+			return chunk.new(esc("1m"), 0) .. self .. chunk.new(resetString, 0)
 		end
 	},
 	__len = function(self)

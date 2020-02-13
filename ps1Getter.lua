@@ -28,11 +28,11 @@ local env = {
 	time		= {str = os.date("%X"), 
 			   color = "white"},
 	user 		= {str = userName .. "@" .. bashExec("hostname"), 
-			   color = "lightRed"},
+			   color = "red"},
 	workDir 	= {str = bashExec("pwd"):gsub("/home/" .. userName, "~"), 
-			   color = "lightBlue"},
+			   color = "blue", bold=true},
 	branch 		= {str = bashExec("git branch 2> /dev/null | grep \\*") or "* none", 
-			   color = "lightGreen"},
+			   color = "green"},
 	prompt		= {str = (userName == "root" and "#") or "$",
 			   color = (userName == "root" and "red") or "lightMagenta"}
 }
@@ -41,7 +41,11 @@ env.workDir.str = env.workDir.str .. (" "):rep(10 - #env.workDir.str)
 local len = 0
 for key in pairs(env) do
 	len = len + #env[key].str
+	local bold = env[key].bold
 	env[key] = chunk.new(env[key].str):color(env[key].color)
+	if bold then
+		env[key] = env[key]:bold()
+	end
 end
 
 -- PS1
@@ -52,7 +56,7 @@ if 10 + len > columns then -- if terminal is too small for the full thing
 	io.write(ps1.str)
 	return
 end
-local lineColor = userName == "root" and "lightRed" or "cyan"
+local lineColor = userName == "root" and "red" or "cyan"
 
 local ps1 = {
 	chunk.concat{

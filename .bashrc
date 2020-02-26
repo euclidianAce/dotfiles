@@ -28,46 +28,24 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 #### ENVIRONMENT VARS ####
 ##########################
 
-# set neovim as the default editor
-export EDITOR=nvim
+# set vim as the default editor
+export EDITOR=vim
 
 # Additions to PATH
 source /etc/profile
 export PATH="$PATH:~/bin"
 eval $(luarocks path --bin)
+LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
+LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
 PATH+=":~/VSCode-linux-x64/bin"
 
 #################
 #### ALIASES ####
 #################
 
-# default options
-alias ls="ls -hN --file-type --color=auto --group-directories-first"
-alias la="ls -AhN --file-type --color=auto --group-directories-first"
-alias ll="ls -AhNl --file-type --color=auto --group-directories-first"
-alias grep="grep --color=auto"
-
-# always ask before emerging and do it quietly
-alias emerge="sudo emerge --ask --quiet"
-alias emergev="sudo emerge --ask"
-alias emergef="sudo emerge --ask --fetchonly --quiet"
-alias etc-update="sudo etc-update"
-
-# power stuffs 
-alias sdn="sudo shutdown -h now"
-alias rb="sudo reboot"
-alias reboot="sudo reboot"
-
-
-# actual "aliases"
-alias v="vim"
-alias nv="nvim"
-
-# config file editing and reloading
-alias ebrc="$EDITOR ~/.config/.bashrc && source ~/.bashrc"
-alias exr="$EDITOR ~/.config/.Xresources && xrdb ~/.Xresources"
-alias evrc="$EDITOR ~/.config/.vimrc"
-alias eps1="$EDITOR ~/.config/ps1Getter.lua"
+for f in $HOME/.config/bash_aliases/*; do
+	source $f
+done
 
 
 ##########################
@@ -77,7 +55,7 @@ alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 # offload getting ps1 to lua script
 DEFAULT_PS1=$PS1
 function update_ps1 { 
-	PS1=$(luajit $HOME/.config/ps1Getter.lua 2> /dev/null)
+	PS1=$(lua $HOME/.config/ps1Getter.lua 2> /dev/null)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1
 	fi

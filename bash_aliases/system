@@ -1,0 +1,4 @@
+# power stuffs 
+alias sdn="sudo shutdown -h now"
+alias rb="sudo reboot"
+alias reboot="sudo reboot"

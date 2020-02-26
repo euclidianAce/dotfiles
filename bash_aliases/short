@@ -1,0 +1,4 @@
+# actual "aliases"
+alias e=$EDITOR
+alias v="vim"
+alias nv="nvim"

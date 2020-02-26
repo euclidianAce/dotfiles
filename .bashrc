@@ -35,9 +35,9 @@ export EDITOR=vim
 source /etc/profile
 export PATH="$PATH:~/bin"
 eval $(luarocks path --bin)
-LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
-LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
-PATH+=":~/VSCode-linux-x64/bin"
+#LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
+#LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
+PATH+=":~/Applications/VSCode-linux-x64/bin"
 
 #################
 #### ALIASES ####

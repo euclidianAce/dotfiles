@@ -20,7 +20,7 @@ function! OutBuffer()
 	if bufwinnr("__out__") > 0
 		bdelete! __out__
 	endif
-	:6split __out__
+	:10split __out__
 	setlocal buftype=nofile
 endfunction
 
@@ -44,7 +44,7 @@ nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 "{{{ Visuals
 set number relativenumber
 set numberwidth=6
-set cursorline
+"set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
@@ -52,7 +52,7 @@ set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set splitbelow
 set background=dark
-colorscheme solarized
+"colorscheme solarized
 "}}}
 "{{{ Custom Tabline 
 " see :help statusline for details about some stuff

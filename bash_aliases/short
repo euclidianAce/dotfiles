@@ -2,3 +2,4 @@
 alias e=$EDITOR
 alias v="vim"
 alias nv="nvim"
+alias code="codium-bin"

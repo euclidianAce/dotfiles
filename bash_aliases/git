@@ -1,9 +1,12 @@
 alias gs="git status"
 alias gss="git status --short"
 
+alias gd="git diff"
+
 alias ga="git add"
 alias gaa="git add ."
 alias gc="git commit"
 alias gcm="git commit -m"
 
 alias gp="git push"
+alias gpu="git push -u"

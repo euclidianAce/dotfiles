@@ -1,9 +1,8 @@
-#!usr/bin/env lua
+#!/usr/bin/env lua
 
 -- make chunk library gets loaded from the relative file location
 package.path = package.path .. ";/home/corey/.config/?.lua"
 local chunk = require "chunk"
-
 
 local box = chunk.box
 local color = chunk.color
@@ -24,12 +23,46 @@ end
 -- User/Environment and terminal info
 local columns  = tonumber( bashExec("stty size"):gsub("(%d+)%s+(%d+)", "%2"), nil )
 local userName = os.getenv("USER")
+
+local wdMaxLen = 25
+local wd = bashExec("pwd"):gsub("/home/" .. userName, "~")
+
+do -- Shorten working directory if necessary
+	local parent, child = string.match(wd, "(.*)/([^/]+)$")
+	if not parent then goto skip end
+	if not child then child = "" end
+	local len, parentTab, childLen
+	if not parent then goto done end
+	len = #wd
+	if len <= wdMaxLen then goto done end
+	
+	-- truncate parent first
+	parentTab = {}
+	for str in parent:gmatch("[^/]+") do
+		if len > wdMaxLen then
+			len = len - #str + 1
+			str = str:sub(1,1)
+		end
+		table.insert(parentTab, str)
+	end
+	parent = table.concat(parentTab, "/")
+	if len <= wdMaxLen then goto done end
+	
+	-- then truncate child
+	childLen = math.max(wdMaxLen - len - 3, 1)
+	child = child:sub(1, childLen) .. "..."
+
+	::done::
+	wd = parent .. ((child ~= "" and "/") or "") .. child
+	::skip::
+end
+
 local env = {
 	time		= {str = os.date("%X"), 
 			   color = "white"},
 	user 		= {str = userName .. "@" .. bashExec("hostname"), 
 			   color = "red"},
-	workDir 	= {str = bashExec("pwd"):gsub("/home/" .. userName, "~"), 
+	workDir 	= {str = wd, 
 			   color = "blue", bold=true},
 	branch 		= {str = bashExec("git branch 2> /dev/null | grep \\*") or "* none", 
 			   color = "green"},
@@ -37,7 +70,7 @@ local env = {
 			   color = (userName == "root" and "red") or "lightMagenta"}
 }
 
-env.workDir.str = env.workDir.str .. (" "):rep(10 - #env.workDir.str)
+env.workDir.str = env.workDir.str .. (" "):rep(math.floor(wdMaxLen / 2) - #env.workDir.str)
 local len = 0
 for key in pairs(env) do
 	len = len + #env[key].str

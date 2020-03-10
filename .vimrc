@@ -1,6 +1,7 @@
 set nocompatible " no compatability with vi
 let mapleader=";"
 set switchbuf="useopen"
+set runtimepath+=,$HOME/.vim/pack/dracula
 
 "{{{ Code Editing
 set autoindent          " auto indents
@@ -43,18 +44,19 @@ nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 
 "}}}
 "{{{ Visuals
-set termguicolors
+if &term != "linux" && &term != "rxvt-unicode-256color"
+	set termguicolors
+end
 set number relativenumber
 set numberwidth=6
-set cursorline
+"set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
 set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set splitbelow
-set background=dark
-"colorscheme solarized
+colorscheme dracula
 "}}}
 "{{{ Custom Tabline 
 " see :help statusline for details about some stuff
@@ -170,14 +172,12 @@ set foldmethod=marker	" allow folding
 "}}}
 " {{{ Plugins
 call plug#begin('~/.vim/plugins')
-Plug 'autozimu/LanguageClient-neovim', {
-	\ 'branch': 'next',
-	\ 'do': 'bash install.sh',
-	\ }
-
+Plug 'natebosch/vim-lsc'
 call plug#end()
 
-let g:LanugageClient_serverCommands = {
-	\ 'lua': ['~/lua-language-server/bin/Linux/lua-language-server -E ./~/lua-language-server/main.lua']
+let g:lsc_server_commands = {'lua': 'java -cp /home/corey/EmmyLua-LS-all.jar com.tang.vscode.MainKt'}
+let g:lsc_auto_map = {
+	\ 'ShowHover': '<leader>h'
 	\ }
+
 " }}}

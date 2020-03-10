@@ -7,17 +7,11 @@ local chunk = require "chunk"
 local box = chunk.box
 local color = chunk.color
 -- Functions to call bash functions and get varaibles
-function bashExec(expr)
+local function bashExec(expr)
 	local f = io.popen(expr)
 	local out = f:read()
 	f:close()
 	return out
-end
-
--- catches the output of a command by putting the echo into a temporary file and returns it
--- basically VAR=$( < `expr`)
-function bashEchoInto(expr)
-	return bashExec("echo "..expr)
 end
 
 -- User/Environment and terminal info
@@ -58,9 +52,9 @@ do -- Shorten working directory if necessary
 end
 
 local env = {
-	time		= {str = os.date("%X"), 
+	time		= {str = os.date("%X"),
 			   color = "white"},
-	user 		= {str = userName .. "@" .. bashExec("hostname"), 
+	user 		= {str = userName .. "@" .. bashExec("hostname"),
 			   color = "red"},
 	workDir 	= {str = wd, 
 			   color = "blue", bold=true},

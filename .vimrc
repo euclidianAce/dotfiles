@@ -1,6 +1,7 @@
 set nocompatible " no compatability with vi
 let mapleader=";"
 set switchbuf="useopen"
+
 "{{{ Code Editing
 set autoindent          " auto indents
 set smartindent         " indent for code
@@ -42,9 +43,10 @@ nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 
 "}}}
 "{{{ Visuals
+set termguicolors
 set number relativenumber
 set numberwidth=6
-"set cursorline
+set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
@@ -108,13 +110,54 @@ function! GetTabline()
 	return s
 endfunction
 set tabline=%!GetTabline()
-
-"}}}
+" }}}
+" {{{ Custom Status Line
+set laststatus=2
+set noshowmode
+hi StatusLine guibg=#2c2c2c guifg=#5f5f5f
+function! ModeColor(mode)
+	if a:mode == 'n'
+		hi StatusLineColor guibg=#80a1d4 guifg=#000000
+	elseif a:mode == 'i'
+		hi StatusLineColor guibg=#36d495 guifg=#000000
+	elseif a:mode == 'R'
+		hi StatusLineColor guibg=#dd403a guifg=#000000
+	elseif a:mode == 'v' || a:mode == 'V' || a:mode == ''
+		hi StatusLineColor guibg=#f5cb5c guifg=#000000
+	elseif a:mode == 'c'
+		hi StatusLineColor guibg=#3f3f3f guifg=#000000
+	elseif a:mode == 't'
+		hi StatusLineColor guibg=#3f3f3f guifg=#000000
+	endif
+	return ''
+endfunction
+let g:currMode = {
+	\ 'n': 'Normal',
+	\ 'i': 'Insert',
+	\ 'R': 'Replace',
+	\ 'v': 'Visual',
+	\ 'V': 'Visual Line',
+	\ '': 'Visual Block',
+	\ 'c': 'Command',
+	\ 't': 'Terminal',
+	\ }
+hi LineNumber guibg=#101010 guifg=#9F9F9F
+hi BufferNumber guibg=#202020
+hi FileName guibg=#303030
+set statusline=%{ModeColor(mode())}
+set stl+=%#StatusLineColor#\ %{currMode[mode()]}\ 
+set stl+=%#BufferNumber#\ %n\ 
+set stl+=%#FileName#\ %f\ %y%r%h%w%m\ 
+set stl+=%#StatusLine#
+set stl+=%=
+set stl+=%#LineNumber#\ %l/%L:%c\ %3p%%\ 
+" }}}
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
 let g:netrw_banner=0	" get rid of the banner
 let g:netrw_browse_split=3 " open files in a new tab
 let g:netrw_winsize=20	" have netrw take up 20% of the window
+nnoremap <leader>f :Vex<CR>
 " }}}
 "{{{ Text formatting
 set linebreak
@@ -125,3 +168,16 @@ set formatoptions=ltcroj " each letter corresponds to a text formatting option
 "{{{ Folding
 set foldmethod=marker	" allow folding
 "}}}
+" {{{ Plugins
+call plug#begin('~/.vim/plugins')
+Plug 'autozimu/LanguageClient-neovim', {
+	\ 'branch': 'next',
+	\ 'do': 'bash install.sh',
+	\ }
+
+call plug#end()
+
+let g:LanugageClient_serverCommands = {
+	\ 'lua': ['~/lua-language-server/bin/Linux/lua-language-server -E ./~/lua-language-server/main.lua']
+	\ }
+" }}}

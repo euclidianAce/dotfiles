@@ -1,7 +1,7 @@
 set nocompatible " no compatability with vi
 let mapleader=";"
 set switchbuf="useopen"
-set runtimepath+=,$HOME/.vim/pack/dracula
+"set runtimepath+=,$HOME/.vim/pack/dracula
 
 "{{{ Code Editing
 set autoindent          " auto indents
@@ -44,19 +44,16 @@ nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 
 "}}}
 "{{{ Visuals
-if &term != "linux" && &term != "rxvt-unicode-256color"
-	set termguicolors
-end
 set number relativenumber
 set numberwidth=6
-set cursorline
+"set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
 set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set splitbelow
-colorscheme dracula
+"colorscheme dracula
 "}}}
 "{{{ Custom Tabline 
 " see :help statusline for details about some stuff
@@ -119,17 +116,17 @@ set noshowmode
 hi StatusLine guibg=#2c2c2c guifg=#5f5f5f
 function! ModeColor(mode)
 	if a:mode == 'n'
-		hi StatusLineColor guibg=#80a1d4 guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=110 guibg=#80a1d4 guifg=#000000
 	elseif a:mode == 'i'
-		hi StatusLineColor guibg=#36d495 guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=78 guibg=#36d495 guifg=#000000
 	elseif a:mode == 'R'
-		hi StatusLineColor guibg=#dd403a guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=167 guibg=#dd403a guifg=#000000
 	elseif a:mode == 'v' || a:mode == 'V' || a:mode == ''
-		hi StatusLineColor guibg=#f5cb5c guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=221 guibg=#f5cb5c guifg=#000000
 	elseif a:mode == 'c'
-		hi StatusLineColor guibg=#3f3f3f guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=185 guibg=#3f3f3f guifg=#000000
 	elseif a:mode == 't'
-		hi StatusLineColor guibg=#3f3f3f guifg=#000000
+		hi StatusLineColor ctermfg=0 ctermbg=185 guibg=#3f3f3f guifg=#000000
 	endif
 	return ''
 endfunction
@@ -143,9 +140,9 @@ let g:currMode = {
 	\ 'c': 'Command',
 	\ 't': 'Terminal',
 	\ }
-hi LineNumber guibg=#101010 guifg=#9F9F9F
-hi BufferNumber guibg=#202020
-hi FileName guibg=#303030
+hi LineNumber ctermfg=255 ctermbg=234 guibg=#101010 guifg=#9F9F9F
+hi BufferNumber ctermfg=255 ctermbg=235 guibg=#202020
+hi FileName ctermfg=255 ctermbg=236 guibg=#303030
 set statusline=%{ModeColor(mode())}
 set stl+=%#StatusLineColor#\ %{currMode[mode()]}\ 
 set stl+=%#BufferNumber#\ %n\ 

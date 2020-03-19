@@ -6,12 +6,11 @@ URxvt.iso14755: False
 URxvt.perl-ext-common: default,resize-font
 
 ! Transparency
-!*.transparent:	true
-!*.shading:	20
+*.transparent:	true
+*.shading:	20
 
 ! Blur
 *.blurRadius:	5
-
 
 ! Font
 *.font:		xft:UbuntuMono:size=12:antialias=true

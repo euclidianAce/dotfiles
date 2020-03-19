@@ -4,8 +4,6 @@
 local math = math
 local ipairs = ipairs
 
-local layout = {}
-
 local function organize(p)
 	-- p has clients and the work area
 	-- 	p.clients, p.workarea

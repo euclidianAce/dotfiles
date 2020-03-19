@@ -60,7 +60,7 @@ for s = 1, screen.count() do
 end
 
 -- Set default terminal and editor
-terminal   = "qterminal"
+terminal   = "urxvt"
 editor     = os.getenv("EDITOR") or "vi"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -175,7 +175,7 @@ globalkeys = gears.table.join(
 					end,				{description	="open a terminal",
 									 group		="launcher"				}),
 
---[[	awful.key({m,shft},"Return",	function()
+	awful.key({m,shft},"Return",	function()
 						awful.spawn(terminal, {
 							floating = true,
 							tag = mouse.screen.selected_tag,
@@ -183,7 +183,7 @@ globalkeys = gears.table.join(
 						})
 					end,				{description	="open a floating terminal",
 									 group		="launcher"				}),
---]]
+
 	awful.key({m,crtl},"r", 	awesome.restart,		{description	="restart awesome",
 									 group		="awesome"				}),
 

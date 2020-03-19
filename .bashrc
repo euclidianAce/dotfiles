@@ -45,6 +45,10 @@ for f in $HOME/.config/bash_aliases/*; do
 	source $f
 done
 
+function mkcd {
+	mkdir $1; cd $1
+}
+
 ##########################
 ####    PS1 STUFFS    ####
 ##########################

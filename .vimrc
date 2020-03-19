@@ -49,7 +49,7 @@ if &term != "linux" && &term != "rxvt-unicode-256color"
 end
 set number relativenumber
 set numberwidth=6
-"set cursorline
+set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
@@ -160,6 +160,7 @@ let g:netrw_banner=0	" get rid of the banner
 let g:netrw_browse_split=3 " open files in a new tab
 let g:netrw_winsize=20	" have netrw take up 20% of the window
 nnoremap <leader>f :Vex<CR>
+set path+=** " fuzzy file search imitation
 " }}}
 "{{{ Text formatting
 set linebreak

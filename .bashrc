@@ -32,11 +32,10 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 export EDITOR=vim
 
 # Additions to PATH
-source /etc/profile
-export PATH="$PATH:~/bin"
 eval $(luarocks path --bin)
-LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
-LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
+export LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
+export LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
+export PATH+=":$HOME/bin"
 
 #################
 #### ALIASES ####
@@ -45,7 +44,6 @@ LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
 for f in $HOME/.config/bash_aliases/*; do
 	source $f
 done
-
 
 ##########################
 ####    PS1 STUFFS    ####

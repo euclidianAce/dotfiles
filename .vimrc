@@ -1,7 +1,7 @@
 set nocompatible " no compatability with vi
 let mapleader=";"
 set switchbuf="useopen"
-"set runtimepath+=,$HOME/.vim/pack/dracula
+filetype plugin indent on
 
 "{{{ Code Editing
 set autoindent          " auto indents
@@ -40,7 +40,7 @@ function! LuaCheck()
 	call OutBuffer()
 	call append(0, split(out, '\v\n'))
 endfunction
-nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
+auto FileType lua nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 
 "}}}
 "{{{ Visuals
@@ -54,6 +54,7 @@ set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set splitbelow
 "colorscheme dracula
+colorscheme peachpuff
 "}}}
 "{{{ Custom Tabline 
 " see :help statusline for details about some stuff
@@ -168,14 +169,3 @@ set formatoptions=ltcroj " each letter corresponds to a text formatting option
 "{{{ Folding
 set foldmethod=marker	" allow folding
 "}}}
-" {{{ Plugins
-call plug#begin('~/.vim/plugins')
-Plug 'natebosch/vim-lsc'
-call plug#end()
-
-let g:lsc_server_commands = {'lua': 'java -cp /home/corey/EmmyLua-LS-all.jar com.tang.vscode.MainKt'}
-let g:lsc_auto_map = {
-	\ 'ShowHover': '<leader>h'
-	\ }
-
-" }}}

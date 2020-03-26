@@ -3,3 +3,7 @@ alias e=$EDITOR
 alias v="vim"
 alias nv="nvim"
 alias code="codium-bin"
+
+function mkcd {
+	mkdir -p "$1" && cd $1
+}

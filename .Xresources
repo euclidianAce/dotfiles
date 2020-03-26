@@ -13,7 +13,7 @@ URxvt.perl-ext-common: default,resize-font
 *.blurRadius:	5
 
 ! Font
-*.font:		xft:UbuntuMono:size=12:antialias=true
+*.font:		xft:UbuntuMono:size=14:antialias=true
 
 ! Get rid of scrollbar
 *.scrollBar: 	false

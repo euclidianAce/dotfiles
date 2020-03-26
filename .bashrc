@@ -54,8 +54,13 @@ function mkcd {
 ##########################
 
 # offload getting ps1 to lua script
+SET_DEFAULT_PS1=0
 DEFAULT_PS1=$PS1
 function update_ps1 { 
+	if (( $SET_DEFAULT_PS1 == 1 )); then
+		PS1=$DEFAULT_PS1
+		return 0
+	fi
 	PS1=$(lua $HOME/.config/ps1Getter.lua 2> $HOME/.config/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1

@@ -5,8 +5,7 @@ filetype plugin indent on
 
 "{{{ Code Editing
 set autoindent          " auto indents
-set smartindent         " indent for code
-syntax enable           " syntax highlighting
+set smartindent         " indent for code syntax enable
 
 " set .etlua to use html syntax
 autocmd BufRead,BufNewFile *.etlua set filetype=html
@@ -144,13 +143,27 @@ let g:currMode = {
 hi LineNumber ctermfg=255 ctermbg=234 guibg=#101010 guifg=#9F9F9F
 hi BufferNumber ctermfg=255 ctermbg=235 guibg=#202020
 hi FileName ctermfg=255 ctermbg=236 guibg=#303030
-set statusline=%{ModeColor(mode())}
-set stl+=%#StatusLineColor#\ %{currMode[mode()]}\ 
-set stl+=%#BufferNumber#\ %n\ 
-set stl+=%#FileName#\ %f\ %y%r%h%w%m\ 
-set stl+=%#StatusLine#
-set stl+=%=
-set stl+=%#LineNumber#\ %l/%L:%c\ %3p%%\ 
+hi ActiveLine ctermfg=255 ctermbg=238
+hi NonActiveLine ctermfg=255 ctermbg=235
+function! GetStatusline()
+	let s = ''
+	let active = g:statusline_winid == win_getid(winnr())
+	if active
+		let s .= '%{ModeColor(mode())}%#StatusLineColor# %{currMode[mode()]} '
+	endif
+	let s .= '%#BufferNumber# %n '
+	let s .= '%#FileName# %f %y%r%h%w%m '
+	if active
+		let s .= '%#ActiveLine#'
+	else
+		let s .= '%#NonActiveLine#'
+	end
+	let s .= '%='
+	let s .= '%#LineNumber# %l/%L:%c %3p%%  '
+
+	return s
+endfunction
+set statusline=%!GetStatusline()
 " }}}
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories

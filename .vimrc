@@ -179,9 +179,13 @@ set statusline=%!GetStatusline()
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
 let g:netrw_banner=0	" get rid of the banner
-let g:netrw_browse_split=3 " open files in a new tab
-let g:netrw_winsize=20	" have netrw take up 20% of the window
-nnoremap <leader>f :Vex<CR>
+"let g:netrw_browse_split=4 " open files in a new tab
+"let g:netrw_winsize=20	" have netrw take up 20% of the window
+
+nnoremap <leader>fh :Lex<CR>:NetrwC<CR>
+nnoremap <leader>fj :Hex<CR>:NetrwC<CR>
+nnoremap <leader>fk :Hex!<CR>:NetrwC<CR>
+nnoremap <leader>fl :Lex!<CR>:NetrwC<CR>
 set path+=** " fuzzy file search imitation
 " }}}
 "{{{ Text formatting

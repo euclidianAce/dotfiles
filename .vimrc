@@ -2,7 +2,15 @@ set nocompatible " no compatability with vi
 let mapleader=";"
 set switchbuf="useopen"
 filetype plugin indent on
+set belloff=all " stop the stupid beep
 
+" {{{ Disable arrow keys in normal mode
+" so that O immediately works
+nnoremap OA <NOP>
+nnoremap OB <NOP>
+nnoremap OC <NOP>
+nnoremap OD <NOP>
+" }}}
 "{{{ Code Editing
 set autoindent          " auto indents
 set smartindent         " indent for code syntax enable
@@ -45,17 +53,19 @@ auto FileType lua nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
 "{{{ Visuals
 set number relativenumber
 set numberwidth=6
-"set cursorline
 set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
 set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
 set wildmenu	        " visual autocomplete stuffs
 set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
 set splitbelow
-"colorscheme dracula
 colorscheme peachpuff
+set fillchars+=vert:\ 
+highlight VertSplit cterm=NONE
+highlight Folded ctermbg=NONE
+autocmd CmdlineEnter * redrawstatus
 "}}}
-"{{{ Custom Tabline 
+"{{{ Custom Tabline
 " see :help statusline for details about some stuff
 function! GetTabline()
 	let s = '%#TabLineFill# '
@@ -113,18 +123,17 @@ set tabline=%!GetTabline()
 " {{{ Custom Status Line
 set laststatus=2
 set noshowmode
-hi StatusLine guibg=#2c2c2c guifg=#5f5f5f
 function! ModeColor(mode)
 	if a:mode == 'n'
-		hi StatusLineColor ctermfg=0 ctermbg=110 guibg=#80a1d4 guifg=#000000
+		hi StatusLineColor ctermfg=25 ctermbg=87 guibg=#80a1d4 guifg=#000000
 	elseif a:mode == 'i'
-		hi StatusLineColor ctermfg=0 ctermbg=78 guibg=#36d495 guifg=#000000
+		hi StatusLineColor ctermfg=28 ctermbg=10 guibg=#36d495 guifg=#000000
 	elseif a:mode == 'R'
-		hi StatusLineColor ctermfg=0 ctermbg=167 guibg=#dd403a guifg=#000000
+		hi StatusLineColor ctermfg=124 ctermbg=204 guibg=#dd403a guifg=#000000
 	elseif a:mode == 'v' || a:mode == 'V' || a:mode == ''
-		hi StatusLineColor ctermfg=0 ctermbg=221 guibg=#f5cb5c guifg=#000000
+		hi StatusLineColor ctermfg=58 ctermbg=221 guibg=#f5cb5c guifg=#000000
 	elseif a:mode == 'c'
-		hi StatusLineColor ctermfg=0 ctermbg=185 guibg=#3f3f3f guifg=#000000
+		hi StatusLineColor ctermfg=53 ctermbg=134 guibg=#3f3f3f guifg=#000000
 	elseif a:mode == 't'
 		hi StatusLineColor ctermfg=0 ctermbg=185 guibg=#3f3f3f guifg=#000000
 	endif
@@ -146,10 +155,12 @@ hi FileName ctermfg=255 ctermbg=236 guibg=#303030
 hi ActiveLine ctermfg=255 ctermbg=238
 hi NonActiveLine ctermfg=255 ctermbg=235
 function! GetStatusline()
-	let s = ''
+	let s = '%#FileName#'
 	let active = g:statusline_winid == win_getid(winnr())
 	if active
 		let s .= '%{ModeColor(mode())}%#StatusLineColor# %{currMode[mode()]} '
+	else
+		let s .= '        '
 	endif
 	let s .= '%#BufferNumber# %n '
 	let s .= '%#FileName# %f %y%r%h%w%m '

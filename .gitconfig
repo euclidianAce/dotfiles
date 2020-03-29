@@ -1,3 +1,6 @@
 [user]
-	email = nerd1001001@gmail.com
 	name = Corey Williamson
+	email = nerd1001001@gmail.com
+[diff]
+	tool = vimdiff
+	prompt = NO

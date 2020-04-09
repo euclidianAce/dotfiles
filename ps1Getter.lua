@@ -1,135 +1,80 @@
-#!/usr/bin/env lua
 
--- make chunk library gets loaded from the relative file location
-package.path = package.path .. ";/home/corey/.config/?.lua"
-local chunk = require "chunk"
+local os = require("os")
+local utf8 = require("utf8")
+local table = require("table")
+local tinsert, tconcat = table.insert, table.concat
 
-local box = chunk.box
-local color = chunk.color
--- Functions to call bash functions and get varaibles
-local function bashExec(expr)
+-- {{{ Box Drawing Chars
+local c = utf8.char
+local line = {
+	horiz = c(0x2500),
+	vert = c(0x2502),
+	cross = c(0x253c),
+}
+local corner = {
+	tl = c(0x250c),
+	tr = c(0x2510),
+	bl = c(0x2514),
+	br = c(0x2518),
+}
+local t = {
+	up = c(0x2534),
+	down = c(0x252c),
+	left = c(0x2524),
+	right = c(0x251c),
+}
+-- }}}
+-- {{{ Environment vars
+local function sh(expr)
 	local f = io.popen(expr)
 	local out = f:read()
 	f:close()
 	return out
 end
+local columns = tonumber(sh("stty size"):match("%d+ (%d+)"))
+local time = os.date("%X")
+local user = os.getenv("USER")
+local host = sh("hostname")
+local wd = sh("pwd"):gsub("^/home/" .. user, "~")
+wd = wd .. (" "):rep(12 - #wd)
+local branch = sh("git branch 2> /dev/null | grep \\*")
+-- }}}
+-- {{{ TODO: Directory shortener
+-- }}}
 
--- User/Environment and terminal info
-local columns  = tonumber( bashExec("stty size"):gsub("(%d+)%s+(%d+)", "%2"), nil )
-local userName = os.getenv("USER")
-
-local wdMaxLen = 25
-local wd = bashExec("pwd"):gsub("/home/" .. userName, "~")
-
-do -- Shorten working directory if necessary
-	local parent, child = string.match(wd, "(.*)/([^/]+)$")
-	if not parent then goto skip end
-	if not child then child = "" end
-	local len, parentTab, childLen
-	if not parent then goto done end
-	len = #wd
-	if len <= wdMaxLen then goto done end
-	
-	-- truncate parent first
-	parentTab = {}
-	for str in parent:gmatch("[^/]+") do
-		if len > wdMaxLen then
-			len = len - #str + 1
-			str = str:sub(1,1)
-		end
-		table.insert(parentTab, str)
-	end
-	parent = table.concat(parentTab, "/")
-	if len <= wdMaxLen then goto done end
-	
-	-- then truncate child
-	childLen = math.max(wdMaxLen - len - 3, 1)
-	child = child:sub(1, childLen) .. "..."
-
-	::done::
-	wd = parent .. ((child ~= "" and "/") or "") .. child
-	::skip::
-end
-
-local env = {
-	time		= {str = os.date("%X"),
-			   color = "white"},
-	user 		= {str = userName .. "@" .. bashExec("hostname"),
-			   color = "red"},
-	workDir 	= {str = wd, 
-			   color = "blue", bold=true},
-	branch 		= {str = bashExec("git branch 2> /dev/null | grep \\*") or "* none", 
-			   color = "green"},
-	prompt		= {str = (userName == "root" and "#") or "$",
-			   color = (userName == "root" and "red") or "lightMagenta"}
-}
-
-env.workDir.str = env.workDir.str .. (" "):rep(math.floor(wdMaxLen / 2) - #env.workDir.str)
-local len = 0
-for key in pairs(env) do
-	len = len + #env[key].str
-	local bold = env[key].bold
-	env[key] = chunk.new(env[key].str):color(env[key].color)
-	if bold then
-		env[key] = env[key]:bold()
+local entries = {}
+local escChar = string.char(27) .. "["
+local reset = escChar .. "0m"
+local function createEntry(str, color)
+	if str then
+		tinsert(entries, {
+			str = str,
+			color = escChar .. color .. "m",
+		})
 	end
 end
 
--- PS1
-if 10 + len > columns then -- if terminal is too small for the full thing
-	local ps1 = chunk.concat{
-		chunk.new(string.char(27).."[1m",0), env.workDir, chunk.reset, chunk.newl, env.prompt, chunk.new(" ")
-	}
-	io.write(ps1.str)
-	return
+createEntry(time, "37")
+createEntry(user .. "@" .. host, "31")
+createEntry(wd, "1;34")
+createEntry(branch, "32")
+
+local result = {{},{},{}}
+local middleLen = #entries
+for idx, entry in ipairs(entries) do
+	tinsert(result[1], line.horiz:rep(utf8.len(entry.str)))
+	middleLen = middleLen + utf8.len(entry.str)
+	tinsert(result[2], entry.color .. entry.str .. reset)
+	tinsert(result[3], line.horiz:rep(utf8.len(entry.str)))
 end
-local lineColor = userName == "root" and "red" or "cyan"
+local lineColor = escChar .. "36m"
+-- fisrt line
+io.write("   ", lineColor, corner.tl, tconcat(result[1], t.down), corner.tr, "\n")
+-- second line
+middleLen = middleLen + 5
+io.write(corner.tl, line.horiz:rep(2), t.left, tconcat(result[2], reset .. lineColor .. line.vert), lineColor, t.right)
+io.write(line.horiz:rep(columns - middleLen), t.left, "\n")
+-- third line
+io.write(lineColor, line.vert, "  ", corner.bl, tconcat(result[3], t.up), corner.br, "\n")
+io.write(corner.bl, t.left, escChar .. "35m$ ", reset)
 
-local ps1 = {
-	chunk.concat{
-	-- line 1, the hats to the info
-
-	--[[ Set the lineColor       ]] color[lineColor],
-	--[[ Initial Spaces 	     ]] chunk.new(" "):rep(3),
-	--[[ Corner and T above time ]] box.corner.topLeft, box.line.horizontal:rep(env.time.len), box.t.down,
-	--[[ Ts above user@host      ]] box.line.horizontal:rep(env.user.len), box.t.down,
-	--[[ Ts above directory      ]] box.line.horizontal:rep(env.workDir.len), box.t.down,
-	--[[ corner above git branch ]] box.line.horizontal:rep(env.branch.len), box.corner.topRight,
-					chunk.newl,
-	},
-
-	chunk.concat{
-		-- line 2, the info and the separators for it
-		
-		-- initial stuffs
-		box.corner.topLeft, box.line.horizontal:rep(2), box.t.left, chunk.reset,
-		--   INFO			SEPARATOR
-		env.time, 	box.line.vertical:color(lineColor),
-		env.user,	box.line.vertical:color(lineColor),
-		env.workDir,	box.line.vertical:color(lineColor),
-		env.branch,	color[lineColor], box.t.right,
-	},
-
-	-- line 3, the bottom bits
-	chunk.concat{
-	--[[ Set the lineColor       ]] color[lineColor], box.line.vertical,
-	--[[ Initial Spaces          ]] chunk.new(" "):rep(2),
-	--[[ Corner and T above time ]] box.corner.bottomLeft, box.line.horizontal:rep(env.time.len), box.t.up,
-	--[[ Ts above user@host      ]] box.line.horizontal:rep(env.user.len), box.t.up,
-	--[[ Ts above directory      ]] box.line.horizontal:rep(env.workDir.len), box.t.up,
-	--[[ corner above git branch ]] box.line.horizontal:rep(env.branch.len), box.corner.bottomRight,
-					chunk.reset, chunk.newl,
-
-	-- line 4, the $
-		color[lineColor],
-		box.corner.bottomLeft, box.t.left, 
-		env.prompt, chunk.reset, chunk.new(" ")
-	},
-}
-
-local columnsLeft = columns - ps1[2].len - 1
-table.insert(ps1, 3, box.line.horizontal:rep(columnsLeft) .. box.t.left .. chunk.newl)
-
-ps1 = chunk.concat(ps1)
--- "return" the string to bash
-io.write(ps1.str)

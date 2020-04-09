@@ -35,7 +35,7 @@ export EDITOR=vim
 eval $(luarocks path --bin)
 export LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
 export LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
-export PATH+=":$HOME/bin"
+export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin"
 
 #################
 #### ALIASES ####
@@ -45,10 +45,6 @@ for f in $HOME/.config/bash_aliases/*; do
 	source $f
 done
 
-function mkcd {
-	mkdir $1; cd $1
-}
-
 ##########################
 ####    PS1 STUFFS    ####
 ##########################
@@ -56,6 +52,9 @@ function mkcd {
 # offload getting ps1 to lua script
 SET_DEFAULT_PS1=0
 DEFAULT_PS1=$PS1
+function ps1swap {
+	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
+}
 function update_ps1 { 
 	if (( $SET_DEFAULT_PS1 == 1 )); then
 		PS1=$DEFAULT_PS1

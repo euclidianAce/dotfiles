@@ -5,60 +5,34 @@ URxvt.iso14755: False
 
 URxvt.perl-ext-common: default,resize-font
 
-! Transparency
-*.transparent:	true
-*.shading:	20
+*locale: en_US.UTF-8
 
-! Blur
-*.blurRadius:	5
+*.transparent: true
+*.shading: 20
+*.blurRadius: 5
+*.font: xft:UbuntuMono:size=14:antialias=true
+*.scrollBar: false
+*.letterSpace: 0
+*.lineSpace: 0
+*.internalBorder: 10
+*.cursorBlink: true
 
-! Font
-*.font:		xft:UbuntuMono:size=14:antialias=true
-
-! Get rid of scrollbar
-*.scrollBar: 	false
-
-! Letter spacing
-*.letterSpace: 	0
-*.lineSpace:	0
-
-! Internal Border
-*.internalBorder: 	10
-
-
-! special
-*.foreground:   #c8c8c8
-*.background:   #373c41
-*.cursorColor:  #c8c8c8
-
-! black
-*.color0:       #282a2e
-*.color8:       #373b41
-
-! red
-*.color1:       #893030
-*.color9:       #c14f4f
-
-! green
-*.color2:       #608431
-*.color10:      #7aed6b
-
-! yellow
-*.color3:       #a1ad78
-*.color11:      #acd78f
-
-! blue
-*.color4:       #58748d
-*.color12:      #3c80ba
-
-! magenta
-*.color5:       #72567c
-*.color13:      #a963be
-
-! cyan
-*.color6:       #5b837f
-*.color14:      #7ac6bc
-
-! white
-*.color7:       #717c85
-*.color15:      #b5cdc4
+! Dracula Xresources palette
+*.foreground: #F8F8F2
+*.background: #282A36
+*.color0: #000000
+*.color8: #4D4D4D
+*.color1: #FF5555
+*.color9: #FF6E67
+*.color2: #50FA7B
+*.color10: #5AF78E
+*.color3: #F1FA8C
+*.color11: #F4F99D
+*.color4: #BD93F9
+*.color12: #CAA9FA
+*.color5: #FF79C6
+*.color13: #FF92D0
+*.color6: #8BE9FD
+*.color14: #9AEDFE
+*.color7: #BFBFBF
+*.color15: #E6E6E6

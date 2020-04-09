@@ -1,3 +1,4 @@
+# vim: filetype=sh
 # actual "aliases"
 alias e=$EDITOR
 alias v="vim"
@@ -6,4 +7,10 @@ alias code="codium-bin"
 
 function mkcd {
 	mkdir -p "$1" && cd $1
+}
+
+function touchx {
+	file=`basename $1`
+	extension="${file##*.}"
+	touch $1 && chmod +x $1 && echo -e "#!/usr/bin/env $extension\n" > $1 && $EDITOR $1
 }

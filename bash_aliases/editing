@@ -1,5 +1,7 @@
+# vim: filetype=sh
 # config file editing and reloading
 alias ebrc="$EDITOR ~/.config/.bashrc && source ~/.bashrc"
 alias exr="$EDITOR ~/.config/.Xresources && xrdb ~/.Xresources"
 alias evrc="$EDITOR ~/.config/.vimrc"
 alias eps1="$EDITOR ~/.config/ps1Getter.lua"
+alias egc="$EDITOR ~/.config/.gitconfig"

@@ -1,11 +1,13 @@
 set nocompatible " no compatability with vi
-let mapleader=";"
 set switchbuf="useopen"
 filetype plugin indent on
 set belloff=all " stop the stupid beep
+packadd! dracula
+colorscheme dracula
 
-" {{{ Disable arrow keys in normal mode
-" so that O immediately works
+" {{{ Some Keybinds
+" Disable arrow keys in normal mode
+let mapleader=";"
 nnoremap OA <NOP>
 nnoremap OB <NOP>
 nnoremap OC <NOP>
@@ -14,8 +16,12 @@ nnoremap OD <NOP>
 "{{{ Code Editing
 set autoindent          " auto indents
 set smartindent         " indent for code syntax enable
+set smartcase " case insensitive search for all lowercase
+" otherwise case sensitive
 
-" set .etlua to use html syntax
+set tags+=tags;$HOME " search for tags files up to home dir
+set undofile
+
 autocmd BufRead,BufNewFile *.etlua set filetype=html
 
 " quick shortcut to open pdf of the tex file
@@ -40,30 +46,23 @@ function! RunCode()
 	call OutBuffer()
 	call append(0, split(out, '\v\n'))
 endfunction
-nnoremap <leader>run :w<CR>:execute RunCode()<CR>
-
-function! LuaCheck()
-	let out = system("luacheck " . bufname("%") . " --no-color 2>&1")
-	call OutBuffer()
-	call append(0, split(out, '\v\n'))
-endfunction
-auto FileType lua nnoremap <leader>lc :w<CR>:execute LuaCheck()<CR>
+nnoremap <leader>run :execute RunCode()<CR>
 
 "}}}
 "{{{ Visuals
 set number relativenumber
-set numberwidth=6
-set scrolloff=3         " how many rows to keep on screen when cursor moves up or down
-set sidescrolloff=5     " how many columns to keep on screen when cursor moves sideways
+set numberwidth=4
 set wildmenu	        " visual autocomplete stuffs
 set showcmd		" show command being typed
 set breakindent		" have word wrapping follow indent of wrapped line
+set lazyredraw
 set splitbelow
-colorscheme peachpuff
-set fillchars+=vert:\ 
+set foldcolumn=2
+set cursorline
+
 highlight VertSplit cterm=NONE
 highlight Folded ctermbg=NONE
-autocmd CmdlineEnter * redrawstatus
+highlight FoldColumn ctermbg=NONE
 "}}}
 "{{{ Custom Tabline
 " see :help statusline for details about some stuff
@@ -175,6 +174,7 @@ function! GetStatusline()
 	return s
 endfunction
 set statusline=%!GetStatusline()
+autocmd CmdlineEnter * redrawstatus
 " }}}
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories

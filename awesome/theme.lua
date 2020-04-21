@@ -119,7 +119,7 @@ for s in theme.bg_normal:gmatch("[a-fA-F0-9][a-fA-F0-9]") do
 end
 local is_dark_bg = (bg_numberic_value < 383)
 
-theme.wallpaper = "~/.config/awesome/img/purp.png"
+theme.wallpaper = "~/.config/awesome/img/redforestthing.png"
 return theme
 
 -- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80

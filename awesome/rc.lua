@@ -18,10 +18,7 @@ local hotkeys_popup	= require("awful.hotkeys_popup").widget
 -- Enable hotkeys help widget for vim and other things
 			  require "awful.hotkeys_popup.keys"
 
--- Custom things
-local layout		= require "layout"
 -- }}}
-
 -- {{{ Error handling from default rc.lua
 
 -- Check for startup errors
@@ -34,20 +31,18 @@ end
 -- Handle runtime errors
 do
 	local in_error = false
-	awesome.connect_signal("debug::error",
-		function(err)
-			-- Make sure function doesnt call itself
-			if in_error then return end
-			in_error = true
+	awesome.connect_signal("debug::error", function(err)
+		-- Make sure function doesnt call itself
+		if in_error then return end
+		in_error = true
 
-			naughty.notify({ preset = naughty.config.presets.critical,
-					 title  = "Error Occured",
-					 text   = tostring(err) })
-		end)
+		naughty.notify({ preset = naughty.config.presets.critical,
+		title  = "Error Occured",
+		text   = tostring(err) })
+	end)
 end
 
 -- }}}
-
 -- {{{ Themes and defaults
 
 -- Use custom theme
@@ -60,7 +55,7 @@ for s = 1, screen.count() do
 end
 
 -- Set default terminal and editor
-terminal   = "urxvt"
+terminal   = "urxvtc"
 editor     = os.getenv("EDITOR") or "vi"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -69,17 +64,15 @@ modkey = "Mod4"
 
 -- Layouts for window tiling
 awful.layout.layouts = {
-	layout,
+	require("layout"),
 }
 
 -- }}}
-
 -- {{{ Status Bar
 menubar.utils.terminal = terminal
 menubar.show_categories = false
 menubar.refresh()
 
--- create a wibox for each screen
 local tags = {"1","2","3","4"}
 
 awful.screen.connect_for_each_screen(function(s)
@@ -88,10 +81,10 @@ awful.screen.connect_for_each_screen(function(s)
 	-- text clock
 	s.clock = wibox.widget.textclock()
 
-	s.ram 		= require("customWidgets.ramgraph")
-	s.cpu 		= require("customWidgets.cpugraph")
-	s.wifi 		= require("customWidgets.wifi")
-	s.battery 	= require("customWidgets.battery")
+	s.cpu = require("customWidgets.cpugraph")
+	s.ram = require("customWidgets.ramgraph")
+	s.wifi = require("customWidgets.wifi")
+	s.battery = require("customWidgets.battery")
 
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])	
@@ -124,7 +117,6 @@ awful.screen.connect_for_each_screen(function(s)
 	}
 end)
 -- }}}
-
 -- {{{ Key Bindings
 
 -- Aliases for convenience
@@ -178,8 +170,10 @@ globalkeys = gears.table.join(
 	awful.key({m,shft},"Return",	function()
 						awful.spawn(terminal, {
 							floating = true,
+							height = 400,
+							width = 600,
 							tag = mouse.screen.selected_tag,
-							placement = awful.placement.under_mouse
+							placement = awful.placement.under_mouse + awful.placement.no_offscreen
 						})
 					end,				{description	="open a floating terminal",
 									 group		="launcher"				}),
@@ -293,9 +287,7 @@ clientbuttons = gears.table.join(
 )
 
 -- }}}
-
 -- {{{ Rules
-
 awful.mouse.snap.edge_enabled = false
 
 awful.rules.rules = {
@@ -314,29 +306,26 @@ awful.rules.rules = {
 
 }
 -- }}}
-
 -- {{{ Signals
 local default_border_width = beautiful.border_width
-client.connect_signal("manage",
-	function(c)
-		if awesome.startup and
+client.connect_signal("manage", function(c)
+	if awesome.startup and
 		not c.size_hints.user_position then
-			awful.placement.no_offscreen(c)
-		end
-
-		local buttons = gears.table.join(
-			awful.button({}, 1, function()
-				c:emit_signal("request::activate", "titlebar", {raise=true})
-				awful.mouse.client.move(c)
-			end),
-			awful.button({}, 3, function()
-				c:emit_signal("request::activate", "titlebar", {raise=true})
-				awful.mouse.client.resize(c)
-			end)
-		)
-		c:emit_signal("property::window")
+		awful.placement.no_offscreen(c)
 	end
-)
+
+	local buttons = gears.table.join(
+	awful.button({}, 1, function()
+		c:emit_signal("request::activate", "titlebar", {raise=true})
+		awful.mouse.client.move(c)
+	end),
+	awful.button({}, 3, function()
+		c:emit_signal("request::activate", "titlebar", {raise=true})
+		awful.mouse.client.resize(c)
+	end)
+	)
+	c:emit_signal("property::window")
+end)
 
 client.connect_signal("unmanage", function(c)
 	c:emit_signal("request::border")

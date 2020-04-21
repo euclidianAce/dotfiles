@@ -3,7 +3,8 @@ local awful = require "awful"
 local gears = require "gears"
 local beautiful = require "beautiful"
 
-local interface = "wlp2s0"
+local config = require("wificonfig")
+local interface = config.interface
 local cmd = ("wpa_cli -i %s list_networks | grep CURRENT"):format(interface)
 local badText = " Not Connected "
 local text = wibox.widget.textbox(badText)

@@ -1,8 +1,8 @@
-set nocompatible " no compatability with vi
 set switchbuf="useopen"
 filetype plugin indent on
 set belloff=all " stop the stupid beep
 packadd! dracula
+let g:dracula_italic=0
 colorscheme dracula
 
 " {{{ Some Keybinds
@@ -12,10 +12,12 @@ nnoremap OA <NOP>
 nnoremap OB <NOP>
 nnoremap OC <NOP>
 nnoremap OD <NOP>
+
+" auto match {}
+inoremap {<CR> {<CR>+<CR>}<Esc>k$xa
 " }}}
 "{{{ Code Editing
-set autoindent          " auto indents
-set smartindent         " indent for code syntax enable
+set ignorecase
 set smartcase " case insensitive search for all lowercase
 " otherwise case sensitive
 
@@ -23,6 +25,8 @@ set tags+=tags;$HOME " search for tags files up to home dir
 set undofile
 
 autocmd BufRead,BufNewFile *.etlua set filetype=html
+autocmd BufRead,BufNewFile *.hs set expandtab
+autocmd BufRead,BufNewFile *.py set expandtab
 
 " quick shortcut to open pdf of the tex file
 function! OpenPDF()
@@ -50,7 +54,7 @@ nnoremap <leader>run :execute RunCode()<CR>
 
 "}}}
 "{{{ Visuals
-set number relativenumber
+set number " relativenumber
 set numberwidth=4
 set wildmenu	        " visual autocomplete stuffs
 set showcmd		" show command being typed
@@ -59,6 +63,7 @@ set lazyredraw
 set splitbelow
 set foldcolumn=2
 set cursorline
+set incsearch " highlight results as they're typed
 
 highlight VertSplit cterm=NONE
 highlight Folded ctermbg=NONE

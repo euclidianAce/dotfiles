@@ -1,9 +1,11 @@
 set switchbuf="useopen"
 filetype plugin indent on
 set belloff=all " stop the stupid beep
-packadd! dracula
+set bg=dark
 let g:dracula_italic=0
+packadd! dracula
 colorscheme dracula
+"colorscheme gruvbox
 
 " {{{ Some Keybinds
 " Disable arrow keys in normal mode
@@ -18,11 +20,12 @@ inoremap {<CR> {<CR>+<CR>}<Esc>k$xa
 " }}}
 "{{{ Code Editing
 set ignorecase
-set smartcase " case insensitive search for all lowercase
-" otherwise case sensitive
+set smartcase
 
 set tags+=tags;$HOME " search for tags files up to home dir
+set undodir=$HOME/.vim/undo
 set undofile
+set noswapfile
 
 autocmd BufRead,BufNewFile *.etlua set filetype=html
 autocmd BufRead,BufNewFile *.hs set expandtab
@@ -61,17 +64,18 @@ set showcmd " show command being typed
 set breakindent	" have word wrapping follow indent of wrapped line
 set lazyredraw
 set splitbelow
-set foldcolumn=2
 set cursorline
-set colorcolumn=+1
+set colorcolumn=70,80
 set incsearch " highlight results as they're typed
 set laststatus=2
 set noshowmode
-set foldmethod=marker	" allow folding
+set foldmethod=marker " allow folding
+set foldcolumn=3
+set modeline
 
 "{{{ Text formatting
 set linebreak
-set wrap
+set nowrap
 set textwidth=80
 set formatoptions=ltcroj " each letter corresponds to a text formatting option 
                          " from https://vimhelp.org/change.txt.html#fo-table
@@ -79,22 +83,47 @@ set formatoptions=ltcroj " each letter corresponds to a text formatting option
 highlight VertSplit cterm=NONE
 highlight Folded ctermbg=NONE
 highlight FoldColumn ctermbg=NONE
+
+" Syntax highlight from tags
+autocmd BufRead,BufNewFile *.[ch] let fname = expand('<afile>:p:h') . '/types.vim'
+autocmd BufRead,BufNewFile *.[ch] if filereadable(fname)
+autocmd BufRead,BufNewFile *.[ch] 	exe 'so ' . fname
+autocmd BufRead,BufNewFile *.[ch] endif
 "}}}
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
-let g:netrw_banner=0	" get rid of the banner
-"let g:netrw_browse_split=4 " open files in a new tab
-"let g:netrw_winsize=20	" have netrw take up 20% of the window
+let g:netrw_banner=0 " get rid of the banner
 
-nnoremap <leader>fh :Lex<CR>:NetrwC<CR>
-nnoremap <leader>fj :Hex<CR>:NetrwC<CR>
-nnoremap <leader>fk :Hex!<CR>:NetrwC<CR>
-nnoremap <leader>fl :Lex!<CR>:NetrwC<CR>
+nnoremap <silent> <leader>ff :let g:netrw_winsize=25<CR>:Lex<CR>
+nnoremap <silent> <leader>fh :let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>
+nnoremap <silent> <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
+nnoremap <silent> <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
+nnoremap <silent> <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 set path+=** " fuzzy file search imitation
 " }}}
 " {{{ Plugins
 " My stuff
-packadd! statusline
-" Other stuff
+"packadd! statusline
 
+" Not My stuff
+packadd! surround
+packadd! vim-commentary
+packadd! vim-endwise
+packadd! lightline.vim
+let g:lightline = {
+      \ 'colorscheme': 'darcula',
+      \ 'mode_map': {
+        \ 'n' : 'Normal',
+        \ 'i' : 'Insert',
+        \ 'R' : 'Replace',
+        \ 'v' : 'Visual',
+        \ 'V' : 'Visual Line',
+        \ "\<C-v>": 'Visual Block',
+        \ 'c' : 'Command',
+        \ 's' : 'Select',
+        \ 'S' : 'Select Line',
+        \ "\<C-s>": 'Select Block',
+        \ 't': 'Terminal',
+        \ },
+      \ }
 " }}}

@@ -1,11 +1,6 @@
 set switchbuf="useopen"
 filetype plugin indent on
 set belloff=all " stop the stupid beep
-set bg=dark
-let g:dracula_italic=0
-packadd! dracula
-colorscheme dracula
-"colorscheme gruvbox
 
 " {{{ Some Keybinds
 " Disable arrow keys in normal mode
@@ -117,7 +112,7 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'itchyny/lightline.vim'
 Plug 'vain474/vim-etlua'
-Plug 'dracula/vim' { 'as': 'dracula' }
+Plug 'dracula/vim', { 'as': 'dracula' }
 if has("nvim")
 	Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 endif
@@ -138,4 +133,7 @@ let g:lightline = {
         \ 't': 'Terminal',
         \ },
       \ }
+set bg=dark
+let g:dracula_italic=0
+colorscheme dracula
 " }}}

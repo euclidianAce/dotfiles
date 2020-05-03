@@ -106,10 +106,22 @@ set path+=** " fuzzy file search imitation
 "packadd! statusline
 
 " Not My stuff
-packadd! surround
-packadd! vim-commentary
-packadd! vim-endwise
-packadd! lightline.vim
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+call plug#begin('~/.vim/plugged')
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-endwise'
+Plug 'itchyny/lightline.vim'
+Plug 'vain474/vim-etlua'
+Plug 'dracula/vim' { 'as': 'dracula' }
+if has("nvim")
+	Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
+endif
+call plug#end()
 let g:lightline = {
       \ 'colorscheme': 'darcula',
       \ 'mode_map': {

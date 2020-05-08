@@ -2,6 +2,8 @@
 local os = require("os")
 local table = require("table")
 local tinsert, tconcat = table.insert, table.concat
+
+-- {{{ Use utf8 if we have it, but not necessary
 local utf8
 do
 	local ok, msg = pcall(require, "utf8")
@@ -15,7 +17,7 @@ do
 		}
 	end
 end
-
+-- }}}
 -- {{{ Box Drawing Chars
 local c = utf8.char
 local line = {
@@ -104,8 +106,8 @@ if middleLen > columns then
 	io.write("\n", lineColor, corner.bl, line.horiz, t.left, entries[2].color, entries[2].str, escChar, "35m\\] $ ", reset)
 	return
 end
--- fisrt line
-io.write("   ", lineColor, corner.tl, tconcat(result[1], t.down), corner.tr, "\n")
+-- first line
+io.write(reset, "   ", lineColor, corner.tl, tconcat(result[1], t.down), corner.tr, "\n")
 -- second line
 io.write(corner.tl, line.horiz:rep(2), t.left, tconcat(result[2], reset .. lineColor .. line.vert), lineColor, t.right)
 io.write(line.horiz:rep(columns - middleLen), t.left, "\n")

@@ -28,13 +28,13 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 #### ENVIRONMENT VARS ####
 ##########################
 
-# set vim as the default editor
-export EDITOR=vim
+# set nvim as the default editor
+export EDITOR=nvim
 
 # Additions to PATH
 eval $(luarocks path --bin)
-export LUA_PATH+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
-export LUA_CPATH+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
+export LUA_PATH_5_3+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
+export LUA_CPATH_5_3+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
 export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin"
 
 #################
@@ -60,7 +60,7 @@ function update_ps1 {
 		PS1=$DEFAULT_PS1
 		return 0
 	fi
-	PS1=$(lua $HOME/.config/ps1Getter.lua 2> $HOME/.config/ps1ErrLog.log)
+	PS1=$(luajit $HOME/.config/ps1Getter.lua 2> $HOME/.config/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1
 	fi

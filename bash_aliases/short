@@ -6,7 +6,7 @@ alias nv="nvim"
 alias code="codium-bin"
 
 function mkcd {
-	mkdir -p "$1" && cd $1
+	mkdir -p "$1" && cd "$1"
 }
 
 function touchx {

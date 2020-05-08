@@ -1,0 +1,5 @@
+# vim: filetype=sh
+
+function luaVersion() {
+	``eval `luarocks path --bin --lua-version=$1``` && echo "Lua version changed to $1"
+}

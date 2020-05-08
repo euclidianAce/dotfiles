@@ -35,9 +35,13 @@ auto FileType tex nnoremap <leader>open :w<CR>:execute OpenPDF()<CR>
 " helper function to open a small buffer for stdout and such
 function! OutBuffer()
 	if bufwinnr("__out__") > 0
-		bdelete! __out__
+		" jump to window if it already exists
+		" also clear it
+		exe "normal ".bufwinnr("__out__")."\<C-w>\<C-w>"
+		normal! gg"_dG
+	else
+		:10split __out__
 	endif
-	:10split __out__
 	setlocal buftype=nofile
 endfunction
 
@@ -97,16 +101,18 @@ nnoremap <silent> <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 set path+=** " fuzzy file search imitation
 " }}}
 " {{{ Plugins
-" My stuff
-"packadd! statusline
-
-" Not My stuff
+" Install VimPlug if not present
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
     \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 call plug#begin('~/.vim/plugged')
+
+" My stuff
+Plug '3uclidian/BetterLua.vim'
+
+" Not My stuff
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
@@ -134,6 +140,5 @@ let g:lightline = {
         \ },
       \ }
 set bg=dark
-let g:dracula_italic=0
 colorscheme dracula
 " }}}

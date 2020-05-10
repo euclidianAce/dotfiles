@@ -5,10 +5,10 @@ set belloff=all " stop the stupid beep
 " {{{ Some Keybinds
 " Disable arrow keys in normal mode
 let mapleader=";"
-nnoremap OA <NOP>
-nnoremap OB <NOP>
-nnoremap OC <NOP>
-nnoremap OD <NOP>
+nnoremap <Left> <NOP>
+nnoremap <Right> <NOP>
+nnoremap <Up> <NOP>
+nnoremap <Down> <NOP>
 
 " auto match {}
 inoremap {<CR> {<CR>+<CR>}<Esc>k$xa
@@ -22,7 +22,6 @@ set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
 
-autocmd BufRead,BufNewFile *.etlua set filetype=html
 autocmd BufRead,BufNewFile *.hs set expandtab
 autocmd BufRead,BufNewFile *.py set expandtab
 
@@ -109,20 +108,22 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 call plug#begin('~/.vim/plugged')
 
-" My stuff
-Plug '3uclidian/BetterLua.vim'
-
 " Not My stuff
-Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'itchyny/lightline.vim'
 Plug 'vain474/vim-etlua'
 Plug 'dracula/vim', { 'as': 'dracula' }
+
 if has("nvim")
 	Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 endif
+
+" My stuff
+Plug '3uclidian/BetterLua.vim'
+
 call plug#end()
+
 let g:lightline = {
       \ 'colorscheme': 'darcula',
       \ 'mode_map': {

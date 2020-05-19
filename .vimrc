@@ -4,7 +4,7 @@ set belloff=all " stop the stupid beep
 
 " {{{ Some Keybinds
 " Disable arrow keys in normal mode
-let mapleader=";"
+let mapleader=" "
 nnoremap <Left> <NOP>
 nnoremap <Right> <NOP>
 nnoremap <Up> <NOP>
@@ -14,6 +14,7 @@ nnoremap <Down> <NOP>
 inoremap {<CR> {<CR>+<CR>}<Esc>k$xa
 " }}}
 "{{{ Code Editing
+syntax on
 set ignorecase
 set smartcase
 
@@ -36,7 +37,7 @@ function! OutBuffer()
 	if bufwinnr("__out__") > 0
 		" jump to window if it already exists
 		" also clear it
-		exe "normal ".bufwinnr("__out__")."\<C-w>\<C-w>"
+		exe "normal " . bufwinnr("__out__") . "\<C-w>\<C-w>"
 		normal! gg"_dG
 	else
 		:10split __out__
@@ -44,7 +45,7 @@ function! OutBuffer()
 	setlocal buftype=nofile
 endfunction
 
-" ;run command executes the current file
+" <leader>run command executes the current file
 function! RunCode()
 	" Runs the code and redirects it's output to a buffer
 	let out = system("./" . bufname("%") . " 2>&1")
@@ -55,7 +56,7 @@ nnoremap <leader>run :execute RunCode()<CR>
 
 "}}}
 "{{{ Visuals
-set number " relativenumber
+set number relativenumber
 set numberwidth=4
 set wildmenu " visual autocomplete stuffs
 set showcmd " show command being typed
@@ -82,11 +83,6 @@ highlight VertSplit cterm=NONE
 highlight Folded ctermbg=NONE
 highlight FoldColumn ctermbg=NONE
 
-" Syntax highlight from tags
-autocmd BufRead,BufNewFile *.[ch] let fname = expand('<afile>:p:h') . '/types.vim'
-autocmd BufRead,BufNewFile *.[ch] if filereadable(fname)
-autocmd BufRead,BufNewFile *.[ch] 	exe 'so ' . fname
-autocmd BufRead,BufNewFile *.[ch] endif
 "}}}
 " {{{ NERDtree imitation
 let g:netrw_liststyle=3 " set tree style to default when viewing directories
@@ -98,48 +94,4 @@ nnoremap <silent> <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
 nnoremap <silent> <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
 nnoremap <silent> <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 set path+=** " fuzzy file search imitation
-" }}}
-" {{{ Plugins
-" Install VimPlug if not present
-if empty(glob('~/.vim/autoload/plug.vim'))
-  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
-call plug#begin('~/.vim/plugged')
-
-" Not My stuff
-Plug 'tpope/vim-commentary'
-Plug 'tpope/vim-endwise'
-Plug 'itchyny/lightline.vim'
-Plug 'vain474/vim-etlua'
-Plug 'dracula/vim', { 'as': 'dracula' }
-
-if has("nvim")
-	Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
-endif
-
-" My stuff
-Plug '3uclidian/BetterLua.vim'
-
-call plug#end()
-
-let g:lightline = {
-      \ 'colorscheme': 'darcula',
-      \ 'mode_map': {
-        \ 'n' : 'Normal',
-        \ 'i' : 'Insert',
-        \ 'R' : 'Replace',
-        \ 'v' : 'Visual',
-        \ 'V' : 'Visual Line',
-        \ "\<C-v>": 'Visual Block',
-        \ 'c' : 'Command',
-        \ 's' : 'Select',
-        \ 'S' : 'Select Line',
-        \ "\<C-s>": 'Select Block',
-        \ 't': 'Terminal',
-        \ },
-      \ }
-set bg=dark
-colorscheme dracula
 " }}}

@@ -10,5 +10,4 @@ The configs I keep track of here are for
 - Bash
 	- both my .bashrc and my PS1 script to make it look nice: ps1Getter.lua
 - Vim/Neovim
-- Urxvt
-- Picom
+- Sakura Terminal

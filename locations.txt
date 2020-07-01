@@ -1,0 +1,10 @@
+.bashrc -> $HOME/
+.vimrc -> $HOME/.vim/
+.xinitrc -> $HOME/
+.Xresources -> $HOME/
+.gitconfig -> $HOME/
+.urxvt -> $HOME/
+nvim -> $XDG_CONFIG_HOME/
+awesome -> $XDG_CONFIG_HOME/
+ps1Getter.lua -> $XDG_CONFIG_HOME/
+bash_aliases -> $XDG_CONFIG_HOME/

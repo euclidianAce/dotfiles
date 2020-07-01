@@ -1,7 +1,7 @@
 local wibox = require "wibox"
 local awful = require "awful"
-local gears = require "gears"
-local beautiful = require "beautiful"
+-- local gears = require "gears"
+-- local beautiful = require "beautiful"
 
 local config = require("customWidgets.wificonfig")
 local interface = config.interface
@@ -13,7 +13,6 @@ local text = wibox.widget.textbox(badText)
 local wifi = wibox.widget {
 	layout = wibox.layout.align.horizontal,
 	{widget = awful.widget.watch(("sh -c '%s'"):format(cmd), 5, function(widget, stdout)
-		
 		local start = stdout:find("\t")
 		if not start then
 			widget:set_text(badText)

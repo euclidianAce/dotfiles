@@ -1,0 +1,3 @@
+return {
+	interface = "eth0"
+}

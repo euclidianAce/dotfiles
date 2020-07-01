@@ -45,8 +45,6 @@ local function organize(p)
 			end
 
 		end
-		
-		
 		p.geometries[client] = geometry
 	end
 end
@@ -60,7 +58,7 @@ local function mouse_resize_handler(client, corner, x, y)
 		mouse.x = mouse.x + coords_delta.x
 		mouse.y = mouse.y + coords_delta.y
 		local geometry = client:geometry()
-		
+
 		local num = 0.5
 		client.setwfact(num, client)
 	end)

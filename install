@@ -21,8 +21,9 @@ for file, destDir in files:gmatch(pat) do
 	destDir = destDir:gsub("%$([a-zA-Z_]+)", os.getenv)
 	os.execute("rm -rf " .. destDir .. file)
 	print(("linking %s to %s"):format(dotFileDir .. file, destDir .. file))
-	local ok, res = os.execute("ln -sf " .. dotFileDir .. file .. " " .. destDir .. file)
+	local ok, res, code = os.execute("ln -sf " .. dotFileDir .. file .. " " .. destDir .. file)
 	if not ok then
 		print("\tCould not link:", res)
+		print("", code)
 	end
 end

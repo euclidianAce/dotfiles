@@ -1,16 +1,20 @@
 #!/usr/bin/env lua
-
 local lfs = require("lfs")
 local dotFileDir = ("$HOME/dotfiles/"):gsub("%$([a-zA-Z_]+)", os.getenv)
 local locations = "locations.txt"
 
-local fd = io.open(dotFileDir .. locations, "r")
-if not fd then
-	io.stderr:write("Unable to open " .. locations)
-	os.exit(1)
+local files
+if #arg > 0 then
+	files = table.concat(arg, "\n")
+else
+	local fd = io.open(dotFileDir .. locations, "r")
+	if not fd then
+		io.stderr:write("Unable to open " .. locations)
+		os.exit(1)
+	end
+	local files = fd:read("a")
+	fd:close()
 end
-local files = fd:read("a")
-fd:close()
 
 local pat = "(%S+)%s+%-%>%s+(%S+)"
 for file, destDir in files:gmatch(pat) do

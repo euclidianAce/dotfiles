@@ -28,6 +28,11 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 #### ENVIRONMENT VARS ####
 ##########################
 
+# for some reason this doesnt seem to be set by default...
+export XDG_CONFIG_HOME="$HOME/.config"
+
+export DOTFILE_DIR="$HOME/dotfiles"
+
 # set nvim as the default editor
 export EDITOR=nvim
 
@@ -43,7 +48,7 @@ export LUA_CPATH_5_4+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so;./?.so"
 #### ALIASES ####
 #################
 
-for f in $HOME/.config/bash_aliases/*; do
+for f in $DOTFILE_DIR/bash_aliases/*; do
 	source $f
 done
 

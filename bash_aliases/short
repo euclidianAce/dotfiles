@@ -1,4 +1,4 @@
-# vim: filetype=sh
+# vim: filetype=bash
 # actual "aliases"
 alias e=$EDITOR
 alias v="vim"
@@ -9,8 +9,10 @@ function mkcd {
 	mkdir -p "$1" && cd "$1"
 }
 
+#create an executable with the correct shebang
 function touchx {
 	file=`basename $1`
 	extension="${file##*.}"
-	touch $1 && chmod +x $1 && echo -e "#!/usr/bin/env $extension\n" > $1 && $EDITOR $1
+	declare -A runners=( ['lua']='lua' ['py']='python' ['erl']='escript' ['tl']='tl run' )
+	touch $1 && chmod +x $1 && echo -e "#!/usr/bin/env ${runners[$extension]}\n" > $1 && $EDITOR $1
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
-local lfs = require("lfs")
+
 local dotFileDir = ("$HOME/dotfiles/"):gsub("%$([a-zA-Z_]+)", os.getenv)
 local locations = "locations.txt"
 
@@ -12,7 +12,7 @@ else
 		io.stderr:write("Unable to open " .. locations)
 		os.exit(1)
 	end
-	local files = fd:read("a")
+	files = fd:read("a")
 	fd:close()
 end
 
@@ -21,7 +21,7 @@ for file, destDir in files:gmatch(pat) do
 	destDir = destDir:gsub("%$([a-zA-Z_]+)", os.getenv)
 	os.execute("rm -rf " .. destDir .. file)
 	print(("linking %s to %s"):format(dotFileDir .. file, destDir .. file))
-	local ok, res = lfs.link(dotFileDir .. file, destDir .. file, true)
+	local ok, res = os.execute("ln -sf " .. dotFileDir .. file .. " " .. destDir .. file)
 	if not ok then
 		print("\tCould not link:", res)
 	end

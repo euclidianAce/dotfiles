@@ -7,23 +7,21 @@ URxvt.perl-ext-common: default,resize-font
 
 *locale: en_US.UTF-8
 
-!*.transparent: true
-!*.shading: 20
-!*.blurRadius: 5
-*.font: -*-terminus-*-*-*-*-18-*-*-*-*-*-*-*, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
-!xft:UbuntuMono:size=14, 
+/* *.font: xft:Terminus (TTF):size=12:antialias=true */
+*.font: xft:UbuntuMono:size=12:antialias=true
+/* *.font: xft:Hasklig:size=11:antialias=true */
+/* *.font: -*-terminus-*-*-*-*-16-*-*-*-*-*-*-* */
 
+*.letterSpace: 1
+*.lineSpace: 0
 *.scrollBar: false
-*.letterSpace: 0
-*.lineSpace: 2
 *.internalBorder: 10
 *.cursorBlink: true
 URxvt.pointerBlank: true
 
 ! Dracula Xresources palette
 *.foreground: #F8F8F2
-*.background: #18151F
-! #282A36
+*.background: #303030
 *.color0: #000000
 *.color8: #4D4D4D
 *.color1: #FF5555

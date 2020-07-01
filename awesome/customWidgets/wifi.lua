@@ -3,7 +3,7 @@ local awful = require "awful"
 local gears = require "gears"
 local beautiful = require "beautiful"
 
-local config = require("wificonfig")
+local config = require("customWidgets.wificonfig")
 local interface = config.interface
 local cmd = ("wpa_cli -i %s list_networks | grep CURRENT"):format(interface)
 local badText = " Not Connected "

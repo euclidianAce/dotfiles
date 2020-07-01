@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-xset +fp /usr/share/fonts/terminus
 xrdb -merge ~/.Xresources
-urxvtd -q -o -f
-picom -b
-exec awesome
+setxkbmap us -variant colemak
+exec sakura & awesome
+#exec urxvtc & ~/Applications/firefox/firefox & ~/Applications/mywm/run

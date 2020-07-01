@@ -55,7 +55,7 @@ for s = 1, screen.count() do
 end
 
 -- Set default terminal and editor
-terminal   = "urxvtc"
+terminal   = "sakura"
 editor     = os.getenv("EDITOR") or "vi"
 editor_cmd = terminal .. " -e " .. editor
 

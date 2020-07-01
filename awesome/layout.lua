@@ -3,6 +3,8 @@
 
 local math = math
 local ipairs = ipairs
+local client = require("awful.client")
+local capi = {mouse = mouse, screen = screen, mousegrabber = mousegrabber}
 
 local function organize(p)
 	-- p has clients and the work area
@@ -49,6 +51,25 @@ local function organize(p)
 	end
 end
 
+local function mouse_resize_handler(client, corner, x, y)
+	local cursor = "cross"
+	local coords_delta = {x=0, y=0}
+	local workarea = client.screen.workarea
+	capi.mousegrabber.run(function(mouse)
+		if not client.valid then return false end
+		mouse.x = mouse.x + coords_delta.x
+		mouse.y = mouse.y + coords_delta.y
+		local geometry = client:geometry()
+		
+		local num = 0.5
+		client.setwfact(num, client)
+	end)
+end
 
-return {arrange = organize, name = "Tiled"}
+return {
+	arrange = organize,
+	name = "Tiled",
+	mouse_resize_handler = mouse_resize_handler,
+	resize_jump_to_corner = true,
+}
 

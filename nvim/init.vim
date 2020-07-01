@@ -2,6 +2,14 @@ set runtimepath^=~/.vim runtimepath+=~/.vim/after
 let &packpath = &runtimepath
 source ~/.vim/vimrc
 set guicursor=
+
+set inccommand=split
+" set luarocks style easily
+nnoremap <silent> <leader>lua :set sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
+" <leader>a format
+nnoremap <leader>a gg=G<C-o>
+" <leader>w = format and save
+nnoremap <leader>w gg=G<C-o>:w<CR>
 " {{{ Plugins
 " Install VimPlug if not present
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -9,30 +17,42 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
-call plug#begin('~/.vim/plugged')
 
-" Not My stuff
+call plug#begin('~/.vim/plugged')
+" {{{
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'itchyny/lightline.vim'
 Plug 'neovim/nvim-lsp'
-" Syntax
-Plug 'vain474/vim-etlua'
-Plug 'dpwright/vim-tup'
+" Plug 'nvim-treesitter/nvim-treesitter'
 
+" Syntax
+Plug 'dpwright/vim-tup'
+Plug 'teal-language/vim-teal'
+let g:teal_check_only = 1
+
+Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
+
+" Colors
 Plug 'dracula/vim', { 'as': 'dracula' }
 Plug 'morhetz/gruvbox'
 
-if has("nvim")
-	Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
-endif
-
 " My stuff
 Plug '3uclidian/BetterLua.vim'
-
+Plug '3uclidian/exec.vim'
+" }}}
 call plug#end()
 
-let lua_subversion = 4
+"let lua_subversion = 4
+
+" fzf
+nnoremap <leader>fz :FZF<CR>
+nnoremap <leader>rg :Rg<CR>
+let g:fzf_preview_window = "right:60%"
+
 
 let g:lightline = {
       \ 'colorscheme': 'darcula',
@@ -57,7 +77,7 @@ colorscheme dracula
 
 " default config from :help lsp
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
-nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+" nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
 nnoremap <silent> gD    <cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> <c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>

@@ -3,5 +3,6 @@
 alias ebrc="$EDITOR ~/.config/.bashrc && source ~/.bashrc"
 alias exr="$EDITOR ~/.config/.Xresources && xrdb ~/.Xresources"
 alias evrc="$EDITOR ~/.vim/vimrc"
+alias envrc="$EDITOR ~/.config/nvim/init.vim"
 alias eps1="$EDITOR ~/.config/ps1Getter.lua"
 alias egc="$EDITOR ~/.config/.gitconfig"

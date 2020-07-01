@@ -32,10 +32,12 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 export EDITOR=nvim
 
 # Additions to PATH
-eval $(luarocks path --bin)
+export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin:$HOME/dev/tl"
 export LUA_PATH_5_3+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
-export LUA_CPATH_5_3+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so"
-export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin"
+export LUA_CPATH_5_3+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so;./?.so"
+eval $(luarocks path --bin)
+export LUA_PATH_5_4+=";$HOME/lualibs/?.lua;$HOME/lualibs/?/init.lua"
+export LUA_CPATH_5_4+=";$HOME/lualibs/?.so;$HOME/lualibs/?/?.so;./?.so"
 
 #################
 #### ALIASES ####

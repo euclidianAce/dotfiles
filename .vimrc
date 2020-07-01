@@ -10,7 +10,7 @@ nnoremap <Right> <NOP>
 nnoremap <Up> <NOP>
 nnoremap <Down> <NOP>
 
-" auto match {}
+" auto match {} only when hitting enter
 inoremap {<CR> {<CR>+<CR>}<Esc>k$xa
 " }}}
 "{{{ Code Editing
@@ -32,28 +32,6 @@ function! OpenPDF()
 endfunction
 auto FileType tex nnoremap <leader>open :w<CR>:execute OpenPDF()<CR>
 
-" helper function to open a small buffer for stdout and such
-function! OutBuffer()
-	if bufwinnr("__out__") > 0
-		" jump to window if it already exists
-		" also clear it
-		exe "normal " . bufwinnr("__out__") . "\<C-w>\<C-w>"
-		normal! gg"_dG
-	else
-		:10split __out__
-	endif
-	setlocal buftype=nofile
-endfunction
-
-" <leader>run command executes the current file
-function! RunCode()
-	" Runs the code and redirects it's output to a buffer
-	let out = system("./" . bufname("%") . " 2>&1")
-	call OutBuffer()
-	call append(0, split(out, '\v\n'))
-endfunction
-nnoremap <leader>run :execute RunCode()<CR>
-
 "}}}
 "{{{ Visuals
 set number relativenumber
@@ -71,12 +49,12 @@ set noshowmode
 set foldmethod=marker " allow folding
 set foldcolumn=3
 set modeline
+set scrolloff=10
 
 "{{{ Text formatting
 set linebreak
 set nowrap
-set textwidth=80
-set formatoptions=ltcroj " each letter corresponds to a text formatting option 
+set formatoptions=lcroj  " each letter corresponds to a text formatting option
                          " from https://vimhelp.org/change.txt.html#fo-table
 "}}}
 highlight VertSplit cterm=NONE

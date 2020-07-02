@@ -190,13 +190,15 @@ local globalkeys = gears.table.join(
 	),
 	awful.key(
 		{m,shft}, "Return",
-		partial(awful.spawn, terminal, {
-			floating = true,
-			height = 400,
-			width = 600,
-			tag = mouse.screen.selected_tag,
-			placement = awful.placement.under_mouse + awful.placement.no_offscreen
-		}),
+		function()
+			awful.spawn(terminal, {
+				floating = true,
+				height = 400,
+				width = 600,
+				tag = mouse.screen.selected_tag,
+				placement = awful.placement.under_mouse,
+			})
+		end,
 		{ description="open a floating terminal", group="launcher" }
 	),
 	awful.key(

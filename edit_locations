@@ -1,2 +1,0 @@
-#!/usr/bin/env sh
-nvim locations.txt -c "source location_syntax.vim"

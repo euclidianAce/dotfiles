@@ -7,10 +7,6 @@ set termguicolors
 set inccommand=split
 " set luarocks style easily
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
-" <leader>a format
-nnoremap <leader>a gg=G<C-o>
-" <leader>w = format and save
-nnoremap <leader>w gg=G<C-o>:w<CR>
 " {{{ Plugins
 " Install VimPlug if not present
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -74,3 +70,4 @@ autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 
 lua require "config"
 lua require "statusline"
+nnoremap <silent> <F12> :lua require"statusline".toggleTag"SyntaxViewer"<CR>

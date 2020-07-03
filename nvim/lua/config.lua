@@ -24,4 +24,4 @@ lsp.sumneko_lua.setup{
 		}
 	}
 }
-lsp.clangd.setup{}
+-- lsp.clangd.setup{}

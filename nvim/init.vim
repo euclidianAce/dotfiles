@@ -72,6 +72,7 @@ let g:lightline = {
       \ }
 set bg=dark
 colorscheme dracula
+highlight! link NonText LineNr
 " }}}
 " {{{ lsp
 
@@ -88,6 +89,6 @@ nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
 
 " use omni-completion
 autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc
-autocmd Filetype c setlocal omnifunc=v:lua.vim.lsp.omnifunc
+autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
 lua require "config"

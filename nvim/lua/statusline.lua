@@ -40,6 +40,7 @@ end
 cmd "augroup customstatus"
 cmd 	"autocmd!"
 cmd	"autocmd WinEnter * lua require('statusline').setActive()"
+cmd	"autocmd BufWinEnter * lua require('statusline').setActive()"
 cmd	"autocmd WinLeave * lua require('statusline').setInactive()"
 cmd "augroup END"
 M.setActive()

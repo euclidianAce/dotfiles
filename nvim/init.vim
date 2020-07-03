@@ -3,9 +3,10 @@ let &packpath = &runtimepath
 source ~/.vim/vimrc
 set guicursor=
 
+set termguicolors
 set inccommand=split
 " set luarocks style easily
-nnoremap <silent> <leader>lua :set sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
+nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
 " <leader>a format
 nnoremap <leader>a gg=G<C-o>
 " <leader>w = format and save
@@ -25,7 +26,6 @@ Plug 'junegunn/fzf.vim'
 
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
-Plug 'itchyny/lightline.vim'
 Plug 'neovim/nvim-lsp'
 " Plug 'nvim-treesitter/nvim-treesitter'
 
@@ -46,33 +46,13 @@ Plug '3uclidian/exec.vim'
 " }}}
 call plug#end()
 
-"let lua_subversion = 4
-
 " fzf
 nnoremap <leader>fz :FZF<CR>
 nnoremap <leader>rg :Rg<CR>
 let g:fzf_preview_window = "right:60%"
 
-
-let g:lightline = {
-      \ 'colorscheme': 'darcula',
-      \ 'mode_map': {
-        \ 'n' : 'Normal',
-        \ 'i' : 'Insert',
-        \ 'R' : 'Replace',
-        \ 'v' : 'Visual',
-        \ 'V' : 'Visual Line',
-        \ "\<C-v>": 'Visual Block',
-        \ 'c' : 'Command',
-        \ 's' : 'Select',
-        \ 'S' : 'Select Line',
-        \ "\<C-s>": 'Select Block',
-        \ 't': 'Terminal',
-        \ },
-      \ }
 set bg=dark
 colorscheme dracula
-highlight! link NonText LineNr
 " }}}
 " {{{ lsp
 
@@ -91,4 +71,6 @@ nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
 autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc
 autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
+
 lua require "config"
+lua require "statusline"

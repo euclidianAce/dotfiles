@@ -9,7 +9,6 @@ local function set(t)
 	return s
 end
 
-
 local modeMap = {
 	n = {"Normal", "DraculaPurple"},
 	i = {"Insert", "DraculaGreen"},
@@ -31,12 +30,15 @@ function M.getModeText()
 end
 
 local lineComponents = {}
-local function addComp(tags, text, hiGroup)
+local currentTags = {}
+
+local function addComp(tags, invertedTags, text, hiGroup)
 	table.insert(
 		lineComponents,
 		{
 			text = ("%%#%s#"):format(hiGroup) .. text .. "%#Normal#",
 			tags = set(tags),
+			invertedTags = set(invertedTags)
 		}
 	)
 end
@@ -45,43 +47,34 @@ local function components()
 	return function()
 		i = i + 1
 		if lineComponents[i] then
-			return lineComponents[i].tags, lineComponents[i].text
+			return lineComponents[i].tags, lineComponents[i].invertedTags, lineComponents[i].text
 		end
 	end
 end
 
-addComp({"LeadingSpace", "Spaces"}, " ", "Comment")
-addComp({"ModeText"}, [=[[%{luaeval("require'statusline'.getModeText()")}]]=], "User3")
-addComp({"BufferNumber"}, "[buf: %n]", "Comment")
-addComp({"FileName"}, "[%.30f]", "Identifier")
-addComp({"EditInfo"}, "%y%r%h%w%m ", "Comment")
-addComp({"SyntaxViewer"}, [[ [Current Syntax Item: %{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
-addComp({"ActiveSeparator"}, "%=", "User1")
-addComp({"InactiveSeparator"}, "%=", "User2")
-addComp({"LineNumber", "NavInfo"}, " %l/%L:%c ", "Comment")
-addComp({"FilePercent", "NavInfo"}, "%3p%%", "Comment")
-addComp({"TrailingSpace", "Spaces"}, " ", "Comment")
-
-cmd "hi! User2 guibg=#1F1F1F"
-cmd "hi! link User1 Visual"
-
-local lines = {
-	active = set{ "ActiveSeparator", "Spaces", "ModeText", "BufferNumber", "FileName", "EditInfo", "NavInfo" },
-	inactive = set{ "InactiveSeparator", "Spaces", "BufferNumber", "FileName", "EditInfo" },
-}
+-- function M.enableTag(name)
+-- end
+-- function M.disableTag(name)
+-- end
 function M.toggleTag(name)
-	lines.active[name] = not lines.active[name]
-	M.setActive() -- we need to redraw the active line
+	currentTags[name] = not currentTags[name]
+	M.setActive()
 end
 
-local function makeLine(name)
-	local lineTags = lines[name]
+local function makeLine(tags)
+	local tagSet = set(tags)
 	local buf = {}
-	for compTags, text in components() do
+	for compTags, compInvTags, text in components() do
 		local include = false
 		for t in pairs(compTags) do
-			if lineTags[t] then
+			if tagSet[t] or currentTags[t] then
 				include = true
+				break
+			end
+		end
+		for t in pairs(compInvTags) do
+			if tagSet[t] or currentTags[t] then
+				include = false
 				break
 			end
 		end
@@ -93,19 +86,38 @@ local function makeLine(name)
 end
 
 function M.setInactive()
-	vim.api.nvim_win_set_option(0, "statusline", makeLine("inactive"))
+	vim.api.nvim_win_set_option(0, "statusline", makeLine{"Inactive"})
 end
 
 function M.setActive()
-	vim.api.nvim_win_set_option(0, "statusline", makeLine("active"))
+	vim.api.nvim_win_set_option(0, "statusline", makeLine{"Active"})
 end
 
--- this feels wrong to do with just a bunch of command calls
 cmd "augroup customstatus"
-cmd 	"autocmd!"
+cmd	"autocmd!"
 cmd	"autocmd WinEnter,BufWinEnter * lua require('statusline').setActive()"
 cmd	"autocmd WinLeave * lua require('statusline').setInactive()"
 cmd "augroup END"
 M.setActive()
+
+addComp({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
+addComp({"ModeText", "Active"}, {"Inactive"}, [=[[%{luaeval("require'statusline'.getModeText()")}]]=], "User3")
+addComp({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
+addComp({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
+addComp({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
+addComp({"SyntaxViewer", "Debugging"}, {"Inactive"}, [[ [Current Syntax Item: %{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
+addComp({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
+addComp({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
+addComp({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")
+addComp({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "Comment")
+addComp({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
+
+cmd "hi! User2 guibg=#1F1F1F"
+cmd "hi! link User1 Visual"
+
+-- local function nnoremap(lhs, rhs)
+-- 	vim.api.nvim_set_keymap("n", lhs, rhs, {noremap = true, silent = true})
+-- end
+-- nnoremap("<F12>", ":lua require'statusline'.toggleTag'Debugging'<CR>")
 
 return M

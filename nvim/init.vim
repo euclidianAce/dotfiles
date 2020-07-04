@@ -70,4 +70,4 @@ autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 
 lua require "config"
 lua require "statusline"
-nnoremap <silent> <F12> :lua require"statusline".toggleTag"SyntaxViewer"<CR>
+nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>

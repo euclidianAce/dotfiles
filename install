@@ -1,6 +1,10 @@
 #!/usr/bin/env lua
 
-local dotFileDir = ("$HOME/dotfiles/"):gsub("%$([a-zA-Z_]+)", os.getenv)
+local function subEnvVar(str)
+	return (str:gsub("%$([a-zA-Z_]+)", os.getenv))
+end
+
+local dotFileDir = subEnvVar("$HOME/dotfiles/")
 local locations = "locations.txt"
 
 local files
@@ -29,7 +33,8 @@ end
 local pat = "(%S+)%s+%-%>%s+(%S+)"
 local last_paths = {}
 for file, destDir in files:gmatch(pat) do
-	destDir = destDir:gsub("%$([a-zA-Z_]+)", os.getenv)
+	destDir = subEnvVar(destDir)
+	os.execute("rm -rf " .. destDir .. file)
 	last_paths[file] = destDir
 	print(("linking %s to %s"):format(dotFileDir .. file, destDir .. file))
 	local ok, res, code = os.execute("ln -s " .. dotFileDir .. file .. " " .. destDir .. file)

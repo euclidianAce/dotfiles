@@ -2,7 +2,6 @@
 .xinitrc -> $HOME/
 .Xresources -> $HOME/
 .gitconfig -> $HOME/
-vimrc -> $HOME/.vim/
 nvim -> $XDG_CONFIG_HOME/
 awesome -> $XDG_CONFIG_HOME/
 ps1Getter.lua -> $XDG_CONFIG_HOME/

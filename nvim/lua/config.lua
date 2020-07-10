@@ -1,4 +1,5 @@
 
+-- {{{ LSP
 local lsp = require("nvim_lsp")
 lsp.sumneko_lua.setup{
 	settings = {
@@ -24,4 +25,5 @@ lsp.sumneko_lua.setup{
 		}
 	}
 }
--- lsp.clangd.setup{}
+lsp.clangd.setup{}
+-- }}}

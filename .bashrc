@@ -8,9 +8,6 @@
 ##  ######   ###  # ######  #     # #        #####  
 
 
-# vi mode: allows vi style commands within bash
-set -o vi
-
 shopt -s autocd		# Automatically does a cd when you type a directory
 shopt -s checkwinsize 	# resize window automatically after each command
 
@@ -74,3 +71,9 @@ function update_ps1 {
 }
 update_ps1
 PROMPT_COMMAND=update_ps1
+
+# This is silly
+# if [[ -z $NVIM_STARTED ]]; then
+# 	export NVIM_STARTED=1
+# 	exec nvim "+term"
+# fi

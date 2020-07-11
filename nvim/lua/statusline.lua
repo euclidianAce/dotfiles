@@ -58,14 +58,10 @@ local function components()
    end
 end
 
-function M.toggleTag(name)
-   currentTags[name] = not currentTags[name]
-   M.setActive()
-end
-
 local function makeLine(tags)
    local tagSet = set(tags)
    local buf = {}
+   local text
    for compTags, compInvTags, text in components() do
       local include = false
       for t in pairs(compTags) do
@@ -93,6 +89,11 @@ end
 
 function M.setActive()
    vim.api.nvim_win_set_option(0, "statusline", makeLine({ "Active" }))
+end
+
+function M.toggleTag(name)
+   currentTags[name] = not currentTags[name]
+   M.setActive()
 end
 
 cmd("augroup customstatus")

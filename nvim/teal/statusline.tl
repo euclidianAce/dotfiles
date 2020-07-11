@@ -50,7 +50,7 @@ local function addComp(tags: {string}, invertedTags: {string}, text: string, hiG
 end
 local function components(): function(): {string:boolean}, {string:boolean}, string
 	local i = 0
-	return function()
+	return function(): {string:boolean}, {string:boolean}, string
 		i = i + 1
 		if lineComponents[i] then
 			return lineComponents[i].tags, lineComponents[i].invertedTags, lineComponents[i].text
@@ -58,14 +58,10 @@ local function components(): function(): {string:boolean}, {string:boolean}, str
 	end
 end
 
-function M.toggleTag(name: string)
-	currentTags[name] = not currentTags[name]
-	M.setActive()
-end
-
-local function makeLine(tags: {string})
+local function makeLine(tags: {string}): string
 	local tagSet = set(tags)
 	local buf = {}
+	local text: string
 	for compTags, compInvTags, text in components() do
 		local include = false
 		for t in pairs(compTags) do
@@ -81,7 +77,7 @@ local function makeLine(tags: {string})
 			end
 		end
 		if include then
-			table.insert(buf, text)
+			table.insert(buf, text as string)
 		end
 	end
 	return table.concat(buf)
@@ -93,6 +89,11 @@ end
 
 function M.setActive()
 	vim.api.nvim_win_set_option(0, "statusline", makeLine{"Active"})
+end
+
+function M.toggleTag(name: string)
+	currentTags[name] = not currentTags[name]
+	M.setActive()
 end
 
 cmd "augroup customstatus"

@@ -84,11 +84,11 @@ inoremap {<CR> {<CR>+<CR>}<Esc>k$xA
 
 let g:netrw_liststyle = 3
 let g:netrw_banner = 0
-nnoremap "<leader>ff" ":let g:netrw_winsize=25<CR>:Lex<CR>"
-nnoremap "<leader>fh" ":let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>"
-nnoremap "<leader>fj" ":let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>"
-nnoremap "<leader>fk" ":let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>"
-nnoremap "<leader>fl" ":let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>"
+nnoremap <leader>ff :let g:netrw_winsize=25<CR>:Lex<CR>
+nnoremap <leader>fh :let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>
+nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
+nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
+nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 " }}}
 " {{{ set ...
 set termguicolors guicursor= belloff=all

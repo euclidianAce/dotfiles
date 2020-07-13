@@ -31,6 +31,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'neovim/nvim-lsp'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 " Plug 'nvim-treesitter/nvim-treesitter'
 
 " Syntax
@@ -45,8 +46,9 @@ Plug 'dracula/vim', { 'as': 'dracula' }
 Plug 'morhetz/gruvbox'
 
 " My stuff
-Plug '3uclidian/BetterLua.vim'
-Plug '3uclidian/exec.vim'
+Plug 'euclidianAce/BetterLua.vim'
+Plug 'euclidianAce/exec.vim'
+Plug 'euclidianAce/teal-interactive.nvim'
 " }}}
 call plug#end()
 
@@ -118,6 +120,7 @@ lua require "config"
 lua require "statusline"
 nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
+inoremap <silent> .shrug ¯\_(ツ)_/¯
 
 " set luarocks style easily
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>

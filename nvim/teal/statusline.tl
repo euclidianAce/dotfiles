@@ -10,21 +10,27 @@ local function set<T>(t: {T}): {T:boolean}
 end
 
 local modeMap: {string:{string}} = {
-	n = {"Normal", "DraculaPurple"},
-	i = {"Insert", "DraculaGreen"},
-	R = {"Replace", "DraculaRed"},
-	v = {"Visual", "DraculaYellow"},
-	V = {"Visual Line", "DraculaYellow"},
+	["n"] = {"Normal", "DraculaPurple"},
+	["i"] = {"Insert", "DraculaGreen"},
+	["ic"] = {"Insert Completion", "DraculaGreenBold"},
+	["ix"] = {"Insert Completion", "DraculaGreenBold"},
+	["R"] = {"Replace", "DraculaRed"},
+	["v"] = {"Visual", "DraculaYellow"},
+	["V"] = {"Visual Line", "DraculaYellow"},
 	[""] = {"Visual Block", "DraculaYellow"},
-	c = {"Command", "DraculaPink"},
-	s = {"Select", "DraculaYellow"},
-	S = {"Select Line", "DraculaYellow"},
+	["c"] = {"Command", "DraculaPink"},
+	["s"] = {"Select", "DraculaYellow"},
+	["S"] = {"Select Line", "DraculaYellow"},
 	[""] = {"Select Block", "DraculaYellow"},
-	t = {"Terminal", "DraculaOrange"},
+	["t"] = {"Terminal", "DraculaOrange"},
+	["!"] = {"Shell...", "Comment"},
 }
 
 function M.getModeText(): string
-	local m: string = vim.fn.mode() as string
+	local m: string = vim.fn.mode(true) as string
+	if not modeMap[m] then
+		m = m:sub(1,1)
+	end
 	cmd("hi! link User3 " .. modeMap[m][2])
 	return modeMap[m][1]
 end

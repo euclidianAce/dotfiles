@@ -94,7 +94,9 @@ nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 " }}}
 " {{{ set ...
 set termguicolors guicursor= belloff=all
-set undofile undodir="$HOME/.vim/undo" noswapfile
+set undodir="$HOME/.vim/undo"
+set undofile
+set noswapfile
 set switchbuf=useopen
 set number relativenumber numberwidth=4
 set wildmenu " visual autocomplete stuffs

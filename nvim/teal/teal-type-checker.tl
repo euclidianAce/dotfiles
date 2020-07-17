@@ -7,7 +7,6 @@ local function getLines(buf: number): {string}
 	return a.nvim_buf_get_lines(buf, 0, -1, false)
 end
 
-
 local TypeChecker = record
 	buffer: number
 	namespaceID: number
@@ -34,10 +33,10 @@ function M.getTypeChecker(buf: number): TypeChecker
 end
 
 local Error = record
-   y: number
-   x: number
-   msg: string
-   filename: string
+	y: number
+	x: number
+	msg: string
+	filename: string
 end
 
 function TypeChecker:typeCheckBuffer(): {Error}
@@ -50,8 +49,9 @@ function TypeChecker:annotateTypeErrors()
 	a.nvim_buf_clear_namespace(self.buffer, self.namespaceID, 0, -1)
 	for i, err in ipairs(self:typeCheckBuffer()) do
 		a.nvim_buf_set_virtual_text(self.buffer, self.namespaceID, err.y - 1, {
-			{err.msg, "Error"}
+			{"✗ " .. err.msg, "Error"}
 		}, {})
+		a.nvim_buf_add_highlight(self.buffer, self.namespaceID, "Error", err.y - 1, err.x-1, -1)
 	end
 end
 

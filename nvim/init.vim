@@ -114,8 +114,8 @@ nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
 
-auto FileType teal autocmd BufWrite *.tl lua require'teal-type-checker'.getTypeChecker():annotateTypeErrors()
-nnoremap <silent> <leader>t :lua require'teal-type-checker'.getTypeChecker():annotateTypeErrors()<CR>
+auto FileType teal autocmd BufWrite,TextChanged,InsertLeave *.tl lua require'teal-type-checker'.getTypeChecker():annotateErrors()
+nnoremap <silent> <leader>t :lua require'teal-type-checker'.getTypeChecker():annotateErrors()<CR>
 
 colorscheme dracula
 

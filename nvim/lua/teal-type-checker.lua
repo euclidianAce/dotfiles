@@ -41,16 +41,25 @@ local Error = {}
 function TypeChecker:typeCheckBuffer()
    local lines = getLines(self.buffer)
    local result = tl.process_string(table.concat(lines, "\n"))
-   return result.type_errors
+   return result.syntax_errors, result.type_errors
 end
 
-function TypeChecker:annotateTypeErrors()
-   a.nvim_buf_clear_namespace(self.buffer, self.namespaceID, 0, -1)
-   for i, err in ipairs(self:typeCheckBuffer()) do
-      a.nvim_buf_set_virtual_text(self.buffer, self.namespaceID, err.y - 1, {
+local function showErrors(buf, ns, errs)
+   for i, err in ipairs(errs) do
+      a.nvim_buf_set_virtual_text(buf, ns, err.y - 1, {
          { "✗ " .. err.msg, "Error" },
       }, {})
-      a.nvim_buf_add_highlight(self.buffer, self.namespaceID, "Error", err.y - 1, err.x - 1, -1)
+      a.nvim_buf_add_highlight(buf, ns, "Error", err.y - 1, err.x - 1, -1)
+   end
+end
+
+function TypeChecker:annotateErrors()
+   a.nvim_buf_clear_namespace(self.buffer, self.namespaceID, 0, -1)
+   local synErrors, typeErrors = self:typeCheckBuffer()
+   if #synErrors > 0 then
+      showErrors(self.buffer, self.namespaceID, synErrors)
+   else
+      showErrors(self.buffer, self.namespaceID, typeErrors)
    end
 end
 

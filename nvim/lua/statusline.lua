@@ -12,8 +12,8 @@ end
 local modeMap = {
    ["n"] = { "Normal", "DraculaPurple" },
    ["i"] = { "Insert", "DraculaGreen" },
-   ["ic"] = { "Insert", "DraculaGreenBold" },
-   ["ix"] = { "Insert", "DraculaGreenBold" },
+   ["ic"] = { "Insert-C", "DraculaGreenBold" },
+   ["ix"] = { "Insert-X", "DraculaGreenBold" },
    ["R"] = { "Replace", "DraculaRed" },
    ["v"] = { "Visual", "DraculaYellow" },
    ["V"] = { "Visual Line", "DraculaYellow" },
@@ -108,6 +108,8 @@ cmd("autocmd WinEnter,BufWinEnter * lua require('statusline').setActive()")
 cmd("autocmd WinLeave * lua require('statusline').setInactive()")
 cmd("augroup END")
 M.setActive()
+
+
 
 addComp({ "LeadingSpace", "Spaces", "Active", "Inactive" }, {}, " ", "Comment")
 addComp({ "ModeText", "Active" }, { "Inactive" }, [=[[%{luaeval("require'statusline'.getModeText()")}]]=], "User3")

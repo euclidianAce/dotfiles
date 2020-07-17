@@ -30,6 +30,8 @@ export XDG_CONFIG_HOME="$HOME/.config"
 
 export DOTFILE_DIR="$HOME/dotfiles"
 
+export MANPAGER="nvim +Man!"
+
 # set nvim as the default editor
 export EDITOR=nvim
 

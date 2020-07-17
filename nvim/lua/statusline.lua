@@ -12,8 +12,8 @@ end
 local modeMap = {
    ["n"] = { "Normal", "DraculaPurple" },
    ["i"] = { "Insert", "DraculaGreen" },
-   ["ic"] = { "Insert Completion", "DraculaGreenBold" },
-   ["ix"] = { "Insert Completion", "DraculaGreenBold" },
+   ["ic"] = { "Insert", "DraculaGreenBold" },
+   ["ix"] = { "Insert", "DraculaGreenBold" },
    ["R"] = { "Replace", "DraculaRed" },
    ["v"] = { "Visual", "DraculaYellow" },
    ["V"] = { "Visual Line", "DraculaYellow" },
@@ -115,6 +115,7 @@ addComp({ "BufferNumber", "Active", "Inactive" }, { "Debugging" }, "[buf: %n]", 
 addComp({ "FileName", "Active", "Inactive" }, { "Debugging" }, "[%.30f]", "Identifier")
 addComp({ "EditInfo", "Active", "Inactive" }, { "Debugging" }, "%y%r%h%w%m ", "Comment")
 addComp({ "SyntaxViewer", "Debugging" }, { "Inactive" }, [[ [Current Syntax Item: %{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
+
 addComp({ "ActiveSeparator", "Active" }, { "Inactive" }, "%=", "User1")
 addComp({ "InactiveSeparator", "Inactive" }, { "Active" }, "%=", "User2")
 addComp({ "LineNumber", "NavInfo", "Active", "Inactive" }, {}, " %l/%L:%c ", "Comment")

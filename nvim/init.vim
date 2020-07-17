@@ -94,7 +94,7 @@ nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 " }}}
 " {{{ set ...
 set termguicolors guicursor= belloff=all
-set undodir="$HOME/.vim/undo"
+set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
 set switchbuf=useopen

@@ -16,15 +16,15 @@ endfunction
 auto FileType tex nnoremap <leader>open :w<CR>:execute OpenPDF()<CR>
 "}}}
 " {{{ Plugins
-" Install VimPlug if not present
+" {{{ Install VimPlug if not present
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
     \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
-
+" }}}
+" {{{ The actual plugins
 call plug#begin('~/.vim/plugged')
-" {{{
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
@@ -32,36 +32,25 @@ Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'neovim/nvim-lsp'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
-" Plug 'nvim-treesitter/nvim-treesitter'
-
-" Syntax
 Plug 'dpwright/vim-tup'
-Plug 'teal-language/vim-teal'
-let g:teal_check_only = 1
-
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 
 " Colors
 Plug 'dracula/vim', { 'as': 'dracula' }
-Plug 'morhetz/gruvbox'
 
 " My stuff
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'euclidianAce/exec.vim'
 Plug 'euclidianAce/teal-interactive.nvim'
-" }}}
+Plug 'teal-language/vim-teal'
 call plug#end()
-
+" }}}
 " fzf
 nnoremap <leader>fz :FZF<CR>
 nnoremap <leader>rg :Rg<CR>
 let g:fzf_preview_window = "right:60%"
-
-set bg=dark
-colorscheme dracula
 " }}}
 " {{{ lsp
-
 " default config from :help lsp
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
 " nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
@@ -82,7 +71,7 @@ nnoremap <Left> <NOP>
 nnoremap <Right> <NOP>
 nnoremap <Up> <NOP>
 nnoremap <Down> <NOP>
-inoremap {<CR> {<CR>+<CR>}<Esc>k$xA
+inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
 
 let g:netrw_liststyle = 3
 let g:netrw_banner = 0
@@ -92,8 +81,9 @@ nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
 nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
 nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 " }}}
-" {{{ set ...
-set termguicolors guicursor= belloff=all
+" {{{ set
+set termguicolors belloff=all
+set guicursor=
 set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
@@ -115,7 +105,7 @@ set linebreak
 set formatoptions+=lcroj "see :help fo-table
 set list listchars=tab:⭾\ ,eol:↵,trail:✗
 set ignorecase smartcase
-set virtualedit=block
+set virtualedit=block " allow selection of blocks even when text isnt there
 " }}}
 
 lua require "config"
@@ -123,6 +113,15 @@ lua require "statusline"
 nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
+
+auto FileType teal autocmd BufWrite *.tl lua require'teal-type-checker'.getTypeChecker():annotateTypeErrors()
+nnoremap <silent> <leader>t :lua require'teal-type-checker'.getTypeChecker():annotateTypeErrors()<CR>
+
+colorscheme dracula
+
+hi! link Folded Comment
+hi! link FoldColumn Comment
+hi! link SignColumn Comment
 
 " set luarocks style easily
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>

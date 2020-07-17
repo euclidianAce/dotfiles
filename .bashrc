@@ -8,8 +8,8 @@
 ##  ######   ###  # ######  #     # #        #####  
 
 
-shopt -s autocd		# Automatically does a cd when you type a directory
-shopt -s checkwinsize 	# resize window automatically after each command
+shopt -s autocd # Automatically does a cd when you type a directory
+shopt -s checkwinsize # resize window automatically after each command
 
 #################
 #### HISTORY ####
@@ -27,13 +27,11 @@ export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
 
 # for some reason this doesnt seem to be set by default...
 export XDG_CONFIG_HOME="$HOME/.config"
-
 export DOTFILE_DIR="$HOME/dotfiles"
-
-export MANPAGER="nvim +Man!"
 
 # set nvim as the default editor
 export EDITOR=nvim
+export MANPAGER="nvim +Man!"
 
 # Additions to PATH
 export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin:$HOME/dev/tl"

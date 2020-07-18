@@ -42,6 +42,7 @@ Plug 'dracula/vim', { 'as': 'dracula' }
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'euclidianAce/exec.vim'
 Plug 'euclidianAce/teal-interactive.nvim'
+Plug 'euclidianAce/teal-type-checker.nvim'
 Plug 'teal-language/vim-teal'
 call plug#end()
 " }}}
@@ -113,9 +114,6 @@ lua require "statusline"
 nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
-
-auto FileType teal autocmd BufWrite,TextChanged,InsertLeave *.tl lua require'teal-type-checker'.getTypeChecker():annotateErrors()
-nnoremap <silent> <leader>t :lua require'teal-type-checker'.getTypeChecker():annotateErrors()<CR>
 
 colorscheme dracula
 

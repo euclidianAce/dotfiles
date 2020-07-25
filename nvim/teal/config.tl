@@ -3,7 +3,7 @@ local a = vim.api
 
 -- {{{ helpers
 local export = {
-	mapping = {},
+	mapping: {string:function} = {},
 }
 
 -- Keymaps with lua functions
@@ -97,12 +97,18 @@ map("n", "<F12>", function() stl.toggleTag('Debugging') end)
 -- {{{ Other Stuffs
 
 -- Put the current visual selection in a fold
-map("v", "<leader>f", function()
+local function foldVisualSelection(): number, number
 	local start = a.nvim_buf_get_mark(0, "<")[1]-1
 	local finish = a.nvim_buf_get_mark(0, ">")[1]+1
 	local commentstring = a.nvim_buf_get_option(0, "commentstring") as string
 	a.nvim_buf_set_lines(0, start, start, true, {string.format(commentstring, " {{{")})
 	a.nvim_buf_set_lines(0, finish, finish, true, {string.format(commentstring, " }}}")})
+	return start, finish
+end
+map("v", "<leader>f", foldVisualSelection)
+-- same but go into insert mode to give it a label
+map("v", "<leader>F", function()
+	local start = foldVisualSelection()
 	a.nvim_win_set_cursor(0, {start+1, 1})
 	a.nvim_input("A ")
 end)

@@ -5,11 +5,13 @@ local export = {
    mapping = {},
 }
 
+
 local function map(mode, lhs, rhs)
    local settings = { noremap = true, silent = true }
    if type(rhs) == "string" then
       a.nvim_set_keymap(mode, lhs, rhs, settings)
    elseif type(rhs) == "function" then
+
       export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader"))] = rhs
       a.nvim_set_keymap(
 mode,
@@ -94,13 +96,18 @@ map("n", "<F12>", function()    stl.toggleTag('Debugging') end)
 
 
 
-map("v", "<leader>f", function()
+local function foldVisualSelection()
    local start = a.nvim_buf_get_mark(0, "<")[1] - 1
    local finish = a.nvim_buf_get_mark(0, ">")[1] + 1
-
    local commentstring = a.nvim_buf_get_option(0, "commentstring")
    a.nvim_buf_set_lines(0, start, start, true, { string.format(commentstring, " {{{") })
    a.nvim_buf_set_lines(0, finish, finish, true, { string.format(commentstring, " }}}") })
+   return start, finish
+end
+map("v", "<leader>f", foldVisualSelection)
+
+map("v", "<leader>F", function()
+   local start = foldVisualSelection()
    a.nvim_win_set_cursor(0, { start + 1, 1 })
    a.nvim_input("A ")
 end)

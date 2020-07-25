@@ -1,7 +1,5 @@
 set runtimepath^=~/.vim runtimepath+=~/.vim/after
-
 filetype plugin indent on
-
 let mapleader=" "
 "{{{ Code Editing
 syntax on
@@ -30,6 +28,7 @@ Plug 'junegunn/fzf.vim'
 
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
+Plug 'tpope/vim-fugitive'
 Plug 'neovim/nvim-lsp'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 Plug 'dpwright/vim-tup'
@@ -41,8 +40,8 @@ Plug 'dracula/vim', { 'as': 'dracula' }
 " My stuff
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'euclidianAce/exec.vim'
-Plug 'euclidianAce/teal-interactive.nvim'
-Plug 'euclidianAce/teal-type-checker.nvim'
+" Plug 'euclidianAce/teal-interactive.nvim'
+" Plug 'euclidianAce/teal-type-checker.nvim'
 Plug 'teal-language/vim-teal'
 call plug#end()
 " }}}
@@ -67,28 +66,14 @@ nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
 autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc
 autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
-" {{{ Keymaps
-nnoremap <Left> <NOP>
-nnoremap <Right> <NOP>
-nnoremap <Up> <NOP>
-nnoremap <Down> <NOP>
-inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
-
-let g:netrw_liststyle = 3
-let g:netrw_banner = 0
-nnoremap <leader>ff :let g:netrw_winsize=25<CR>:Lex<CR>
-nnoremap <leader>fh :let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>
-nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
-nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
-nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
-" }}}
-" {{{ set
+" {{{ set options
 set termguicolors belloff=all
 set guicursor=
 set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
 set switchbuf=useopen
+set cursorline
 set number relativenumber numberwidth=4
 set wildmenu " visual autocomplete stuffs
 set showcmd " show command being typed
@@ -104,22 +89,40 @@ set modeline
 set scrolloff=10
 set linebreak
 set formatoptions+=lcroj "see :help fo-table
-set list listchars=tab:⭾\ ,eol:↵,trail:✗
+set list listchars=tab:⭾\ ,eol:↵,trail:✗,space:␣,precedes:<,extends:>
 set ignorecase smartcase
 set virtualedit=block " allow selection of blocks even when text isnt there
 " }}}
+" {{{ Keymaps
+nnoremap <Left> <NOP>
+nnoremap <Right> <NOP>
+nnoremap <Up> <NOP>
+nnoremap <Down> <NOP>
+" auto complete { only when hitting enter
+inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
 
-lua require "config"
-lua require "statusline"
+let g:netrw_liststyle = 3
+let g:netrw_banner = 0
+nnoremap <leader>ff :let g:netrw_winsize=25<CR>:Lex<CR>
+nnoremap <leader>fh :let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>
+nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
+nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
+nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
+
+" set luarocks style easily
 nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
-
+nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
+" }}}
+" {{{ colors
 colorscheme dracula
 
 hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
-
-" set luarocks style easily
-nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
+hi! link NonText Comment
+" }}}
+" Lua config part
+lua require "config"
+lua require "statusline"

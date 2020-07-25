@@ -20,6 +20,11 @@ lsp.sumneko_lua.setup{
 					"teardown",
 					"pending",
 					"finally",
+
+					-- Computercraft
+					"turtle",
+					"fs",
+					"shell",
 				}
 			}
 		}

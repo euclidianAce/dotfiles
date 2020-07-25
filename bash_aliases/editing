@@ -3,6 +3,6 @@
 alias ebrc="$EDITOR $DOTFILE_DIR/.bashrc && source ~/.bashrc"
 alias exr="$EDITOR $DOTFILE_DIR/.Xresources && xrdb ~/.Xresources"
 alias evrc="$EDITOR ~/.vim/vimrc"
-alias envrc="$EDITOR $DOTFILE_DIR/nvim/init.vim"
+alias envrc="$EDITOR $DOTFILE_DIR/nvim/"
 alias eps1="$EDITOR $DOTFILE_DIR/ps1Getter.lua"
 alias egc="$EDITOR $DOTFILE_DIR/.gitconfig"

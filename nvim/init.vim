@@ -89,8 +89,16 @@ set modeline
 set scrolloff=10
 set linebreak
 set formatoptions+=lcroj "see :help fo-table
-set list listchars=tab:⭾\ ,eol:↵,trail:✗,space:␣,precedes:<,extends:>
+set list showbreak=↪\ 
+set listchars+=tab:▶·\|
+set listchars+=eol:↵
+set listchars+=trail:✗
+set listchars+=space:·
+set listchars+=precedes:<
+set listchars+=extends:>
+set listchars+=nbsp:+
 set ignorecase smartcase
+set gdefault
 set virtualedit=block " allow selection of blocks even when text isnt there
 " }}}
 " {{{ Keymaps
@@ -122,6 +130,7 @@ hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
 hi! link NonText Comment
+" hi! link NonText Comment
 " }}}
 " Lua config part
 lua require "config"

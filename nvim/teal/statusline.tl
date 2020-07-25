@@ -9,27 +9,67 @@ local function set<T>(t: {T}): {T:boolean}
 	return s
 end
 
-local modeMap: {string:{string}} = {
-	["n"] = {"Normal", "DraculaPurple"},
-	["i"] = {"Insert", "DraculaGreen"},
-	["ic"] = {"Insert-C", "DraculaGreenBold"},
-	["ix"] = {"Insert-X", "DraculaGreenBold"},
-	["R"] = {"Replace", "DraculaRed"},
-	["v"] = {"Visual", "DraculaYellow"},
-	["V"] = {"Visual Line", "DraculaYellow"},
-	[""] = {"Visual Block", "DraculaYellow"},
-	["c"] = {"Command", "DraculaPink"},
-	["s"] = {"Select", "DraculaYellow"},
-	["S"] = {"Select Line", "DraculaYellow"},
-	[""] = {"Select Block", "DraculaYellow"},
-	["t"] = {"Terminal", "DraculaOrange"},
-	["!"] = {"Shell...", "Comment"},
-}
+local Mode = enum
+	"n" -- Normal
+	"no" -- Operator-pending
+	"nov" -- Operator-pending (forced charwise |o_v|)
+	"noV" -- Operator-pending (forced linewise |o_V|)
+	"no" -- Operator-pending (forced blockwise |o_CTRL-V|)
+	"niI" -- Normal using |i_CTRL-O| in |Insert-mode|
+	"niR" -- Normal using |i_CTRL-O| in |Replace-mode|
+	"niV" -- Normal using |i_CTRL-O| in |Virtual-Replace-mode|
+	"v" -- Visual by character
+	"V" -- Visual by line
+	"" -- Visual blockwise
+	"s" -- Select by character
+	"S" -- Select by line
+	"" -- Select blockwise
+	"i" -- Insert
+	"ic" -- Insert mode completion |compl-generic|
+	"ix" -- Insert mode |i_CTRL-X| completion
+	"R" -- Replace |R|
+	"Rc" -- Replace mode completion |compl-generic|
+	"Rv" -- Virtual Replace |gR|
+	"Rx" -- Replace mode |i_CTRL-X| completion
+	"c" -- Command-line editing
+	"cv" -- Vim Ex mode |gQ|
+	"ce" -- Normal Ex mode |Q|
+	"r" -- Hit-enter prompt
+	"rm" -- The -- more -- prompt
+	"r" -- |:confirm| query of some sort
+	"!" -- Shell or external command is executing
+	"t" -- Terminal mode: keys go to the job
+end
+
+local modeMap: {Mode:{string}} = setmetatable({
+	["n"] = {"Normal", "Constant"},
+	["i"] = {"Insert", "Function"},
+	["R"] = {"Replace", "Special"},
+	["v"] = {"Visual", "String"},
+	["V"] = {"Visual Line", "String"},
+	[""] = {"Visual Block", "String"},
+	["c"] = {"Command", "Special"},
+	["s"] = {"Select", "Visual"},
+	["S"] = {"Select Line", "Visual"},
+	[""] = {"Select Block", "Visual"},
+	["t"] = {"Terminal", "Number"},
+	["!"] = {"Shell", "Comment"},
+}, {
+	__index = function(self: {Mode:{string}}, key: Mode): {string}
+		return self[string.sub(key,1,1) as Mode]
+	end
+})
+
+local userModes: {Mode:{string}} = setmetatable({}, { __index = modeMap })
+
+function M.mode(mode: Mode, text: string, hlgroup: string)
+	userModes[mode] = {text, hlgroup}
+end
 
 function M.getModeText(): string
-	local m: string = vim.fn.mode(true) as string
+	local m: Mode = vim.fn.mode(true) as Mode
 	if not modeMap[m] then
-		m = m:sub(1,1)
+		m = string.sub(m,1,1) as Mode
 	end
 	cmd("hi! link User3 " .. modeMap[m][2])
 	return modeMap[m][1]
@@ -44,7 +84,7 @@ end
 local lineComponents: {Component} = {}
 local currentTags: {string:boolean} = {}
 
-local function addComp(tags: {string}, invertedTags: {string}, text: string, hiGroup: string)
+function M.add(tags: {string}, invertedTags: {string}, text: string, hiGroup: string)
 	table.insert(
 		lineComponents,
 		{
@@ -108,23 +148,5 @@ cmd	"autocmd WinEnter,BufWinEnter * lua require('statusline').setActive()"
 cmd	"autocmd WinLeave * lua require('statusline').setInactive()"
 cmd "augroup END"
 M.setActive()
-
--- End Module, begin config
-
-addComp({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
-addComp({"ModeText", "Active"}, {"Inactive"}, [=[[%{luaeval("require'statusline'.getModeText()")}]]=], "User3")
-addComp({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
-addComp({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
-addComp({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
-addComp({"SyntaxViewer", "Debugging"}, {"Inactive"}, [[ [Current Syntax Item: %{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
--- addComp({"IndentViewer", "Debugging"}, {"Inactive"}, [[ [Current Teal Indent: %{GetTealIndent(line(".")) / &shiftwidth}]  ]], "DraculaPurpleBold")
-addComp({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
-addComp({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
-addComp({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")
-addComp({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "Comment")
-addComp({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
-
-cmd "hi! User2 guibg=#1F1F1F"
-cmd "hi! link User1 Visual"
 
 return M

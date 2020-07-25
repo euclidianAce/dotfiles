@@ -117,8 +117,6 @@ nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
 nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
 nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
 
-" set luarocks style easily
-nnoremap <silent> <F12> :lua require'statusline'.toggleTag'Debugging'<CR>
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
@@ -129,9 +127,7 @@ colorscheme dracula
 hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
-hi! link NonText Comment
 " hi! link NonText Comment
 " }}}
 " Lua config part
 lua require "config"
-lua require "statusline"

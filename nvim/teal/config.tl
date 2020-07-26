@@ -81,8 +81,25 @@ stl.add({"ModeText", "Active"}, {"Inactive"}, [=[[%{luaeval("require'statusline'
 stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
 stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
 stl.add({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
-stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, [[ [%{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
+-- stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, [[ [%{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
+stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, function(): string
+	local cursor = a.nvim_win_get_cursor(0)
+	return "[" .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2]+1, 0), "name") as string .. "]"
+end, "DraculaPurpleBold")
 -- stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, [[ [Current Teal Indent: %{GetTealIndent(line(".")) / &shiftwidth}]  ]], "DraculaPurpleBold")
+stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, function(): string
+	local indentexpr: string = a.nvim_buf_get_option(0, "indentexpr") as string
+	if not indentexpr then
+		return ""
+	end
+	local shiftwidth: number = a.nvim_buf_get_option(0, "shiftwidth") as number
+	if not shiftwidth then
+		shiftwidth = 1
+	end
+	local cursor = a.nvim_win_get_cursor(0)
+	local indent = vim.fn[indentexpr:gsub("%(.*$", "")](tostring(cursor[1])) as number
+	return ([=[[Indent: %d]]=]):format(indent / shiftwidth)
+end, "DraculaPurpleBold")
 stl.add({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
 stl.add({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
 stl.add({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")

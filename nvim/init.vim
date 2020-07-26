@@ -80,7 +80,6 @@ set showcmd " show command being typed
 set breakindent " have word wrapping follow indent of wrapped line
 set lazyredraw
 set splitbelow splitright
-set colorcolumn=70,80
 set incsearch " highlight results as they're typed
 set inccommand=split
 set laststatus=2 noshowmode
@@ -127,7 +126,6 @@ colorscheme dracula
 hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
-" hi! link NonText Comment
 " }}}
 " Lua config part
 lua require "config"

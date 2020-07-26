@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+	_funcs: {function(): string} = {}
+}
 
 local cmd = vim.api.nvim_command
 local function set<T>(t: {T}): {T:boolean}
@@ -84,15 +86,18 @@ end
 local lineComponents: {Component} = {}
 local currentTags: {string:boolean} = {}
 
-function M.add(tags: {string}, invertedTags: {string}, text: string, hiGroup: string)
-	table.insert(
-		lineComponents,
-		{
-			text = ("%%#%s#"):format(hiGroup) .. text .. "%#Normal#",
-			tags = set(tags),
-			invertedTags = set(invertedTags)
-		}
-	)
+function M.add(tags: {string}, invertedTags: {string}, text: string|function(): (string), hiGroup: string)
+	local comp: Component = {
+		tags = set(tags),
+		invertedTags = set(invertedTags)
+	}
+	if text is string then
+		comp.text = ("%%#%s#"):format(hiGroup) .. (text as string) .. "%#Normal#"
+	elseif text is function(): string then
+		M._funcs[#lineComponents+1] = text as function(): string
+		comp.text = ("%%#%s#"):format(hiGroup) .. ([[%%{luaeval("require'statusline'._funcs[%d]()")}]]):format(#lineComponents+1) .. "%#Normal#"
+	end
+	table.insert(lineComponents, comp)
 end
 local function components(): function(): {string:boolean}, {string:boolean}, string
 	local i = 0
@@ -107,7 +112,6 @@ end
 local function makeLine(tags: {string}): string
 	local tagSet = set(tags)
 	local buf = {}
-	local text: string
 	for compTags, compInvTags, text in components() do
 		local include = false
 		for t in pairs(compTags) do
@@ -123,7 +127,7 @@ local function makeLine(tags: {string}): string
 			end
 		end
 		if include then
-			table.insert(buf, text as string)
+			table.insert(buf, text)
 		end
 	end
 	return table.concat(buf)

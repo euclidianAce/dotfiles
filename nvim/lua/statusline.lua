@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+   _funcs = {},
+}
 
 local cmd = vim.api.nvim_command
 local function set(t)
@@ -85,14 +87,17 @@ local lineComponents = {}
 local currentTags = {}
 
 function M.add(tags, invertedTags, text, hiGroup)
-   table.insert(
-lineComponents,
-{
-      text = ("%%#%s#"):format(hiGroup) .. text .. "%#Normal#",
+   local comp = {
       tags = set(tags),
       invertedTags = set(invertedTags),
-   })
-
+   }
+   if type(text) == "string" then
+      comp.text = ("%%#%s#"):format(hiGroup) .. (text) .. "%#Normal#"
+   elseif type(text) == "function" then
+      M._funcs[#lineComponents + 1] = text
+      comp.text = ("%%#%s#"):format(hiGroup) .. ([[%%{luaeval("require'statusline'._funcs[%d]()")}]]):format(#lineComponents + 1) .. "%#Normal#"
+   end
+   table.insert(lineComponents, comp)
 end
 local function components()
    local i = 0
@@ -107,7 +112,6 @@ end
 local function makeLine(tags)
    local tagSet = set(tags)
    local buf = {}
-   local text
    for compTags, compInvTags, text in components() do
       local include = false
       for t in pairs(compTags) do

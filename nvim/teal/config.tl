@@ -7,8 +7,8 @@ local export = {
 }
 
 -- Keymaps with lua functions
+local settings = {noremap = true, silent = true}
 local function map(mode: string, lhs: string, rhs: string|function)
-	local settings = {noremap = true, silent = true}
 	if rhs is string then
 		a.nvim_set_keymap(mode, lhs, rhs, settings)
 	elseif rhs is function then
@@ -61,47 +61,63 @@ end
 -- {{{ Statusline Config
 local stl = require("statusline")
 
-stl.mode("n", "Normal", "DraculaPurple")
-stl.mode("i", "Insert", "DraculaGreen")
-stl.mode("ic", "Insert-C", "DraculaGreenBold")
-stl.mode("ix", "Insert-X", "DraculaGreenBold")
-stl.mode("R", "Replace", "DraculaRed")
-stl.mode("v", "Visual", "DraculaYellow")
-stl.mode("V", "Visual Line", "DraculaYellow")
-stl.mode("", "Visual Block", "DraculaYellow")
-stl.mode("c", "Command", "DraculaPink")
-stl.mode("s", "Select", "DraculaYellow")
-stl.mode("S", "Select Line", "DraculaYellow")
-stl.mode("", "Select Block", "DraculaYellow")
-stl.mode("t", "Terminal", "DraculaOrange")
-stl.mode("!", "Shell...", "Comment")
+-- stl.mode("n", "Normal", "DraculaPurple")
+-- stl.mode("i", "Insert", "DraculaGreen")
+-- stl.mode("ic", "Insert-C", "DraculaGreenBold")
+-- stl.mode("ix", "Insert-X", "DraculaGreenBold")
+-- stl.mode("R", "Replace", "DraculaRed")
+-- stl.mode("v", "Visual", "DraculaYellow")
+-- stl.mode("V", "Visual Line", "DraculaYellow")
+-- stl.mode("", "Visual Block", "DraculaYellow")
+-- stl.mode("c", "Command", "DraculaPink")
+-- stl.mode("s", "Select", "DraculaYellow")
+-- stl.mode("S", "Select Line", "DraculaYellow")
+-- stl.mode("", "Select Block", "DraculaYellow")
+-- stl.mode("t", "Terminal", "DraculaOrange")
+-- stl.mode("!", "Shell...", "Comment")
 
 stl.add({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
-stl.add({"ModeText", "Active"}, {"Inactive"}, [=[[%{luaeval("require'statusline'.getModeText()")}]]=], "User3")
+stl.add({"ModeText", "Active"}, {"Inactive"}, function(): string
+	return "[" .. stl.getModeText() .. "]"
+end, "StatuslineModeText")
 stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
 stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
 stl.add({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
--- stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, [[ [%{synIDattr(synID(line("."), col("."), 0), "name")}]  ]], "DraculaPurpleBold")
 stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, function(): string
 	local cursor = a.nvim_win_get_cursor(0)
-	return "[" .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2]+1, 0), "name") as string .. "]"
-end, "DraculaPurpleBold")
--- stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, [[ [Current Teal Indent: %{GetTealIndent(line(".")) / &shiftwidth}]  ]], "DraculaPurpleBold")
+	return "[Syntax: " .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2]+1, 0), "name") as string .. "]"
+end, "DraculaOrangeBold")
 stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, function(): string
-	local indentexpr: string = a.nvim_buf_get_option(0, "indentexpr") as string
-	if not indentexpr then
-		return ""
+	local indentexpr: string
+	do
+		local ok: boolean
+		ok, indentexpr = pcall(a.nvim_buf_get_option, 0, "indentexpr") as (boolean, string)
+		if not ok or not indentexpr then
+			return ""
+		end
 	end
 	local shiftwidth: number = a.nvim_buf_get_option(0, "shiftwidth") as number
 	if not shiftwidth then
 		shiftwidth = 1
 	end
 	local cursor = a.nvim_win_get_cursor(0)
-	local indent = vim.fn[indentexpr:gsub("%(.*$", "")](tostring(cursor[1])) as number
-	return ([=[[Indent: %d]]=]):format(indent / shiftwidth)
-end, "DraculaPurpleBold")
+	local indent: number
+	do
+		local ok: boolean
+		ok, indent = pcall(vim.fn[indentexpr:gsub("%(.*$", "")], tostring(cursor[1])) as (boolean, number)
+		if not ok or not indent then
+			return ""
+		end
+	end
+	return ("[Indent: %d]"):format(indent / shiftwidth)
+end, "DraculaGreenBold")
 stl.add({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
 stl.add({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
+stl.add({"Active"}, {"Inactive"}, function(): string
+	local sw = a.nvim_buf_get_option(0, "shiftwidth") as number
+	local ts = a.nvim_buf_get_option(0, "tabstop") as number
+	return (" [sw:%d ts:%d]"):format(sw, ts)
+end, "Identifier")
 stl.add({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")
 stl.add({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "Comment")
 stl.add({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
@@ -109,7 +125,7 @@ stl.add({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
 cmd("hi! User2 guibg=#1F1F1F")
 cmd("hi! link User1 Visual")
 
-map("n", "<F12>", function() stl.toggleTag('Debugging') end)
+map("n", "<F12>", function() stl.toggleTag("Debugging") end)
 -- }}}
 -- {{{ Other Stuffs
 
@@ -129,6 +145,7 @@ map("v", "<leader>F", function()
 	a.nvim_win_set_cursor(0, {start+1, 1})
 	a.nvim_input("A ")
 end)
+map("v", "<leader>s", ":sort<CR>")
 -- }}}
 
 return export

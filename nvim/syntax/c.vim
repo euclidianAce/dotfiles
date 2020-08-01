@@ -5,5 +5,5 @@ hi link cPosixType Type
 syn match cFuncCall /\K\k*\ze(/
 hi link cFuncCall Function
 
-syn match cOp "[<>=~^&|*%+-]\|/\ze[^/]"
+syn match cOp "[!<>=~^&|*%+-]\|/\ze[^/]"
 hi link cOp Operator

@@ -73,7 +73,7 @@ function M.getModeText()
    if not modeMap[m] then
       m = string.sub(m, 1, 1)
    end
-   cmd("hi! link User3 " .. modeMap[m][2])
+   cmd("hi! link StatuslineModeText " .. modeMap[m][2])
    return modeMap[m][1]
 end
 

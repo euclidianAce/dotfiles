@@ -11,7 +11,7 @@ local function set<T>(t: {T}): {T:boolean}
 	return s
 end
 
-local Mode = enum
+local enum Mode
 	"n" -- Normal
 	"no" -- Operator-pending
 	"nov" -- Operator-pending (forced charwise |o_v|)
@@ -73,11 +73,11 @@ function M.getModeText(): string
 	if not modeMap[m] then
 		m = string.sub(m,1,1) as Mode
 	end
-	cmd("hi! link User3 " .. modeMap[m][2])
+	cmd("hi! link StatuslineModeText " .. modeMap[m][2])
 	return modeMap[m][1]
 end
 
-local Component = record
+local record Component
 	text: string
 	tags: {string:boolean}
 	invertedTags: {string:boolean}

@@ -16,3 +16,7 @@ function touchx {
 	declare -A runners=( ['lua']='lua' ['py']='python' ['erl']='escript' ['tl']='tl run' )
 	touch $1 && chmod +x $1 && echo -e "#!/usr/bin/env ${runners[$extension]}\n" > $1 && $EDITOR $1
 }
+
+function mp3 {
+	youtube-dl --extract-audio --audio-format mp3 "$1"
+}

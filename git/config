@@ -4,3 +4,5 @@
 [diff]
 	tool = vimdiff
 	prompt = NO
+[core]
+	pager = less -F -X

@@ -6,6 +6,16 @@ local export = {
 	mapping: {string:function} = {},
 }
 
+-- local function partial(f: function, a: any): function(...: any): any...
+-- 	return function(...: any): any...
+-- 		return f(a, ...)
+-- 	end
+-- end
+
+local function trim(s: string): string
+	return (s:gsub("%s*(.*)%s*", "%1"))
+end
+
 -- Keymaps with lua functions
 local settings = {noremap = true, silent = true}
 local function map(mode: string, lhs: string, rhs: string|function)
@@ -21,6 +31,10 @@ local function map(mode: string, lhs: string, rhs: string|function)
 			settings
 		)
 	end
+end
+
+local function unmap(mode: string, lhs: string)
+	pcall(a.nvim_del_keymap, mode, lhs)
 end
 
 local cmd = a.nvim_command
@@ -61,20 +75,10 @@ end
 -- {{{ Statusline Config
 local stl = require("statusline")
 
--- stl.mode("n", "Normal", "DraculaPurple")
--- stl.mode("i", "Insert", "DraculaGreen")
--- stl.mode("ic", "Insert-C", "DraculaGreenBold")
--- stl.mode("ix", "Insert-X", "DraculaGreenBold")
--- stl.mode("R", "Replace", "DraculaRed")
--- stl.mode("v", "Visual", "DraculaYellow")
--- stl.mode("V", "Visual Line", "DraculaYellow")
--- stl.mode("", "Visual Block", "DraculaYellow")
--- stl.mode("c", "Command", "DraculaPink")
--- stl.mode("s", "Select", "DraculaYellow")
--- stl.mode("S", "Select Line", "DraculaYellow")
--- stl.mode("", "Select Block", "DraculaYellow")
--- stl.mode("t", "Terminal", "DraculaOrange")
--- stl.mode("!", "Shell...", "Comment")
+stl.mode("ic", "Insert-C", "DraculaGreenBold")
+stl.mode("ix", "Insert-X", "DraculaGreenBold")
+stl.mode("R", "Replace", "DraculaRed")
+stl.mode("t", "Terminal", "DraculaOrange")
 
 stl.add({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
 stl.add({"ModeText", "Active"}, {"Inactive"}, function(): string
@@ -82,6 +86,7 @@ stl.add({"ModeText", "Active"}, {"Inactive"}, function(): string
 end, "StatuslineModeText")
 stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
 stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
+stl.add({"GitBranch", "Active", "Inactive"}, {"Debugging"}, "%{FugitiveStatusline()}", "Special")
 stl.add({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
 stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, function(): string
 	local cursor = a.nvim_win_get_cursor(0)
@@ -146,6 +151,32 @@ map("v", "<leader>F", function()
 	a.nvim_input("A ")
 end)
 map("v", "<leader>s", ":sort<CR>")
+
+local function termFunc()
+	local cmd: string = vim.fn.input("Command to execute in terminal: ") as string
+	if #trim(cmd) == 0 then
+		return
+	end
+	a.nvim_command("sp +term")
+	local termWin: number = a.nvim_win_get_number(0)
+	local ok, res: boolean, number = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
+	if not ok then
+		print("unable to get terminal job id\n")
+		return
+	end
+	unmap("n", "<leader>t")
+	map("n", "<leader>t", function()
+		pcall(vim.fn.chansend, res, cmd .. "\n")
+	end)
+	map("n", "<leader>T", function()
+		pcall(a.nvim_win_close, termWin, true)
+		unmap("n", "<leader>T")
+		map("n", "<leader>t", termFunc)
+	end)
+	print("Press <leader>t to execute ", cmd, "\n", "Press <leader>T to close the terminal\n")
+end
+
+map("n", "<leader>t", termFunc)
 -- }}}
 
 return export

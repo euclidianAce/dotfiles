@@ -33,6 +33,7 @@ Plug 'neovim/nvim-lsp'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 Plug 'dpwright/vim-tup'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
+Plug 'sheerun/vim-polyglot'
 
 " Colors
 Plug 'dracula/vim', { 'as': 'dracula' }
@@ -49,6 +50,8 @@ call plug#end()
 nnoremap <leader>fz :FZF<CR>
 nnoremap <leader>rg :Rg<CR>
 let g:fzf_preview_window = "right:60%"
+" polyglot
+let g:polyglot_disabled = ['lua']
 " }}}
 " {{{ lsp
 " default config from :help lsp
@@ -68,7 +71,7 @@ autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
 " {{{ set options
 set termguicolors belloff=all
-set guicursor=
+" set guicursor=
 set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
@@ -130,3 +133,4 @@ hi! link SignColumn Comment
 " }}}
 " Lua config part
 lua require "config"
+

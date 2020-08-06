@@ -1,9 +1,16 @@
 local a = vim.api
+local cmd = a.nvim_command
 
 
 local export = {
    mapping = {},
+   autocommands = {},
 }
+
+local function cmdf(command, ...)
+   cmd(command:format(...))
+end
+
 
 
 
@@ -15,6 +22,17 @@ local function trim(s)
    return (s:gsub("%s*(.*)%s*", "%1"))
 end
 
+local function wrap(func)
+   assert(type(func) == "function")
+   return function()
+      local ok, res = pcall(func)
+      if not ok then
+         return "Error: " .. res
+      end
+      return res
+   end
+end
+
 
 local settings = { noremap = true, silent = true }
 local function map(mode, lhs, rhs)
@@ -22,7 +40,7 @@ local function map(mode, lhs, rhs)
       a.nvim_set_keymap(mode, lhs, rhs, settings)
    elseif type(rhs) == "function" then
 
-      export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader"))] = rhs
+      export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader"))] = wrap(rhs)
       a.nvim_set_keymap(
 mode,
 lhs,
@@ -33,10 +51,15 @@ settings)
 end
 
 local function unmap(mode, lhs)
-   pcall(a.nvim_del_keymap, mode, lhs)
+   pcall(a.nvim_del_keymap, mode, (lhs:gsub("<leader>", a.nvim_get_var("mapleader"))))
 end
 
-local cmd = a.nvim_command
+local function autocmd(buf, group, patt, func)
+   local entry = group .. patt
+   export.autocommands[entry] = func
+   cmdf("autocmd <buffer=%d> %s %s :lua require('config').autocommands[%q]()<CR>", buf, group, patt, entry)
+end
+
 
 
 local lsp = require("nvim_lsp")
@@ -85,7 +108,14 @@ stl.add({ "ModeText", "Active" }, { "Inactive" }, function()
 end, "StatuslineModeText")
 stl.add({ "BufferNumber", "Active", "Inactive" }, { "Debugging" }, "[buf: %n]", "Comment")
 stl.add({ "FileName", "Active", "Inactive" }, { "Debugging" }, "[%.30f]", "Identifier")
-stl.add({ "GitBranch", "Active", "Inactive" }, { "Debugging" }, "%{FugitiveStatusline()}", "Special")
+stl.add({ "GitBranch", "Active", "Inactive" }, { "Debugging" }, function()
+
+   local branch = (vim.fn.FugitiveStatusline()):sub(6, -3)
+   if branch == "" then
+      return ""
+   end
+   return "[* " .. branch .. "]"
+end, "DraculaGreen")
 stl.add({ "EditInfo", "Active", "Inactive" }, { "Debugging" }, "%y%r%h%w%m ", "Comment")
 stl.add({ "SyntaxViewer", "Debugging" }, { "Inactive" }, function()
    local cursor = a.nvim_win_get_cursor(0)
@@ -152,27 +182,28 @@ end)
 map("v", "<leader>s", ":sort<CR>")
 
 local function termFunc()
-   local cmd = vim.fn.input("Command to execute in terminal: ")
-   if #trim(cmd) == 0 then
+   local termCmd = vim.fn.input("Command to execute in terminal: ")
+   if #trim(termCmd) == 0 then
       return
    end
-   a.nvim_command("sp +term")
-   local termWin = a.nvim_win_get_number(0)
+   cmd("sp +term")
+   local termWin = a.nvim_get_current_win()
    local ok, res = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
    if not ok then
-      print("unable to get terminal job id\n")
+      print("Unable to get terminal job id\n")
       return
    end
    unmap("n", "<leader>t")
+   unmap("n", "<leader>T")
    map("n", "<leader>t", function()
-      pcall(vim.fn.chansend, res, cmd .. "\n")
+      pcall(vim.fn.chansend, res, termCmd .. "\n")
    end)
    map("n", "<leader>T", function()
       pcall(a.nvim_win_close, termWin, true)
       unmap("n", "<leader>T")
       map("n", "<leader>t", termFunc)
    end)
-   print("Press <leader>t to execute ", cmd, "\n", "Press <leader>T to close the terminal\n")
+   print("Press <leader>t to execute ", termCmd, "\n", "Press <leader>T to close the terminal\n")
 end
 
 map("n", "<leader>t", termFunc)

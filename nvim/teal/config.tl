@@ -1,10 +1,17 @@
 
 local a = vim.api
+local cmd = a.nvim_command
 
 -- {{{ helpers
 local export = {
 	mapping: {string:function} = {},
+	autocommands: {string:function} = {},
 }
+
+local function cmdf(command: string, ...: any)
+	cmd(command:format(...))
+end
+
 
 -- local function partial(f: function, a: any): function(...: any): any...
 -- 	return function(...: any): any...
@@ -16,14 +23,25 @@ local function trim(s: string): string
 	return (s:gsub("%s*(.*)%s*", "%1"))
 end
 
+local function wrap(func: function(): string): function(): string
+	assert(type(func) == "function")
+	return function(): string
+		local ok, res = pcall(func)
+		if not ok then
+			return "Error: " .. res
+		end
+		return res
+	end
+end
+
 -- Keymaps with lua functions
 local settings = {noremap = true, silent = true}
 local function map(mode: string, lhs: string, rhs: string|function)
 	if rhs is string then
 		a.nvim_set_keymap(mode, lhs, rhs, settings)
 	elseif rhs is function then
-		-- make sure to sub in leader for the actual val cuz thats what vim will do with rhs
-		export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader") as string)] = rhs
+		-- make sure to sub in leader for the actual val cuz thats what vim will do with lhs
+		export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader") as string)] = wrap(rhs as function(): string)
 		a.nvim_set_keymap(
 			mode,
 			lhs,
@@ -34,10 +52,15 @@ local function map(mode: string, lhs: string, rhs: string|function)
 end
 
 local function unmap(mode: string, lhs: string)
-	pcall(a.nvim_del_keymap, mode, lhs)
+	pcall(a.nvim_del_keymap, mode, (lhs:gsub("<leader>", a.nvim_get_var("mapleader") as string)))
 end
 
-local cmd = a.nvim_command
+local function autocmd(buf: number, group: string, patt: string, func: function)
+	local entry = group .. patt
+	export.autocommands[entry] = func
+	cmdf("autocmd <buffer=%d> %s %s :lua require('config').autocommands[%q]()<CR>", buf, group, patt, entry)
+end
+
 -- }}}
 -- {{{ LSP
 local lsp = require("nvim_lsp")
@@ -86,7 +109,14 @@ stl.add({"ModeText", "Active"}, {"Inactive"}, function(): string
 end, "StatuslineModeText")
 stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
 stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
-stl.add({"GitBranch", "Active", "Inactive"}, {"Debugging"}, "%{FugitiveStatusline()}", "Special")
+stl.add({"GitBranch", "Active", "Inactive"}, {"Debugging"}, function(): string
+	-- [Git(branch)]
+	local branch = (vim.fn.FugitiveStatusline() as string):sub(6, -3)
+	if branch == "" then
+		return ""
+	end
+	return "[* " .. branch .. "]"
+end, "DraculaGreen")
 stl.add({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
 stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, function(): string
 	local cursor = a.nvim_win_get_cursor(0)
@@ -153,27 +183,28 @@ end)
 map("v", "<leader>s", ":sort<CR>")
 
 local function termFunc()
-	local cmd: string = vim.fn.input("Command to execute in terminal: ") as string
-	if #trim(cmd) == 0 then
+	local termCmd: string = vim.fn.input("Command to execute in terminal: ") as string
+	if #trim(termCmd) == 0 then
 		return
 	end
-	a.nvim_command("sp +term")
-	local termWin: number = a.nvim_win_get_number(0)
+	cmd("sp +term")
+	local termWin: number = a.nvim_get_current_win()
 	local ok, res: boolean, number = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
 	if not ok then
-		print("unable to get terminal job id\n")
+		print("Unable to get terminal job id\n")
 		return
 	end
 	unmap("n", "<leader>t")
+	unmap("n", "<leader>T")
 	map("n", "<leader>t", function()
-		pcall(vim.fn.chansend, res, cmd .. "\n")
+		pcall(vim.fn.chansend, res, termCmd .. "\n")
 	end)
 	map("n", "<leader>T", function()
 		pcall(a.nvim_win_close, termWin, true)
 		unmap("n", "<leader>T")
 		map("n", "<leader>t", termFunc)
 	end)
-	print("Press <leader>t to execute ", cmd, "\n", "Press <leader>T to close the terminal\n")
+	print("Press <leader>t to execute ", termCmd, "\n", "Press <leader>T to close the terminal\n")
 end
 
 map("n", "<leader>t", termFunc)

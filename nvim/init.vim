@@ -1,7 +1,15 @@
 set runtimepath^=~/.vim runtimepath+=~/.vim/after
 filetype plugin indent on
 let mapleader=" "
-"{{{ Code Editing
+" {{{ Functions
+function MyFoldText()
+	let line = getline(v:foldstart)
+	let br = '{'
+	let subline = substitute(line, '\(^"\|\-\-\)\|/\*\|\*/\|'.br.br.br.'\d\=', '', 'g')
+	return repeat('***', v:foldlevel) . subline . '   ' . repeat('***', v:foldlevel)
+endfunction
+" }}}
+" {{{ Code Editing
 syntax on
 
 autocmd BufRead,BufNewFile *.hs set expandtab
@@ -12,7 +20,7 @@ function! OpenPDF()
 	let _ = system("zathura " . expand("%:r") . ".pdf &")
 endfunction
 auto FileType tex nnoremap <leader>open :w<CR>:execute OpenPDF()<CR>
-"}}}
+" }}}
 " {{{ Plugins
 " {{{ Install VimPlug if not present
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -35,13 +43,15 @@ Plug 'dpwright/vim-tup'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 Plug 'sheerun/vim-polyglot'
 
+" Plug 'nvim-treesitter/nvim-treesitter'
+
 " Colors
 Plug 'dracula/vim', { 'as': 'dracula' }
 
 " My stuff
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'euclidianAce/exec.vim'
-" Plug 'euclidianAce/teal-interactive.nvim'
+Plug 'euclidianAce/teal-interactive.nvim'
 " Plug 'euclidianAce/teal-type-checker.nvim'
 Plug 'teal-language/vim-teal'
 call plug#end()
@@ -90,8 +100,12 @@ set foldmethod=marker foldcolumn=3
 set modeline
 set scrolloff=10
 set linebreak
+set formatoptions-=t
 set formatoptions+=lcroj "see :help fo-table
-set list showbreak=↪\ 
+if !exists("g:started_by_firenvim")
+	set showbreak=↪\ 
+endif
+set list
 set listchars+=tab:▶·\|
 set listchars+=eol:↵
 set listchars+=trail:✗
@@ -99,8 +113,10 @@ set listchars+=space:·
 set listchars+=precedes:<
 set listchars+=extends:>
 set listchars+=nbsp:+
+set fillchars+=fold:\ 
+set foldtext=MyFoldText()
 set ignorecase smartcase
-set gdefault
+set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
 " }}}
 " {{{ Keymaps
@@ -108,8 +124,10 @@ nnoremap <Left> <NOP>
 nnoremap <Right> <NOP>
 nnoremap <Up> <NOP>
 nnoremap <Down> <NOP>
-" auto complete { only when hitting enter
+" auto complete brackets/etc. only when hitting enter
 inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
+inoremap [<CR> []<Esc>i<CR><CR><Esc>kS
+inoremap (<CR> ()<Esc>i<CR><CR><Esc>kS
 
 let g:netrw_liststyle = 3
 let g:netrw_banner = 0
@@ -123,6 +141,9 @@ tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
 inoremap <silent> .Shrug ¯\\\_(ツ)\_/¯
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
+nnoremap <silent> <leader>n :noh<CR>
+
+vnoremap <silent> <leader>s :sort<CR>
 " }}}
 " {{{ colors
 colorscheme dracula
@@ -130,7 +151,8 @@ colorscheme dracula
 hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
+hi! link Error DraculaRedInverse
 " }}}
 " Lua config part
-lua require "config"
+lua xpcall(require, function() print("Unable to load config") end, "config")
 

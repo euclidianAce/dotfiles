@@ -11,59 +11,63 @@ local function cmdf(command, ...)
    cmd(command:format(...))
 end
 
-
-
-
-
-
-
+local function partial(f, a)
+   return function(...)
+      return f(a, ...)
+   end
+end
 
 local function trim(s)
    return (s:gsub("%s*(.*)%s*", "%1"))
 end
 
-local function wrap(func)
-   assert(type(func) == "function")
+local function fstsnd(arr)
+   local i = 0
    return function()
-      local ok, res = pcall(func)
-      if not ok then
-         return "Error: " .. res
+      i = i + 1
+      if not arr[i] then
+         return
       end
-      return res
+      return arr[i][1], arr[i][2]
    end
 end
 
 
 local settings = { noremap = true, silent = true }
-local function map(mode, lhs, rhs)
+local function map(mode, lhs, rhs, user_settings)
+   local user_settings = user_settings or settings
    if type(rhs) == "string" then
-      a.nvim_set_keymap(mode, lhs, rhs, settings)
+      a.nvim_set_keymap(mode, lhs, rhs, user_settings)
    elseif type(rhs) == "function" then
 
-      export.mapping[lhs:gsub("<leader>", a.nvim_get_var("mapleader"))] = wrap(rhs)
+      local correct_lhs = lhs:gsub("<leader>", a.nvim_get_var("mapleader"))
+      export.mapping[correct_lhs] = partial(pcall, rhs)
       a.nvim_set_keymap(
 mode,
 lhs,
 string.format(":lua require('config').mapping[%q]()<CR>", lhs),
-settings)
+user_settings)
 
    end
 end
 
 local function unmap(mode, lhs)
-   pcall(a.nvim_del_keymap, mode, (lhs:gsub("<leader>", a.nvim_get_var("mapleader"))))
+   local correct_lhs = lhs:gsub("<leader>", a.nvim_get_var("mapleader"))
+   pcall(a.nvim_del_keymap, mode, correct_lhs)
 end
 
-local function autocmd(buf, group, patt, func)
-   local entry = group .. patt
-   export.autocommands[entry] = func
-   cmdf("autocmd <buffer=%d> %s %s :lua require('config').autocommands[%q]()<CR>", buf, group, patt, entry)
-end
+
+
+
+
+
+
 
 
 
 local lsp = require("nvim_lsp")
 local lspSettings = {
+
    sumneko_lua = { settings = { Lua = {
             runtime = { version = "Lua 5.3" },
             diagnostics = { globals = {
@@ -87,6 +91,7 @@ local lspSettings = {
                   "shell",
                }, },
          }, }, },
+
    clangd = {},
 }
 
@@ -147,7 +152,7 @@ stl.add({ "IndentViewer", "Debugging" }, { "Inactive" }, function()
 end, "DraculaGreenBold")
 stl.add({ "ActiveSeparator", "Active" }, { "Inactive" }, "%=", "User1")
 stl.add({ "InactiveSeparator", "Inactive" }, { "Active" }, "%=", "User2")
-stl.add({ "Active" }, { "Inactive" }, function()
+stl.add({ "Shiftwidth", "Tabstop", "Active" }, { "Inactive" }, function()
    local sw = a.nvim_buf_get_option(0, "shiftwidth")
    local ts = a.nvim_buf_get_option(0, "tabstop")
    return (" [sw:%d ts:%d]"):format(sw, ts)
@@ -156,30 +161,43 @@ stl.add({ "LineNumber", "NavInfo", "Active", "Inactive" }, {}, " %l/%L:%c ", "Co
 stl.add({ "FilePercent", "NavInfo", "Active", "Inactive" }, { "Debugging" }, "%3p%%", "Comment")
 stl.add({ "TrailingSpace", "Spaces", "Active", "Inactive" }, {}, " ", "Comment")
 
+cmd("hi! User1 guibg=#6F6F6F")
 cmd("hi! User2 guibg=#1F1F1F")
-cmd("hi! link User1 Visual")
 
 map("n", "<F12>", function()    stl.toggleTag("Debugging") end)
 
 
 
+for mvkey, szkey in fstsnd({
+      { "h", "<" },
+      { "j", "+" },
+      { "k", "-" },
+      { "l", ">" }, }) do
+   unmap("n", "<C-W>" .. mvkey)
+   map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
+   map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
 
-local function foldVisualSelection()
-   local start = a.nvim_buf_get_mark(0, "<")[1] - 1
-   local finish = a.nvim_buf_get_mark(0, ">")[1] + 1
+   map("n", "<C-w>" .. mvkey, ":echoerr 'stop that'<CR>")
+end
+
+
+local function foldVisualSelection(label)
+
+   local start = (a.nvim_buf_get_mark(0, "<"))[1] - 1
+   local finish = (a.nvim_buf_get_mark(0, ">"))[1] + 1
    local commentstring = a.nvim_buf_get_option(0, "commentstring")
-   a.nvim_buf_set_lines(0, start, start, true, { string.format(commentstring, " {{{") })
-   a.nvim_buf_set_lines(0, finish, finish, true, { string.format(commentstring, " }}}") })
+   local lb, rb = "{", "}"
+   a.nvim_buf_set_lines(0, start, start, true, { string.format(commentstring, " " .. lb:rep(3) .. (label and (" " .. label) or "") .. " ") })
+   a.nvim_buf_set_lines(0, finish, finish, true, { string.format(commentstring, " " .. rb:rep(3)) })
    return start, finish
 end
 map("v", "<leader>f", foldVisualSelection)
-
 map("v", "<leader>F", function()
-   local start = foldVisualSelection()
-   a.nvim_win_set_cursor(0, { start + 1, 1 })
-   a.nvim_input("A ")
+   local label = vim.fn.input("Fold label: ")
+   local _, finish = foldVisualSelection(label)
+   a.nvim_win_set_cursor(0, { finish + 1, 1 })
 end)
-map("v", "<leader>s", ":sort<CR>")
+
 
 local function termFunc()
    local termCmd = vim.fn.input("Command to execute in terminal: ")
@@ -203,10 +221,12 @@ local function termFunc()
       unmap("n", "<leader>T")
       map("n", "<leader>t", termFunc)
    end)
-   print("Press <leader>t to execute ", termCmd, "\n", "Press <leader>T to close the terminal\n")
+   print(" \n")
+   print("Press <leader>t to execute '" .. termCmd .. "' \nPress <leader>T to close the terminal\n")
 end
 
 map("n", "<leader>t", termFunc)
+
 
 
 return export

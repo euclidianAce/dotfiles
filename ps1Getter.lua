@@ -54,7 +54,7 @@ local branch = sh("git branch 2> /dev/null | grep \\*")
 -- }}}
 -- {{{ Directory shortener
 do
-	local dirmaxlen = 12
+	local dirmaxlen = math.floor(columns / 2)
 	local dirminlen = 7
 	local dirstack = {}
 	for dir in wd:gmatch("[^/]+") do

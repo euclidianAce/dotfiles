@@ -3,7 +3,6 @@
 alias e=$EDITOR
 alias v="vim"
 alias nv="nvim"
-alias code="codium-bin"
 
 function mkcd {
 	mkdir -p "$1" && cd "$1"
@@ -13,7 +12,7 @@ function mkcd {
 function touchx {
 	file=`basename $1`
 	extension="${file##*.}"
-	declare -A runners=( ['lua']='lua' ['py']='python' ['erl']='escript' ['tl']='tl run' )
+	declare -A runners=( ['lua']='lua' ['py']='python' ['erl']='escript' ['tl']='tl run' ['sh']='sh')
 	touch $1 && chmod +x $1 && echo -e "#!/usr/bin/env ${runners[$extension]}\n" > $1 && $EDITOR $1
 }
 

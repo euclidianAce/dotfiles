@@ -1,4 +1,6 @@
 
+-- A cheap implementation of vim-commentary
+
 local a = vim.api
 
 local M = {}
@@ -7,7 +9,14 @@ local function escapeStr(str: string): string
 	return (str:gsub("[-+.*()%[%]]", "%%%1"))
 end
 
+local function trim(str: string): string
+	return str:match("%s*(.*)%s*")
+end
+
 function M.commentStr(cs: string, str: string): string
+	if trim(str) == "" then
+		return str
+	end
 	local escc = escapeStr(cs)
 	local patt = escc:gsub("%%s", "(.*)")
 	local leadingWhitespace, line: string, string = str:match("(%s*)(.*)")

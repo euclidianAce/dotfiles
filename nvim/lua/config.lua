@@ -1,9 +1,16 @@
+package.loaded["config"] = nil
+
 local a = vim.api
 local cmd = a.nvim_command
 
 
 local export = {
-   mapping = {},
+   mapping = setmetatable({}, {
+      __index = function(self, index)
+         rawset(self, index, {})
+         return self[index]
+      end,
+   }),
    autocommands = {},
 }
 
@@ -41,11 +48,11 @@ local function map(mode, lhs, rhs, user_settings)
    elseif type(rhs) == "function" then
 
       local correct_lhs = lhs:gsub("<leader>", a.nvim_get_var("mapleader"))
-      export.mapping[correct_lhs] = partial(pcall, rhs)
+      export.mapping[mode][correct_lhs] = partial(pcall, rhs)
       a.nvim_set_keymap(
 mode,
 lhs,
-string.format(":lua require('config').mapping[%q]()<CR>", lhs),
+string.format(":lua require('config').mapping[%q][%q]()<CR>", mode, lhs),
 user_settings)
 
    end
@@ -166,6 +173,20 @@ cmd("hi! User2 guibg=#1F1F1F")
 
 map("n", "<F12>", function()    stl.toggleTag("Debugging") end)
 
+
+
+local commenter = require("commenter")
+map("n", "<leader>c", function()
+   local cursorPos = a.nvim_win_get_cursor(0)
+   commenter.commentLine(0, cursorPos[1])
+end)
+map("v", "<leader>c", function()
+   local start = (a.nvim_buf_get_mark(0, "<"))[1]
+   local finish = (a.nvim_buf_get_mark(0, ">"))[1]
+   for i = start, finish do
+      commenter.commentLine(0, i)
+   end
+end)
 
 
 for mvkey, szkey in fstsnd({

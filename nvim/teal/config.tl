@@ -1,10 +1,17 @@
 
+package.loaded["config"] = nil
+
 local a = vim.api
 local cmd = a.nvim_command
 
 -- {{{ helpers
 local export = {
-	mapping: {string:function} = {},
+	mapping: {string:{string:function}} = setmetatable({}, {
+		__index = function(self: table, index: string): table
+			rawset(self, index, {})
+			return self[index] as table
+		end
+	}),
 	autocommands: {string:function} = {},
 }
 -- {{{ Random stuffs
@@ -42,11 +49,11 @@ local function map(mode: string, lhs: string, rhs: string|function, user_setting
 	elseif rhs is function then
 		-- make sure to sub in leader for the actual val cuz thats what vim will do with lhs
 		local correct_lhs = lhs:gsub("<leader>", a.nvim_get_var("mapleader") as string) 
-		export.mapping[correct_lhs] = partial(pcall, rhs)
+		export.mapping[mode][correct_lhs] = partial(pcall, rhs)
 		a.nvim_set_keymap(
 			mode,
 			lhs,
-			string.format(":lua require('config').mapping[%q]()<CR>", lhs),
+			string.format(":lua require('config').mapping[%q][%q]()<CR>", mode, lhs),
 			user_settings
 		)
 	end
@@ -168,6 +175,20 @@ cmd("hi! User2 guibg=#1F1F1F")
 map("n", "<F12>", function() stl.toggleTag("Debugging") end)
 -- }}}
 -- {{{ Other Stuffs
+-- {{{ vim-commentary imitation
+local commenter = require("commenter")
+map("n", "<leader>c", function()
+	local cursorPos: {number} = a.nvim_win_get_cursor(0)
+	commenter.commentLine(0, cursorPos[1])
+end)
+map("v", "<leader>c", function()
+	local start = (a.nvim_buf_get_mark(0, "<") as {number})[1]
+	local finish = (a.nvim_buf_get_mark(0, ">") as {number})[1]
+	for i = start, finish do
+		commenter.commentLine(0, i)
+	end
+end)
+-- }}}
 -- {{{ Window movement/resizing
 for mvkey, szkey in fstsnd{
 	{"h", "<"},

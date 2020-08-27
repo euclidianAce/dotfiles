@@ -34,7 +34,6 @@ call plug#begin('~/.vim/plugged')
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
-Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'neovim/nvim-lsp'
@@ -42,10 +41,12 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': 
 Plug 'dpwright/vim-tup'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 Plug 'sheerun/vim-polyglot'
+Plug 'vimwiki/vimwiki'
 
 " Plug 'nvim-treesitter/nvim-treesitter'
 
 " Colors
+Plug 'norcalli/nvim-colorizer.lua'
 Plug 'dracula/vim', { 'as': 'dracula' }
 
 " My stuff
@@ -105,19 +106,22 @@ set formatoptions+=lcroj "see :help fo-table
 if !exists("g:started_by_firenvim")
 	set showbreak=↪\ 
 endif
-set list
-set listchars+=tab:▶·\|
+set listchars+=tab:▶·\│
 set listchars+=eol:↵
 set listchars+=trail:✗
 set listchars+=space:·
 set listchars+=precedes:<
 set listchars+=extends:>
 set listchars+=nbsp:+
+set list
 set fillchars+=fold:\ 
 set foldtext=MyFoldText()
 set ignorecase smartcase
 set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
+
+autocmd BufRead,BufEnter *.wiki setlocal nolist
+
 " }}}
 " {{{ Keymaps
 nnoremap <Left> <NOP>
@@ -142,6 +146,7 @@ inoremap <silent> .shrug ¯\_(ツ)_/¯
 inoremap <silent> .Shrug ¯\\\_(ツ)\_/¯
 nnoremap <silent> <leader>lua :setlocal sw=3 ts=3 expandtab<CR>:echo "LuaRocks Style Enabled"<CR>
 nnoremap <silent> <leader>n :noh<CR>
+nnoremap <leader>5 :w<CR>:source %<CR>:echo "Sourced " . expand("%")<CR>
 
 vnoremap <silent> <leader>s :sort<CR>
 " }}}
@@ -154,5 +159,6 @@ hi! link SignColumn Comment
 hi! link Error DraculaRedInverse
 " }}}
 " Lua config part
+lua require'colorizer'.setup()
 lua xpcall(require, function() print("Unable to load config") end, "config")
 

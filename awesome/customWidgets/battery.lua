@@ -32,7 +32,7 @@ local indicator = wibox.widget {
 		border_color = beautiful.border_color,
 		color = beautiful.bg_focus,
 		background_color = beautiful.border_normal,
-		shape = function(cr, w, h) 
+		shape = function(cr, _, _)
 			return gears.shape.rounded_rect(cr, 30, 5)
 		end,
 		forced_width = 25,

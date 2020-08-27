@@ -157,6 +157,9 @@ hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
 hi! link Error DraculaRedInverse
+hi clear TODO
+" Dracula Cyan Bold
+hi! Todo guifg=#8BE9FD gui=bold
 " }}}
 " Lua config part
 lua require'colorizer'.setup()

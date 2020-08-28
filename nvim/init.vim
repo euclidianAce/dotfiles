@@ -38,7 +38,6 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'neovim/nvim-lsp'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
-Plug 'dpwright/vim-tup'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 Plug 'sheerun/vim-polyglot'
 Plug 'vimwiki/vimwiki'
@@ -52,8 +51,6 @@ Plug 'dracula/vim', { 'as': 'dracula' }
 " My stuff
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'euclidianAce/exec.vim'
-Plug 'euclidianAce/teal-interactive.nvim'
-" Plug 'euclidianAce/teal-type-checker.nvim'
 Plug 'teal-language/vim-teal'
 call plug#end()
 " }}}
@@ -162,6 +159,7 @@ hi clear TODO
 hi! Todo guifg=#8BE9FD gui=bold
 " }}}
 " Lua config part
+autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "Search", timeout = 250, on_macro = true }
 lua require'colorizer'.setup()
 lua xpcall(require, function() print("Unable to load config") end, "config")
 

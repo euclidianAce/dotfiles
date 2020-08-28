@@ -10,14 +10,24 @@ local function trim(str)
    return str:match("%s*(.*)%s*")
 end
 
-function M.commentStr(cs, str)
-   if trim(str) == "" then
-      return str
+local function split(str, delimiter)
+   local a, b = str:find(delimiter, 1, true)
+   if not a then
+      return str, ""
    end
-   local escc = escapeStr(cs)
-   local patt = escc:gsub("%%s", "(.*)")
-   local leadingWhitespace, line = str:match("(%s*)(.*)")
-   return leadingWhitespace .. (line:match(patt) or (cs:gsub("%%s", line)))
+   return str:sub(1, a - 1), str:sub(a + #delimiter, -1)
+end
+
+function M.commentStr(cs, str)
+   if trim(str) == "" then       return str end
+
+   local pre, post = split(cs, "%s")
+   local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. "(.-)" .. escapeStr(post) .. "$")
+   if ws then
+      return ws .. m
+   end
+   local leadingWs, rest = str:match("^(%s*)(.*)$")
+   return leadingWs .. pre .. rest .. post
 end
 
 function M.commentLine(buf, lineNum)

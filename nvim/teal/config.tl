@@ -97,6 +97,13 @@ local lspSettings = {
 			"turtle",
 			"fs",
 			"shell",
+
+			-- awesomewm
+			"awesome",
+			"screen",
+			"mouse",
+			"client",
+			"root",
 		} }
 	} } },
 -- }}}
@@ -243,8 +250,7 @@ local function termFunc()
 		unmap("n", "<leader>T")
 		map("n", "<leader>t", termFunc)
 	end)
-	print(" \n")
-	print("Press <leader>t to execute '" .. termCmd ..  "' \nPress <leader>T to close the terminal\n")
+	print(", [<leader>t execute '" .. termCmd ..  "'] [<leader>T close]")
 end
 
 map("n", "<leader>t", termFunc)

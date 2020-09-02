@@ -6,7 +6,7 @@ function MyFoldText()
 	let line = getline(v:foldstart)
 	let br = '{'
 	let subline = substitute(line, '\(^"\|\-\-\)\|/\*\|\*/\|'.br.br.br.'\d\=', '', 'g')
-	return repeat('***', v:foldlevel) . subline . '   ' . repeat('***', v:foldlevel)
+	return repeat('*** ', v:foldlevel) . subline . '   ' . repeat(' ***', v:foldlevel)
 endfunction
 " }}}
 " {{{ Code Editing
@@ -64,14 +64,15 @@ let g:polyglot_disabled = ['lua']
 " {{{ lsp
 " default config from :help lsp
 nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
-" nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
 nnoremap <silent> gD    <cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> <c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
 nnoremap <silent> 1gD   <cmd>lua vim.lsp.buf.type_definition()<CR>
 nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
 nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
-nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+"nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+" except this one
+nnoremap <silent> <leader>ldef <cmd>lua vim.lsp.buf.definition()<CR>
 
 " use omni-completion
 autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc
@@ -116,6 +117,7 @@ set foldtext=MyFoldText()
 set ignorecase smartcase
 set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
+"set spell spelllang=en_us
 
 autocmd BufRead,BufEnter *.wiki setlocal nolist
 

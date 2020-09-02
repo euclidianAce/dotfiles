@@ -3,7 +3,7 @@ local a = vim.api
 local M = {}
 
 local function escapeStr(str)
-   return (str:gsub("[-+.*()%[%]]", "%%%1"))
+   return (str:gsub("[-+.*()%[%]%%]", "%%%1"))
 end
 
 local function trim(str)
@@ -33,7 +33,7 @@ end
 function M.commentLine(buf, lineNum)
    local c = a.nvim_buf_get_option(buf, "commentstring")
    if not c then
-      print("Couldn't get commentstring")
+      print("[commenter] Couldn't get commentstring")
       return
    end
    a.nvim_buf_set_lines(buf, lineNum - 1, lineNum, false, {

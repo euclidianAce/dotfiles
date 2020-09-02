@@ -234,7 +234,7 @@ local function termFunc()
    end
    cmd("sp +term")
    local termWin = a.nvim_get_current_win()
-   local ok, res = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
+   local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
    if not ok then
       print("Unable to get terminal job id\n")
       return
@@ -242,7 +242,10 @@ local function termFunc()
    unmap("n", "<leader>t")
    unmap("n", "<leader>T")
    map("n", "<leader>t", function()
-      pcall(vim.fn.chansend, res, termCmd .. "\n")
+      local ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
+      if not ok then
+         print("[<leader>t] Unable to send command to terminal, (" .. termCmd .. ")")
+      end
    end)
    map("n", "<leader>T", function()
       pcall(a.nvim_win_close, termWin, true)

@@ -34,8 +34,8 @@ export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 
 # Additions to PATH
-export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/bin:$HOME/dev/tl"
 eval $(luarocks path --bin)
+export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl"
 
 #################
 #### ALIASES ####

@@ -205,7 +205,6 @@ for mvkey, szkey in fstsnd{
 	unmap("n", "<C-W>" .. mvkey)
 	map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
 	map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
-
 	map("n", "<C-w>" .. mvkey, ":echoerr 'stop that'<CR>")
 end
 -- }}}

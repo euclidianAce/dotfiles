@@ -5,7 +5,7 @@
 " syn match cFuncCall /\K\k*\ze(/
 " hi link cFuncCall Function
 
-syn match cOp "[!<>=~^&|*%+-]\|/\ze[^/*]"
+syn match cOp '[?:!<>=~^&|*%+-]\|/\ze[^/*]'
 hi link cOp Operator
 
 " syn match cCompoundLiteral "(.\{-})\s*{.\{-}}" transparent containedin=cParen

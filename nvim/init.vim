@@ -80,12 +80,12 @@ autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
 " {{{ set options
 set termguicolors belloff=all
-" set guicursor=
+set guicursor=
 set undodir=$HOME/.vim/undo
 set undofile
 set noswapfile
 set switchbuf=useopen
-set cursorline
+"set cursorline
 set number relativenumber numberwidth=4
 set wildmenu " visual autocomplete stuffs
 set showcmd " show command being typed

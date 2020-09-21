@@ -1,3 +1,6 @@
+
+
+
 local a = vim.api
 
 local M = {}
@@ -22,12 +25,16 @@ function M.commentStr(cs, str)
    if trim(str) == "" then       return str end
 
    local pre, post = split(cs, "%s")
-   local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. "(.-)" .. escapeStr(post) .. "$")
+   local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " (.-)" .. escapeStr(post) .. "$")
+
+
    if ws then
       return ws .. m
    end
+
+
    local leadingWs, rest = str:match("^(%s*)(.*)$")
-   return leadingWs .. pre .. rest .. post
+   return leadingWs .. pre .. " " .. rest .. post
 end
 
 function M.commentLine(buf, lineNum)

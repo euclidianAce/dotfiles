@@ -25,12 +25,16 @@ function M.commentStr(cs: string, str: string): string
 	if trim(str) == "" then return str end
 
 	local pre, post = split(cs, "%s")
-	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. "(.-)" .. escapeStr(post) .. "$")
+	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " (.-)" .. escapeStr(post) .. "$")
+
+	-- uncommented string
 	if ws then
 		return ws .. m
 	end
+
+	-- commented string
 	local leadingWs, rest = str:match("^(%s*)(.*)$")
-	return leadingWs .. pre .. rest .. post
+	return leadingWs .. pre .. " " .. rest .. post
 end
 
 function M.commentLine(buf: number, lineNum: number)

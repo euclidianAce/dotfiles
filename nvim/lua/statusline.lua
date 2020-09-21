@@ -99,6 +99,7 @@ function M.add(tags, invertedTags, text, hiGroup)
    end
    table.insert(lineComponents, comp)
 end
+
 local function components()
    local i = 0
    return function()
@@ -133,24 +134,45 @@ local function makeLine(tags)
    return table.concat(buf)
 end
 
-function M.setInactive()
-   vim.api.nvim_win_set_option(0, "statusline", makeLine({ "Inactive" }))
+local function setLine(win_id)
+   local ok, active = pcall(vim.api.nvim_win_get_var, win_id or 0, "statusline_active")
+   if not ok then
+      pcall(vim.api.nvim_win_set_var, win_id or 0, "statusline_active", 0)
+      active = 0
+   end
+   local tags = active == 1 and
+   { "Active" } or
+   { "Inactive" }
+   vim.api.nvim_win_set_option(win_id or 0, "statusline", makeLine(tags))
 end
 
-function M.setActive()
-   vim.api.nvim_win_set_option(0, "statusline", makeLine({ "Active" }))
+function M.updateWindows()
+   for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+      setLine(win_id)
+   end
+end
+
+function M.setInactive(win_id)
+   vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 0)
+   M.updateWindows()
+end
+
+function M.setActive(win_id)
+   vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 1)
+   M.updateWindows()
 end
 
 function M.toggleTag(name)
    currentTags[name] = not currentTags[name]
-   M.setActive()
+   M.updateWindows()
 end
 
 cmd("augroup customstatus")
 cmd("autocmd!")
-cmd("autocmd WinEnter,BufWinEnter * lua require('statusline').setActive()")
-cmd("autocmd WinLeave * lua require('statusline').setInactive()")
+cmd("autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'statusline'.updateWindows()")
+cmd("autocmd WinLeave * let w:statusline_active = 0 | lua require'statusline'.updateWindows()")
 cmd("augroup END")
 M.setActive()
+M.updateWindows()
 
 return M

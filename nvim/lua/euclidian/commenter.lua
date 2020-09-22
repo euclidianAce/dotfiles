@@ -1,4 +1,4 @@
-
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local pcall = _tl_compat53 and _tl_compat53.pcall or pcall
 
 
 local a = vim.api
@@ -25,7 +25,7 @@ function M.commentStr(cs, str)
    if trim(str) == "" then       return str end
 
    local pre, post = split(cs, "%s")
-   local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " (.-)" .. escapeStr(post) .. "$")
+   local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)" .. escapeStr(post) .. "$")
 
 
    if ws then
@@ -38,8 +38,8 @@ function M.commentStr(cs, str)
 end
 
 function M.commentLine(buf, lineNum)
-   local c = a.nvim_buf_get_option(buf, "commentstring")
-   if not c then
+   local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
+   if not ok then
       print("[commenter] Couldn't get commentstring")
       return
    end

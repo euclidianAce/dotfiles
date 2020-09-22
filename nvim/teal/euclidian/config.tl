@@ -1,5 +1,5 @@
 
-package.loaded["config"] = nil
+package.loaded["euclidian.config"] = nil
 
 local a = vim.api
 local cmd = a.nvim_command
@@ -26,7 +26,7 @@ local function partial<T, K>(f: function(...: T): K..., a: T): function(...: T):
 end
 
 local function trim(s: string): string
-	return (s:gsub("%s*(.*)%s*", "%1"))
+	return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
 
 local function fstsnd<T>(arr: {{T}}): function(): (T, T)
@@ -53,7 +53,7 @@ local function map(mode: string, lhs: string, rhs: string|function, user_setting
 		a.nvim_set_keymap(
 			mode,
 			lhs,
-			string.format(":lua require('config').mapping[%q][%q]()<CR>", mode, lhs),
+			string.format(":lua require('euclidian.config').mapping[%q][%q]()<CR>", mode, lhs),
 			user_settings
 		)
 	end
@@ -68,7 +68,7 @@ end
 -- local function autocmd(buf: number, group: string, patt: string, func: function)
 -- 	local entry = group .. patt
 -- 	export.autocommands[entry] = func
--- 	cmdf("autocmd <buffer=%d> %s %s :lua require('config').autocommands[%q]()<CR>", buf, group, patt, entry)
+-- 	cmdf("autocmd <buffer=%d> %s %s :lua require('euclidian.config').autocommands[%q]()<CR>", buf, group, patt, entry)
 -- end
 -- }}}
 -- }}}
@@ -78,33 +78,29 @@ local lspSettings = {
 -- {{{ sumneko lua
 	sumneko_lua = { settings = { Lua = {
 		runtime = { version = "Lua 5.3" },
-		diagnostics = { globals = {
-			-- Vim api
-			"vim",
+		diagnostics = {
+			globals = {
+				-- Vim api
+				"vim",
 
-			-- Tupfile.lua
-			"tup",
+				-- Tupfile.lua
+				"tup",
 
-			-- Busted
-			"it",
-			"describe",
-			"setup",
-			"teardown",
-			"pending",
-			"finally",
+				-- Busted
+				"it", "describe", "setup", "teardown", "pending", "finally",
 
-			-- Computercraft
-			"turtle",
-			"fs",
-			"shell",
+				-- Computercraft
+				"turtle", "fs", "shell",
 
-			-- awesomewm
-			"awesome",
-			"screen",
-			"mouse",
-			"client",
-			"root",
-		} }
+				-- awesomewm
+				"awesome", "screen", "mouse", "client", "root",
+			},
+			disable = {
+				"empty-block",
+				"undefined-global",
+				"unused-function",
+			},
+		},
 	} } },
 -- }}}
 	clangd = {},
@@ -115,7 +111,7 @@ for server, settings in pairs(lspSettings) do
 end
 -- }}}
 -- {{{ Statusline Config
-local stl = require("statusline")
+local stl = require("euclidian.statusline")
 
 stl.mode("ic", "Insert-C", "DraculaGreenBold")
 stl.mode("ix", "Insert-X", "DraculaGreenBold")
@@ -167,10 +163,11 @@ stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, function(): string
 end, "DraculaGreenBold")
 stl.add({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
 stl.add({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
-stl.add({"Shiftwidth", "Tabstop", "Active"}, {"Inactive"}, function(): string
+stl.add({"Shiftwidth", "Tabstop", "Expandtab", "Active"}, {"Inactive"}, function(): string
 	local sw = a.nvim_buf_get_option(0, "shiftwidth") as number
 	local ts = a.nvim_buf_get_option(0, "tabstop") as number
-	return (" [sw:%d ts:%d]"):format(sw, ts)
+	local expandtab = a.nvim_buf_get_option(0, "expandtab")
+	return (" [sw:%d ts:%d expandtab:%s]"):format(sw, ts, expandtab and "yes" or "no")
 end, "Identifier")
 stl.add({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")
 stl.add({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "Comment")
@@ -183,7 +180,7 @@ map("n", "<F12>", function() stl.toggleTag("Debugging") end)
 -- }}}
 -- {{{ Other Stuffs
 -- {{{ vim-commentary imitation
-local commenter = require("commenter")
+local commenter = require("euclidian.commenter")
 map("n", "<leader>c", function()
 	local cursorPos: {number} = a.nvim_win_get_cursor(0)
 	commenter.commentLine(0, cursorPos[1])
@@ -196,12 +193,22 @@ map("v", "<leader>c", function()
 	end
 end)
 -- }}}
+-- {{{ appending things
+local append = require("euclidian.append")
+map("n", "<leader>a,", partial(append.toCurrentLine, ","))
+map("v", "<leader>a,", function()
+	local start = (a.nvim_buf_get_mark(0, "<") as {number})[1] - 1
+	local finish = (a.nvim_buf_get_mark(0, ">") as {number})[1]
+	append.toRange(start, finish, ",")
+end)
+-- }}}
 -- {{{ Window movement/resizing
 for mvkey, szkey in fstsnd{
 	{"h", "<"},
 	{"j", "+"},
 	{"k", "-"},
 	{"l", ">"}} do
+
 	unmap("n", "<C-W>" .. mvkey)
 	map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
 	map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
@@ -233,7 +240,8 @@ local function termFunc()
 		return
 	end
 	cmd("sp +term")
-	local termWin = a.nvim_get_current_win() as number
+	local termWin = a.nvim_get_current_win()
+	local termBuf = a.nvim_get_current_buf()
 	local ok, job: boolean, number = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
 	if not ok then
 		print("Unable to get terminal job id\n")
@@ -252,6 +260,12 @@ local function termFunc()
 		unmap("n", "<leader>T")
 		map("n", "<leader>t", termFunc)
 	end)
+	-- TODO: this is currently annoying and cumbersome with the current nvim_api functions
+	-- do something about it upstream
+	-- cmd "augroup terminaljob"
+	-- cmd 	"autocmd!"
+	-- cmd 	("autocmd <buffer=" .. tostring(termBuf).. "> WinClosed * echo 'terminal closed'")
+	-- cmd "augroup END"
 	print(", [<leader>t execute '" .. termCmd ..  "'] [<leader>T close]")
 end
 

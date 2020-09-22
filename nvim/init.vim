@@ -29,10 +29,14 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 " }}}
+" polyglot
+let g:polyglot_disabled = ['lua']
 " {{{ The actual plugins
 call plug#begin('~/.vim/plugged')
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
+0
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-lua/telescope.nvim'
 
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
@@ -41,6 +45,7 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': 
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
 Plug 'sheerun/vim-polyglot'
 Plug 'vimwiki/vimwiki'
+Plug 'editorconfig/editorconfig-vim'
 
 " Plug 'nvim-treesitter/nvim-treesitter'
 
@@ -49,17 +54,11 @@ Plug 'norcalli/nvim-colorizer.lua'
 Plug 'dracula/vim', { 'as': 'dracula' }
 
 " My stuff
-Plug 'euclidianAce/BetterLua.vim'
-Plug 'euclidianAce/exec.vim'
-Plug 'teal-language/vim-teal'
+Plug '~/dev/vim-plugins/BetterLua.vim'
+Plug '~/dev/vim-plugins/exec.vim'
+Plug '~/dev/vim-plugins/vim-teal'
 call plug#end()
 " }}}
-" fzf
-nnoremap <leader>fz :FZF<CR>
-nnoremap <leader>rg :Rg<CR>
-let g:fzf_preview_window = "right:60%"
-" polyglot
-let g:polyglot_disabled = ['lua']
 " }}}
 " {{{ lsp
 " default config from :help lsp
@@ -80,8 +79,8 @@ autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
 " {{{ set options
 set termguicolors belloff=all
-set guicursor=
-set undodir=$HOME/.vim/undo
+"set guicursor=
+set undodir=$HOME/.vim/undo0
 set undofile
 set noswapfile
 set switchbuf=useopen
@@ -117,6 +116,7 @@ set foldtext=MyFoldText()
 set ignorecase smartcase
 set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
+set signcolumn=yes:1
 "set spell spelllang=en_us
 
 autocmd BufRead,BufEnter *.wiki setlocal nolist
@@ -134,11 +134,14 @@ inoremap (<CR> ()<Esc>i<CR><CR><Esc>kS
 
 let g:netrw_liststyle = 3
 let g:netrw_banner = 0
-nnoremap <leader>ff :let g:netrw_winsize=25<CR>:Lex<CR>
-nnoremap <leader>fh :let g:netrw_winsize=50<CR>:Lex<CR>:NetrwC<CR>
-nnoremap <leader>fj :let g:netrw_winsize=50<CR>:Hex<CR>:NetrwC<CR>
-nnoremap <leader>fk :let g:netrw_winsize=50<CR>:Hex!<CR>:NetrwC<CR>
-nnoremap <leader>fl :let g:netrw_winsize=50<CR>:Lex!<CR>:NetrwC<CR>
+nnoremap <leader>ff <cmd>let g:netrw_winsize=25<CR><cmd>Lex<CR>
+nnoremap <leader>fh <cmd>let g:netrw_winsize=50<CR><cmd>Lex<CR><cmd>NetrwC<CR>
+nnoremap <leader>fj <cmd>let g:netrw_winsize=50<CR><cmd>Hex<CR><cmd>NetrwC<CR>
+nnoremap <leader>fk <cmd>let g:netrw_winsize=50<CR><cmd>Hex!<CR><cmd>NetrwC<CR>
+nnoremap <leader>fl <cmd>let g:netrw_winsize=50<CR><cmd>Lex!<CR><cmd>NetrwC<CR>
+
+nnoremap <leader>fz <cmd>lua require'telescope.builtin'.find_files{}<CR>
+nnoremap <leader>g  <cmd>lua require'telescope.builtin'.live_grep()<CR>
 
 tnoremap <silent> <Esc> <C-\><C-n>
 inoremap <silent> .shrug ¯\_(ツ)_/¯
@@ -163,5 +166,5 @@ hi! Todo guifg=#8BE9FD gui=bold
 " Lua config part
 autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "Search", timeout = 250, on_macro = true }
 lua require'colorizer'.setup()
-lua xpcall(require, function() print("Unable to load config") end, "config")
+lua require'euclidian.config'
 

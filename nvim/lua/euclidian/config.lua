@@ -1,4 +1,5 @@
-package.loaded["config"] = nil
+local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local package = _tl_compat53 and _tl_compat53.package or package
+package.loaded["euclidian.config"] = nil
 
 local a = vim.api
 local cmd = a.nvim_command
@@ -25,7 +26,7 @@ local function partial(f, a)
 end
 
 local function trim(s)
-   return (s:gsub("%s*(.*)%s*", "%1"))
+   return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
 
 local function fstsnd(arr)
@@ -52,7 +53,7 @@ local function map(mode, lhs, rhs, user_settings)
       a.nvim_set_keymap(
 mode,
 lhs,
-string.format(":lua require('config').mapping[%q][%q]()<CR>", mode, lhs),
+string.format(":lua require('euclidian.config').mapping[%q][%q]()<CR>", mode, lhs),
 user_settings)
 
    end
@@ -77,7 +78,8 @@ local lspSettings = {
 
    sumneko_lua = { settings = { Lua = {
             runtime = { version = "Lua 5.3" },
-            diagnostics = { globals = {
+            diagnostics = {
+               globals = {
 
                   "vim",
 
@@ -85,25 +87,20 @@ local lspSettings = {
                   "tup",
 
 
-                  "it",
-                  "describe",
-                  "setup",
-                  "teardown",
-                  "pending",
-                  "finally",
+                  "it", "describe", "setup", "teardown", "pending", "finally",
 
 
-                  "turtle",
-                  "fs",
-                  "shell",
+                  "turtle", "fs", "shell",
 
 
-                  "awesome",
-                  "screen",
-                  "mouse",
-                  "client",
-                  "root",
-               }, },
+                  "awesome", "screen", "mouse", "client", "root",
+               },
+               disable = {
+                  "empty-block",
+                  "undefined-global",
+                  "unused-function",
+               },
+            },
          }, }, },
 
    clangd = {},
@@ -114,7 +111,7 @@ for server, settings in pairs(lspSettings) do
 end
 
 
-local stl = require("statusline")
+local stl = require("euclidian.statusline")
 
 stl.mode("ic", "Insert-C", "DraculaGreenBold")
 stl.mode("ix", "Insert-X", "DraculaGreenBold")
@@ -166,10 +163,11 @@ stl.add({ "IndentViewer", "Debugging" }, { "Inactive" }, function()
 end, "DraculaGreenBold")
 stl.add({ "ActiveSeparator", "Active" }, { "Inactive" }, "%=", "User1")
 stl.add({ "InactiveSeparator", "Inactive" }, { "Active" }, "%=", "User2")
-stl.add({ "Shiftwidth", "Tabstop", "Active" }, { "Inactive" }, function()
+stl.add({ "Shiftwidth", "Tabstop", "Expandtab", "Active" }, { "Inactive" }, function()
    local sw = a.nvim_buf_get_option(0, "shiftwidth")
    local ts = a.nvim_buf_get_option(0, "tabstop")
-   return (" [sw:%d ts:%d]"):format(sw, ts)
+   local expandtab = a.nvim_buf_get_option(0, "expandtab")
+   return (" [sw:%d ts:%d expandtab:%s]"):format(sw, ts, expandtab and "yes" or "no")
 end, "Identifier")
 stl.add({ "LineNumber", "NavInfo", "Active", "Inactive" }, {}, " %l/%L:%c ", "Comment")
 stl.add({ "FilePercent", "NavInfo", "Active", "Inactive" }, { "Debugging" }, "%3p%%", "Comment")
@@ -182,7 +180,7 @@ map("n", "<F12>", function()    stl.toggleTag("Debugging") end)
 
 
 
-local commenter = require("commenter")
+local commenter = require("euclidian.commenter")
 map("n", "<leader>c", function()
    local cursorPos = a.nvim_win_get_cursor(0)
    commenter.commentLine(0, cursorPos[1])
@@ -196,15 +194,24 @@ map("v", "<leader>c", function()
 end)
 
 
+local append = require("euclidian.append")
+map("n", "<leader>a,", partial(append.toCurrentLine, ","))
+map("v", "<leader>a,", function()
+   local start = (a.nvim_buf_get_mark(0, "<"))[1] - 1
+   local finish = (a.nvim_buf_get_mark(0, ">"))[1]
+   append.toRange(start, finish, ",")
+end)
+
+
 for mvkey, szkey in fstsnd({
       { "h", "<" },
       { "j", "+" },
       { "k", "-" },
       { "l", ">" }, }) do
+
    unmap("n", "<C-W>" .. mvkey)
    map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
    map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
-
    map("n", "<C-w>" .. mvkey, ":echoerr 'stop that'<CR>")
 end
 
@@ -234,6 +241,7 @@ local function termFunc()
    end
    cmd("sp +term")
    local termWin = a.nvim_get_current_win()
+   local termBuf = a.nvim_get_current_buf()
    local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
    if not ok then
       print("Unable to get terminal job id\n")
@@ -252,6 +260,12 @@ local function termFunc()
       unmap("n", "<leader>T")
       map("n", "<leader>t", termFunc)
    end)
+
+
+
+
+
+
    print(", [<leader>t execute '" .. termCmd .. "'] [<leader>T close]")
 end
 

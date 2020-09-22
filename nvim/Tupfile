@@ -1,1 +1,0 @@
-: foreach teal/*.tl |> ^ tl %f^ tl -q check %f && tl -q gen %f -o %o |> lua/%B.lua

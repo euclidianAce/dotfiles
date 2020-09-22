@@ -95,7 +95,7 @@ function M.add(tags: {string}, invertedTags: {string}, text: string|function(): 
 		comp.text = ("%%#%s#"):format(hiGroup) .. (text as string) .. "%#Normal#"
 	elseif text is function(): string then
 		M._funcs[#lineComponents+1] = text as function(): string
-		comp.text = ("%%#%s#"):format(hiGroup) .. ([[%%{luaeval("require'statusline'._funcs[%d]()")}]]):format(#lineComponents+1) .. "%#Normal#"
+		comp.text = ("%%#%s#"):format(hiGroup) .. ([[%%{luaeval("require'euclidian.statusline'._funcs[%d]()")}]]):format(#lineComponents+1) .. "%#Normal#"
 	end
 	table.insert(lineComponents, comp)
 end
@@ -169,9 +169,10 @@ end
 
 cmd "augroup customstatus"
 cmd	"autocmd!"
-cmd	"autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'statusline'.updateWindows()"
-cmd	"autocmd WinLeave * let w:statusline_active = 0 | lua require'statusline'.updateWindows()"
+cmd	"autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'euclidian.statusline'.updateWindows()"
+cmd	"autocmd WinLeave *             let w:statusline_active = 0 | lua require'euclidian.statusline'.updateWindows()"
 cmd "augroup END"
+
 M.setActive()
 M.updateWindows()
 

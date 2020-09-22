@@ -1,5 +1,5 @@
 
--- A cheap implementation of vim-commentary
+-- A cheap lua implementation of vim-commentary
 
 local a = vim.api
 
@@ -25,7 +25,7 @@ function M.commentStr(cs: string, str: string): string
 	if trim(str) == "" then return str end
 
 	local pre, post = split(cs, "%s")
-	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " (.-)" .. escapeStr(post) .. "$")
+	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)" .. escapeStr(post) .. "$")
 
 	-- uncommented string
 	if ws then
@@ -38,13 +38,13 @@ function M.commentStr(cs: string, str: string): string
 end
 
 function M.commentLine(buf: number, lineNum: number)
-	local c: string = a.nvim_buf_get_option(buf, "commentstring") as string
-	if not c then
+	local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
+	if not ok then
 		print("[commenter] Couldn't get commentstring")
 		return
 	end
 	a.nvim_buf_set_lines(buf, lineNum-1, lineNum, false, {
-		M.commentStr(c, a.nvim_buf_get_lines(buf, lineNum-1, lineNum, false)[1])
+		M.commentStr(c as string, a.nvim_buf_get_lines(buf, lineNum-1, lineNum, false)[1])
 	})
 end
 

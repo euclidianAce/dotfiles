@@ -35,7 +35,8 @@ export MANPAGER="nvim +Man!"
 
 # Additions to PATH
 eval $(luarocks path --bin)
-export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl"
+export LUA_PATH+=";$HOME/dev/tlcli/build/?.lua;$HOME/dev/tl/?.lua"
+export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/tlcli/build"
 
 #################
 #### ALIASES ####

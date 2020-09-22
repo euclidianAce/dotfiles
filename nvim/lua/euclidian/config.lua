@@ -1,4 +1,3 @@
-local _tl_compat53 = ((tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3) and require('compat53.module'); local package = _tl_compat53 and _tl_compat53.package or package
 package.loaded["euclidian.config"] = nil
 
 local a = vim.api

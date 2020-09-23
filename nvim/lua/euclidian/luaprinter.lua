@@ -39,7 +39,9 @@ printed[line],
    local ft = a.nvim_buf_get_option(b.buf, "ft")
    local chunk, err
    if ft == "teal" then
-      chunk, err = loadstring((require("tl").gen(code)))
+      local tl = require("tl")
+      local env = tl.init_env(false, true)
+      chunk, err = tl.load(code, tostring(b.buf), "t", env)
    else
       chunk, err = loadstring(code)
    end
@@ -60,7 +62,7 @@ printed[line],
    end
    a.nvim_buf_clear_namespace(b.buf, b.ns, 0, -1)
 
-   local offset = ft == "teal" and 0 or 1
+   local offset = ft == "teal" and -1 or 1
    for linenum, data in pairs(printed) do
       local text = {}
       for _, arr in ipairs(data) do

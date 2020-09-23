@@ -40,7 +40,9 @@ local function runBuffer(b: LuaBuffer)
 	local ft = a.nvim_buf_get_option(b.buf, "ft")
 	local chunk, err: function, string
 	if ft == "teal" then
-		chunk, err = loadstring((require("tl").gen(code)))
+		local tl = require("tl")
+		local env = tl.init_env(false, true)
+		chunk, err = tl.load(code, tostring(b.buf), "t", env as {any:any})
 	else
 		chunk, err = loadstring(code)
 	end
@@ -61,7 +63,7 @@ local function runBuffer(b: LuaBuffer)
 	end
 	a.nvim_buf_clear_namespace(b.buf, b.ns, 0, -1)
 	-- TODO: do something upstream about this
-	local offset = ft == "teal" and 0 or 1
+	local offset = ft == "teal" and -1 or 1
 	for linenum, data in pairs(printed) do
 		local text: {{string}} = {}
 		for _, arr in ipairs(data) do

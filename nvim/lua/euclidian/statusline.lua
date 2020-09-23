@@ -170,7 +170,7 @@ end
 cmd("augroup customstatus")
 cmd("autocmd!")
 cmd("autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'euclidian.statusline'.updateWindows()")
-cmd("autocmd WinLeave *             let w:statusline_active = 0 | lua require'euclidian.statusline'.updateWindows()")
+cmd("autocmd WinLeave *             let w:statusline_active = 0")
 cmd("augroup END")
 
 M.setActive()

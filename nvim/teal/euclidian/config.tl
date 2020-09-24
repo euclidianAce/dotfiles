@@ -274,7 +274,7 @@ map("n", "<leader>t", termFunc)
 map("n", "<leader>ll", function()
 	local curBuf = vim.fn.bufnr() as number
 	cmd "augroup luaprinter"
-	cmd 	("autocmd BufWrite <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ")")
+	cmd 	("autocmd BufWritePost <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ")")
 	cmd "augroup END"
 	print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf)
 end)

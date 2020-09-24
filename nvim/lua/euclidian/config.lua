@@ -270,13 +270,16 @@ end
 
 map("n", "<leader>t", termFunc)
 
-map("n", "<leader>ll", function()
+
+map("n", "<leader>lp", function()
    local curBuf = vim.fn.bufnr()
    cmd("augroup luaprinter")
-   cmd("autocmd BufWritePost <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ")")
+   cmd("autocmd BufWritePost <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 10000)")
+   cmd("autocmd InsertLeave  <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 1500)")
    cmd("augroup END")
    print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf)
 end)
+
 
 
 return export

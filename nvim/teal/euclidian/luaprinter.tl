@@ -5,6 +5,7 @@ local M = {}
 local record LuaBuffer
 	buf: number
 	ns: number
+	isTeal: boolean
 end
 
 local cache: {number:LuaBuffer} = setmetatable({}, {__mode = "v"})
@@ -14,19 +15,43 @@ local function getLuaBuf(buf: number): LuaBuffer
 	if cache[buf] then
 		return cache[buf]
 	end
+	local ft = a.nvim_buf_get_option(buf, "filetype")
 	local ns = a.nvim_create_namespace("luaprinter")
 	return {
 		buf = buf,
 		ns = ns,
+		isTeal = ft == "teal",
 	}
 end
 
--- local function getLeadingNewlines(text: string): string
-	-- return text:match("^\n*") or ""
--- end
+local function getLeadingNewlines(text: string): string
+	return text:match("^\n*") or ""
+end
+local newPrint = ([[print = function(...)
+io.stdout:write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
+for i = 1, select("#", ...) do
+io.stdout:write(inspect((select(i, ...))))
+if i < select("#", ...) then
+io.stdout:write(", ")
+end
+end
+io.stdout:write(string.char(1))
+end;]]):gsub("\n", ";")
+
+
+local function compileTealBuf(buf: number): string
+	local lines = a.nvim_buf_get_lines(buf, 0, -1, false)
+	local code = table.concat(lines, "\n")
+	local leadingNewlines = getLeadingNewlines(code)
+	local tl = require("tl")
+
+	local luaCode = tl.gen(code)
+	return newPrint .. leadingNewlines .. luaCode
+end
 
 local loop = vim.loop
-local function runBuffer(b: LuaBuffer)
+local function runBuffer(b: LuaBuffer, timeout: number)
+	timeout = timeout or 10000
 	local info: {number:{string}} = {}
 	local function onread(err: string, data: string)
 		if err then
@@ -48,7 +73,7 @@ local function runBuffer(b: LuaBuffer)
 	local handle: vim.loop.Process
 
 	local closed = false
-	local close: function = vim.schedule_wrap(function()
+	local close = vim.schedule_wrap(function()
 		if not closed then
 			closed = true
 			stdout:read_stop()
@@ -61,33 +86,33 @@ local function runBuffer(b: LuaBuffer)
 				a.nvim_buf_set_virtual_text(b.buf, b.ns, linenum - 1, {{table.concat(data, "  "), "Comment"}}, {})
 			end
 		end
-	end)
+	end) as function
 	local name = a.nvim_buf_get_name(b.buf)
+	local args: {string} = {
+		'-l', 'inspect'
+	}
+
+	table.insert(args, "-e")
+	if b.isTeal then -- Compile it and just run it on the command line
+		table.insert(args, compileTealBuf(b.buf))
+	else
+		table.insert(args, "-e")
+		table.insert(args, newPrint)
+		table.insert(args, name)
+	end
+
 	handle = loop.spawn("lua", {
-		args = {
-			'-l', 'inspect',
-			'-e', [[print = function(...)
-				io.stdout:write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
-				for i = 1, select("#", ...) do
-					io.stdout:write(inspect((select(i, ...))))
-					if i < select("#", ...) then
-						io.stdout:write(", ")
-					end
-				end
-				io.stdout:write(string.char(1))
-			end]],
-			name
-		},
+		args = args,
 		stdio = {stdout, stderr},
 	}, close)
 	loop.read_start(stdout, onread)
 	loop.read_start(stderr, onread)
 
-	vim.defer_fn(close, 10 * 1000) -- incase of infinite loops or just slow code
+	vim.defer_fn(close, timeout) -- in case of infinite loops or just slow code
 end
 
-function M.runBuffer(buf: number)
-	runBuffer(getLuaBuf(buf))
+function M.runBuffer(buf: number, timeout: number)
+	runBuffer(getLuaBuf(buf), timeout)
 end
 
 return M

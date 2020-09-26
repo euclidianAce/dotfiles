@@ -1,3 +1,4 @@
+
 local a = vim.api
 local M = {}
 
@@ -23,9 +24,6 @@ local function getLuaBuf(buf)
    }
 end
 
-local function getLeadingNewlines(text)
-   return text:match("^\n*") or ""
-end
 local newPrint = ([[print = function(...)
 io.stdout:write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
 for i = 1, select("#", ...) do
@@ -41,11 +39,10 @@ end;]]):gsub("\n", ";")
 local function compileTealBuf(buf)
    local lines = a.nvim_buf_get_lines(buf, 0, -1, false)
    local code = table.concat(lines, "\n")
-   local leadingNewlines = getLeadingNewlines(code)
    local tl = require("tl")
 
-   local luaCode = tl.gen(code)
-   return newPrint .. leadingNewlines .. luaCode
+   local luaCode = tl.gen(code) or ""
+   return newPrint .. luaCode
 end
 
 local loop = vim.loop
@@ -53,9 +50,7 @@ local function runBuffer(b, timeout)
    timeout = timeout or 10000
    local info = {}
    local function onread(err, data)
-      if err then
-         error(err)
-      end
+      if err then          error(err) end
       if data then
          for lnum, str in data:gmatch(string.char(1) .. "(%d+)" .. string.char(1) .. "(.-)" .. string.char(1)) do
             local lineNum = tonumber(lnum)
@@ -95,7 +90,6 @@ local function runBuffer(b, timeout)
    if b.isTeal then
       table.insert(args, compileTealBuf(b.buf))
    else
-      table.insert(args, "-e")
       table.insert(args, newPrint)
       table.insert(args, name)
    end

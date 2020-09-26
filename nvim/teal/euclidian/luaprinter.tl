@@ -24,9 +24,6 @@ local function getLuaBuf(buf: number): LuaBuffer
 	}
 end
 
-local function getLeadingNewlines(text: string): string
-	return text:match("^\n*") or ""
-end
 local newPrint = ([[print = function(...)
 io.stdout:write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
 for i = 1, select("#", ...) do
@@ -42,11 +39,10 @@ end;]]):gsub("\n", ";")
 local function compileTealBuf(buf: number): string
 	local lines = a.nvim_buf_get_lines(buf, 0, -1, false)
 	local code = table.concat(lines, "\n")
-	local leadingNewlines = getLeadingNewlines(code)
 	local tl = require("tl")
 
-	local luaCode = tl.gen(code)
-	return newPrint .. leadingNewlines .. luaCode
+	local luaCode = tl.gen(code) or ""
+	return newPrint .. luaCode
 end
 
 local loop = vim.loop
@@ -54,9 +50,7 @@ local function runBuffer(b: LuaBuffer, timeout: number)
 	timeout = timeout or 10000
 	local info: {number:{string}} = {}
 	local function onread(err: string, data: string)
-		if err then
-			error(err)
-		end
+		if err then error(err) end
 		if data then
 			for lnum, str in data:gmatch(string.char(1) .. "(%d+)" .. string.char(1) .. "(.-)" .. string.char(1)) do
 				local lineNum = tonumber(lnum)
@@ -86,7 +80,7 @@ local function runBuffer(b: LuaBuffer, timeout: number)
 				a.nvim_buf_set_virtual_text(b.buf, b.ns, linenum - 1, {{table.concat(data, "  "), "Comment"}}, {})
 			end
 		end
-	end) as function
+	end)
 	local name = a.nvim_buf_get_name(b.buf)
 	local args: {string} = {
 		'-l', 'inspect'
@@ -96,7 +90,6 @@ local function runBuffer(b: LuaBuffer, timeout: number)
 	if b.isTeal then -- Compile it and just run it on the command line
 		table.insert(args, compileTealBuf(b.buf))
 	else
-		table.insert(args, "-e")
 		table.insert(args, newPrint)
 		table.insert(args, name)
 	end

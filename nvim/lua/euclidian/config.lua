@@ -1,3 +1,4 @@
+
 package.loaded["euclidian.config"] = nil
 
 local a = vim.api
@@ -277,7 +278,8 @@ map("n", "<leader>lp", function()
    cmd("autocmd BufWritePost <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 10000)")
    cmd("autocmd InsertLeave  <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 1500)")
    cmd("augroup END")
-   print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf)
+   local fname = a.nvim_buf_get_name(0)
+   print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf, "(", fname, ")")
 end)
 
 

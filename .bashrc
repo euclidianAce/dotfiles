@@ -5,7 +5,7 @@
     ######       #  #       ##   #  ##    # #     #
     ##   ##  ####    #####  #     # #       #
 ##  ##   ## #   ##        # #     # #       #     #
-##  ######   ###  # ######  #     # #        #####  
+##  ######   ###  # ######  #     # #        #####
 
 
 shopt -s autocd # Automatically does a cd when you type a directory
@@ -35,8 +35,12 @@ export MANPAGER="nvim +Man!"
 
 # Additions to PATH
 eval $(luarocks path --bin)
-export LUA_PATH+=";$HOME/dev/tlcli/build/?.lua;$HOME/dev/tl/?.lua"
-export PATH+=":/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/tlcli/build"
+export LUA_PATH+=";$HOME/dev/teal-cli/build/?.lua;$HOME/dev/tl/?.lua;$HOME/dev/luastuffs/ltreesitter/?.lua"
+export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
+export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build:$HOME/Applications/firefox-nightly"
+
+# xterm-kitty doesn't work over ssh
+export TERM=xterm-256color
 
 #################
 #### ALIASES ####
@@ -46,9 +50,9 @@ for f in $DOTFILE_DIR/bash_aliases/*; do
 	source $f
 done
 
-##########################
-####    PS1 STUFFS    ####
-##########################
+####################
+#### PS1 STUFFS ####
+####################
 
 # offload getting ps1 to lua script
 SET_DEFAULT_PS1=0
@@ -56,12 +60,13 @@ DEFAULT_PS1=$PS1
 function ps1swap {
 	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
 }
-function update_ps1 { 
+function update_ps1 {
 	if (( $SET_DEFAULT_PS1 == 1 )); then
 		PS1=$DEFAULT_PS1
 		return 0
 	fi
-	PS1=$(luajit $HOME/.config/ps1Getter.lua 2> $HOME/.config/ps1ErrLog.log)
+	# using utf8 needs a utf8 lib, which luajit doesn't come with
+	PS1=$(lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1
 	fi

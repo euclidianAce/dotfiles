@@ -5,13 +5,17 @@ alias gss="git status --short"
 alias gd="git diff"
 alias gdt="git difftool -y"
 
-alias ga="git add"
-alias gaa="git add -A"
+function ga {
+	git add "$@"
+	git status --short
+}
+alias gaa="git add -A; git status --short"
 alias gc="git commit"
 alias gcm="git commit -m"
 
-alias gp="git push"
-alias gpu="git push -u"
+alias gpush="git push"
+alias gpushu="git push -u"
+alias gpull="git pull"
 
 alias gl="git log --graph --decorate --oneline"
 alias gll="git log --graph --decorate"

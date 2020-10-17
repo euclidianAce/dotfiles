@@ -6,3 +6,5 @@
 	prompt = NO
 [core]
 	pager = less -F -X
+[init]
+	defaultBranch = main

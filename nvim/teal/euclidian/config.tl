@@ -29,14 +29,15 @@ local function trim(s: string): string
 	return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
 
-local function fstsnd<T>(arr: {{T}}): function(): (T, T)
+global unpack: function<T>({T}): T...
+-- TODO: fix
+-- https://github.com/teal-language/tl/issues/237
+local function unpacker<T>(arr: {{T}}): function(): T, T, T, T...
 	local i = 0
-	return function(): T, T
+	return function(): T, T, T, T...
 		i = i + 1
-		if not arr[i] then
-			return
-		end
-		return arr[i][1], arr[i][2]
+		if not arr[i] then return end
+		return unpack(arr[i])
 	end
 end
 -- }}}
@@ -111,28 +112,89 @@ for server, settings in pairs(lspSettings) do
 end
 -- }}}
 -- {{{ Statusline Config
+local dracula = {
+	background = "#282a36",
+	currentLine = "#44475a",
+	foreground = "#f8f8f2",
+	comment = "#6272a4",
+	cyan = "#8be9fd",
+	green = "#50fa7b",
+	orange = "#ffb86c",
+	pink = "#ff79c6",
+	purple = "#bd93f9",
+	red = "#ff5555",
+	yellow = "#f1fa8c",
+}
 local stl = require("euclidian.statusline")
+local stlHiGroup <const> = "mySTL"
+local function addHiGroup(name: string, fg: string, bg: string)
+	cmd(
+		"hi def " .. name
+			.. " guifg=" .. fg
+			.. " guibg=" .. bg
+	)
+end
+for mode, text, fg, bg in unpacker{
+	{"n", "Normal", dracula.background, dracula.cyan},
+	{"i", "Insert", dracula.background, dracula.green},
+	{"ic", "Insert-Completion", dracula.background, dracula.green},
+	{"c", "Command", dracula.background, dracula.pink},
+	{"R", "Replace", dracula.background, dracula.red},
+	{"t", "Terminal", dracula.background, dracula.orange},
+	{"v", "Visual", dracula.background, dracula.yellow},
+	{"V", "Visual Line", dracula.background, dracula.yellow},
+	{"", "Visual Block", dracula.background, dracula.yellow},
+} do
+	addHiGroup(stlHiGroup .. mode, fg, bg)
+	stl.mode(mode, text, stlHiGroup .. mode)
+end
 
-stl.mode("ic", "Insert-C", "DraculaGreenBold")
-stl.mode("ix", "Insert-X", "DraculaGreenBold")
-stl.mode("R", "Replace", "DraculaRed")
-stl.mode("t", "Terminal", "DraculaOrange")
+for hiGroupName, fg, bg in unpacker{
+	{"CommentInverted", dracula.background, dracula.comment},
+	{"TextInverted", dracula.background, dracula.foreground},
+	{"GreenInverted", dracula.background, dracula.green},
+	{"BrightGrayBg", dracula.background, "#6F6F6F"},
+	{"DarkGrayBg", dracula.background, "#1F1F1F"},
+	{"GitGreen", dracula.background, "#34d058"},
+} do
+	addHiGroup(hiGroupName, fg, bg)
+end
 
-stl.add({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
+stl.add({"LeadingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "CommentInverted")
+stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "%n ", "CommentInverted")
 stl.add({"ModeText", "Active"}, {"Inactive"}, function(): string
-	return "[" .. stl.getModeText() .. "]"
+	return " " .. stl.getModeText() .. " "
 end, "StatuslineModeText")
-stl.add({"BufferNumber", "Active", "Inactive"}, {"Debugging"}, "[buf: %n]", "Comment")
-stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, "[%.30f]", "Identifier")
 stl.add({"GitBranch", "Active", "Inactive"}, {"Debugging"}, function(): string
 	-- [Git(branch)]
 	local branch = (vim.fn.FugitiveStatusline() as string):sub(6, -3)
 	if branch == "" then
 		return ""
 	end
-	return "[* " .. branch .. "]"
+	return "  * " .. branch .. " "
+end, "GitGreen")
+stl.add({"FileName", "Active", "Inactive"}, {"Debugging"},
+function(winId: number): string
+	local ok, buf = pcall(a.nvim_win_get_buf, winId)
+	if ok and buf then
+		local fname = a.nvim_buf_get_name(buf)
+		if fname:match("/bin/bash$") then
+			return ""
+		end
+		if #fname > 15 then
+			return "  <" .. fname:sub(-15, -1)
+		end
+		return "  " .. fname
+	end
+	return " ??? "
+end, "BrightGrayBg")
+stl.add({"EditInfo", "Inactive"}, {"Debugging", "Active"}, "%m ", "BrightGrayBg")
+stl.add({"EditInfo", "Active"}, {"Debugging", "Inactive"}, "%m", "BrightGrayBg")
+stl.add({"EditInfo", "Active"}, {"Debugging", "Inactive"}, "%r%h%w", "BrightGrayBg")
+-- {{{ Syntax debugging 
+stl.add({"SyntaxViewer", "Treesitter", "Debugging"}, {"Inactive"}, function(): string
+	return "[TS: " .. vim.fn["nvim_treesitter#statusline"](90) as string .. "]"
 end, "DraculaGreen")
-stl.add({"EditInfo", "Active", "Inactive"}, {"Debugging"}, "%y%r%h%w%m ", "Comment")
 stl.add({"SyntaxViewer", "Debugging"}, {"Inactive"}, function(): string
 	local cursor = a.nvim_win_get_cursor(0) as {number}
 	return "[Syntax: " .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2]+1, 0), "name") as string .. "]"
@@ -161,20 +223,22 @@ stl.add({"IndentViewer", "Debugging"}, {"Inactive"}, function(): string
 	end
 	return ("[Indent: %d]"):format(indent / shiftwidth)
 end, "DraculaGreenBold")
-stl.add({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "User1")
-stl.add({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "User2")
+-- }}}
+stl.add({"ActiveSeparator", "Active"}, {"Inactive"}, "%=", "BrightGrayBg")
+stl.add({"InactiveSeparator", "Inactive"}, {"Active"}, "%=", "DarkGrayBg")
 stl.add({"Shiftwidth", "Tabstop", "Expandtab", "Active"}, {"Inactive"}, function(): string
-	local sw = a.nvim_buf_get_option(0, "shiftwidth") as number
-	local ts = a.nvim_buf_get_option(0, "tabstop") as number
 	local expandtab = a.nvim_buf_get_option(0, "expandtab")
-	return (" [sw:%d ts:%d expandtab:%s]"):format(sw, ts, expandtab and "yes" or "no")
-end, "Identifier")
-stl.add({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "Comment")
-stl.add({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "Comment")
-stl.add({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "Comment")
-
-cmd("hi! User1 guibg=#6F6F6F")
-cmd("hi! User2 guibg=#1F1F1F")
+	local num: number
+	if expandtab == 1 then
+		num = a.nvim_buf_get_option(0, "tabstop") as number
+	else
+		num = a.nvim_buf_get_option(0, "shiftwidth") as number
+	end
+	return ("  %s (%d) "):format(expandtab and "spaces" or "tabs", num)
+end, "BrightGrayBg")
+stl.add({"LineNumber", "NavInfo", "Active", "Inactive"}, {}, " %l/%L:%c ", "CommentInverted")
+stl.add({"FilePercent", "NavInfo", "Active", "Inactive"}, {"Debugging"}, "%3p%%", "CommentInverted")
+stl.add({"TrailingSpace", "Spaces", "Active", "Inactive"}, {}, " ", "CommentInverted")
 
 map("n", "<F12>", function() stl.toggleTag("Debugging") end)
 -- }}}
@@ -203,7 +267,7 @@ map("v", "<leader>a,", function()
 end)
 -- }}}
 -- {{{ Window movement/resizing
-for mvkey, szkey in fstsnd{
+for mvkey, szkey in unpacker{
 	{"h", "<"},
 	{"j", "+"},
 	{"k", "-"},
@@ -271,7 +335,7 @@ end
 
 map("n", "<leader>t", termFunc)
 -- }}}
--- {{{ luaprinter binding 
+-- {{{ luaprinter binding
 map("n", "<leader>lp", function()
 	local curBuf = vim.fn.bufnr() as number
 	cmd "augroup luaprinter"

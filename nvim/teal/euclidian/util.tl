@@ -22,7 +22,7 @@ function M.exhaust<T>(f: function(): T): {T}
 	return res
 end
 
-function M.zip<T, K>(f1: (function(): T), f2: (function(): K)): function(): T, K
+function M.zip <T, K>(f1: (function(): T), f2: (function(): K)): function(): T, K
 	return function(): T, K
 		return f1(), f2()
 	end

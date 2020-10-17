@@ -1,4 +1,6 @@
 
+
+
 local a = vim.api
 local M = {}
 
@@ -24,16 +26,23 @@ local function getLuaBuf(buf)
    }
 end
 
-local newPrint = ([[print = function(...)
-io.stdout:write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
-for i = 1, select("#", ...) do
-io.stdout:write(inspect((select(i, ...))))
-if i < select("#", ...) then
-io.stdout:write(", ")
+local newPrint = ([[
+stdout_write = io.write
+print = function(...)
+	local inspect_opts = {newline = "", indent = ""}
+	local ok, inspect = pcall(require, "inspect")
+	if not ok then inspect = tostring end
+	stdout_write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
+	for i = 1, select("#", ...) do
+		stdout_write(inspect((select(i, ...)), inspect_opts))
+		if i < select("#", ...) then
+			stdout_write(", ")
+		end
+	end
+	stdout_write(string.char(1))
 end
-end
-io.stdout:write(string.char(1))
-end;]]):gsub("\n", ";")
+io.write = print
+]]):gsub("\n", ";")
 
 
 local function compileTealBuf(buf)
@@ -82,9 +91,7 @@ local function runBuffer(b, timeout)
       end
    end)
    local name = a.nvim_buf_get_name(b.buf)
-   local args = {
-      '-l', 'inspect',
-   }
+   local args = {}
 
    table.insert(args, "-e")
    if b.isTeal then

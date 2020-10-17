@@ -70,14 +70,13 @@ end
 
 function M.getModeText()
    local m = vim.fn.mode(true)
-   if not modeMap[m] then
-      m = string.sub(m, 1, 1)
-   end
-   cmd("hi! link StatuslineModeText " .. modeMap[m][2])
-   return modeMap[m][1]
+   local map = userModes[m] and userModes or modeMap
+   cmd("hi! link StatuslineModeText " .. map[m][2])
+   return map[m][1]
 end
 
 local Component = {}
+
 
 
 
@@ -92,10 +91,19 @@ function M.add(tags, invertedTags, text, hiGroup)
       invertedTags = set(invertedTags),
    }
    if type(text) == "string" then
-      comp.text = ("%%#%s#"):format(hiGroup) .. (text) .. "%#Normal#"
+      comp.text = {
+         ("%%#%s#"):format(hiGroup),
+         text,
+         "%#Normal#",
+      }
    elseif type(text) == "function" then
       M._funcs[#lineComponents + 1] = text
-      comp.text = ("%%#%s#"):format(hiGroup) .. ([[%%{luaeval("require'euclidian.statusline'._funcs[%d]()")}]]):format(#lineComponents + 1) .. "%#Normal#"
+      comp.isFunc = true
+      comp.text = {
+         ("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.statusline'._funcs[%d](]]):format(#lineComponents + 1),
+         [[)")}]],
+         "%#Normal#",
+      }
    end
    table.insert(lineComponents, comp)
 end
@@ -105,15 +113,15 @@ local function components()
    return function()
       i = i + 1
       if lineComponents[i] then
-         return lineComponents[i].tags, lineComponents[i].invertedTags, lineComponents[i].text
+         return lineComponents[i].tags, lineComponents[i].invertedTags, lineComponents[i].text, lineComponents[i].isFunc
       end
    end
 end
 
-local function makeLine(tags)
+local function makeLine(tags, winId)
    local tagSet = set(tags)
    local buf = {}
-   for compTags, compInvTags, text in components() do
+   for compTags, compInvTags, text, isFunc in components() do
       local include = false
       for t in pairs(compTags) do
          if tagSet[t] or currentTags[t] then
@@ -128,22 +136,29 @@ local function makeLine(tags)
          end
       end
       if include then
-         table.insert(buf, text)
+         if isFunc then
+            table.insert(buf, text[1])
+            table.insert(buf, text[2])
+            table.insert(buf, tostring(winId))
+            table.insert(buf, text[3])
+         else
+            table.insert(buf, table.concat(text))
+         end
       end
    end
    return table.concat(buf)
 end
 
-local function setLine(win_id)
-   local ok, active = pcall(vim.api.nvim_win_get_var, win_id or 0, "statusline_active")
+local function setLine(winId)
+   local ok, active = pcall(vim.api.nvim_win_get_var, winId or 0, "statusline_active")
    if not ok then
-      pcall(vim.api.nvim_win_set_var, win_id or 0, "statusline_active", 0)
+      pcall(vim.api.nvim_win_set_var, winId or 0, "statusline_active", 0)
       active = 0
    end
    local tags = active == 1 and
    { "Active" } or
    { "Inactive" }
-   vim.api.nvim_win_set_option(win_id or 0, "statusline", makeLine(tags))
+   vim.api.nvim_win_set_option(winId or 0, "statusline", makeLine(tags, winId))
 end
 
 function M.updateWindows()

@@ -6,11 +6,12 @@ function MyFoldText()
 	let line = getline(v:foldstart)
 	let br = '{'
 	let subline = substitute(line, '\(^"\|\-\-\)\|/\*\|\*/\|'.br.br.br.'\d\=', '', 'g')
-	return repeat('*** ', v:foldlevel) . subline . '   ' . repeat(' ***', v:foldlevel)
+	return repeat(' ', indent(v:foldstart)) . repeat('*', v:foldlevel) . substitute(subline, '^\s*', '', '') . repeat('*', v:foldlevel)
 endfunction
 " }}}
 " {{{ Code Editing
-syntax on
+" syntax on
+syntax off
 
 autocmd BufRead,BufNewFile *.hs set expandtab
 autocmd BufRead,BufNewFile *.py set expandtab
@@ -29,14 +30,11 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 " }}}
-" polyglot
-let g:polyglot_disabled = ['lua']
 " {{{ The actual plugins
 call plug#begin('~/.vim/plugged')
-0
+
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-lua/telescope.nvim'
 
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
@@ -47,14 +45,16 @@ Plug 'sheerun/vim-polyglot'
 Plug 'vimwiki/vimwiki'
 Plug 'editorconfig/editorconfig-vim'
 
-" Plug 'nvim-treesitter/nvim-treesitter'
-
 " Colors
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'dracula/vim', { 'as': 'dracula' }
 
+Plug '~/dev/vim-plugins/nvim-treesitter'
+Plug 'nvim-treesitter/playground'
+
+Plug '~/dev/vim-plugins/telescope.nvim'
 " My stuff
-Plug '~/dev/vim-plugins/BetterLua.vim'
+" Plug '~/dev/vim-plugins/BetterLua.vim'
 Plug '~/dev/vim-plugins/exec.vim'
 Plug '~/dev/vim-plugins/vim-teal'
 call plug#end()
@@ -78,8 +78,10 @@ autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc
 autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " }}}
 " {{{ set options
-set termguicolors belloff=all
-"set guicursor=
+set termguicolors
+set belloff=all
+set guicursor=
+set mouse=a
 set undodir=$HOME/.vim/undo0
 set undofile
 set noswapfile
@@ -94,16 +96,18 @@ set splitbelow splitright
 set incsearch " highlight results as they're typed
 set inccommand=split
 set laststatus=2 noshowmode
-set foldmethod=marker foldcolumn=3
+set foldmethod=marker
+set foldcolumn=3
+set foldtext=MyFoldText()
 set modeline
-set scrolloff=10
+set scrolloff=2
 set linebreak
 set formatoptions-=t
 set formatoptions+=lcroj "see :help fo-table
 if !exists("g:started_by_firenvim")
 	set showbreak=↪\ 
 endif
-set listchars+=tab:▶·\│
+set listchars+=tab:\ \ \│
 set listchars+=eol:↵
 set listchars+=trail:✗
 set listchars+=space:·
@@ -112,7 +116,6 @@ set listchars+=extends:>
 set listchars+=nbsp:+
 set list
 set fillchars+=fold:\ 
-set foldtext=MyFoldText()
 set ignorecase smartcase
 set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
@@ -159,12 +162,20 @@ hi! link Folded Comment
 hi! link FoldColumn Comment
 hi! link SignColumn Comment
 hi! link Error DraculaRedInverse
-hi clear TODO
+hi! link TSParameter DraculaOrangeItalic
 " Dracula Cyan Bold
+hi clear TODO
 hi! Todo guifg=#8BE9FD gui=bold
 " }}}
 " Lua config part
 autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "Search", timeout = 250, on_macro = true }
-lua require'colorizer'.setup()
+" lua require'colorizer'.setup()
 lua require'euclidian.config'
-
+lua << EOF
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = {"c", "lua", "teal" },
+  highlight = {
+    enable = true,
+  },
+}
+EOF

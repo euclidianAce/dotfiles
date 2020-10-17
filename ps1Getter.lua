@@ -3,12 +3,15 @@ local os = require("os")
 local table = require("table")
 local tinsert, tconcat = table.insert, table.concat
 
+local escChar = "\\[" .. string.char(27) .. "["
+local reset = escChar .. "0m\\]"
+local lineColor = escChar .. "36m\\]"
 -- {{{ Use utf8 if we have it, but not necessary
 local utf8
 do
-	local ok, msg = pcall(require, "utf8")
+	local ok, res = pcall(require, "utf8")
 	if ok then
-		utf8 = msg
+		utf8 = res
 	else
 		utf8 = {
 			len = function(str)
@@ -45,12 +48,16 @@ local function sh(expr)
 	f:close()
 	return out
 end
+local isNixShell = os.getenv("SHELL"):match("^/nix")
 local columns = tonumber(sh("stty size"):match("%d+ (%d+)"))
 local time = os.date("%X")
 local user = os.getenv("USER")
 local host = sh("hostname")
 local wd = sh("pwd"):gsub("^/home/" .. user, "~")
 local branch = sh("git branch 2> /dev/null | grep \\*")
+if isNixShell then
+	lineColor = escChar .. "32m\\]"
+end
 -- }}}
 -- {{{ Directory shortener
 do
@@ -58,24 +65,22 @@ do
 	local dirminlen = 7
 	local dirstack = {}
 	for dir in wd:gmatch("[^/]+") do
-		tinsert(dirstack, #dir > dirmaxlen and dir:sub(1, dirmaxlen-3).."..." or dir)
+		tinsert(dirstack, utf8.len(dir) > dirmaxlen and dir:sub(1, dirmaxlen-1).."…" or dir)
 	end
 	local home = dirstack[1] == "~"
 	if #dirstack > 3 then
 		local idx = home and 2 or 1
-		repeat 
+		repeat
 			table.remove(dirstack, idx)
 		until #dirstack <= 3
-		table.insert(dirstack, idx, "...")
+		table.insert(dirstack, idx, "…")
 	end
 	wd = (home and "" or "/") .. tconcat(dirstack, "/")
-	wd = wd .. (" "):rep(dirminlen-#wd)
+	wd = wd .. (" "):rep(dirminlen - utf8.len(wd))
 end
 -- }}}
 -- {{{ The Main Bits
 local entries = {}
-local escChar = "\\[" .. string.char(27) .. "["
-local reset = escChar .. "0m\\]"
 local function createEntry(str, color)
 	if str then
 		tinsert(entries, {
@@ -86,23 +91,27 @@ local function createEntry(str, color)
 end
 
 createEntry(time, "37")
-createEntry(user .. "@" .. host, "31")
+if isNixShell then
+	createEntry("nix-shell", "32")
+else
+	createEntry(user .. "@" .. host, "31")
+end
 createEntry(wd, "1;34")
 createEntry(branch, "32")
 
 local result = {{},{},{}}
 local middleLen = #entries
-for idx, entry in ipairs(entries) do
-	tinsert(result[1], line.horiz:rep(utf8.len(entry.str)))
+for _, entry in ipairs(entries) do
+	local ln = line.horiz:rep(utf8.len(entry.str))
+	tinsert(result[1], ln)
 	middleLen = middleLen + utf8.len(entry.str)
 	tinsert(result[2], entry.color .. entry.str .. reset)
-	tinsert(result[3], line.horiz:rep(utf8.len(entry.str)))
+	tinsert(result[3], ln)
 end
-middleLen = middleLen + 5
-local lineColor = escChar .. "36m\\]"
+middleLen = middleLen + 6
 if middleLen > columns then
 	io.write(lineColor, corner.tl, t.left, reset, entries[3].color, entries[3].str, reset, lineColor, t.right)
-	io.write(line.horiz:rep(columns - (4+#entries[3].str)), t.left)
+	io.write(line.horiz:rep(columns - (4+utf8.len(entries[3].str))), t.left)
 	io.write("\n", lineColor, corner.bl, line.horiz, t.left, entries[2].color, entries[2].str, escChar, "35m\\] $ ", reset)
 	return
 end

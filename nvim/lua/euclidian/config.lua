@@ -13,6 +13,7 @@ local export = {
       end,
    }),
    autocommands = {},
+   stuff = {},
 }
 
 local function cmdf(command, ...)
@@ -129,7 +130,7 @@ local stl = require("euclidian.statusline")
 local stlHiGroup = "mySTL"
 local function addHiGroup(name, fg, bg)
    cmd(
-"hi def " .. name ..
+"hi! def " .. name ..
    " guifg=" .. fg ..
    " guibg=" .. bg)
 
@@ -160,8 +161,11 @@ for hiGroupName, fg, bg in unpacker({
    addHiGroup(hiGroupName, fg, bg)
 end
 
-stl.add({ "LeadingSpace", "Spaces", "Active", "Inactive" }, {}, " ", "CommentInverted")
-stl.add({ "BufferNumber", "Active", "Inactive" }, { "Debugging" }, "%n ", "CommentInverted")
+local winOption = a.nvim_win_get_option
+stl.add({ "LeadingSpace", "Spaces", "Active", "Inactive" }, {}, function(winId)
+   return (" "):rep(winOption(winId, "numberwidth") + winOption(winId, "foldcolumn") + 1)
+end, "CommentInverted")
+stl.add({ "BufferNumber", "Active", "Inactive" }, {}, "%n ", "CommentInverted")
 stl.add({ "ModeText", "Active" }, { "Inactive" }, function()
    return " " .. stl.getModeText() .. " "
 end, "StatuslineModeText")
@@ -173,6 +177,7 @@ stl.add({ "GitBranch", "Active", "Inactive" }, { "Debugging" }, function()
    end
    return "  * " .. branch .. " "
 end, "GitGreen")
+local maxFileNameLen = 20
 stl.add({ "FileName", "Active", "Inactive" }, { "Debugging" },
 function(winId)
    local ok, buf = pcall(a.nvim_win_get_buf, winId)
@@ -181,8 +186,8 @@ function(winId)
       if fname:match("/bin/bash$") then
          return ""
       end
-      if #fname > 15 then
-         return "  <" .. fname:sub(-15, -1)
+      if #fname > maxFileNameLen then
+         return "  <" .. fname:sub(-maxFileNameLen, -1)
       end
       return "  " .. fname
    end
@@ -192,13 +197,13 @@ stl.add({ "EditInfo", "Inactive" }, { "Debugging", "Active" }, "%m ", "BrightGra
 stl.add({ "EditInfo", "Active" }, { "Debugging", "Inactive" }, "%m", "BrightGrayBg")
 stl.add({ "EditInfo", "Active" }, { "Debugging", "Inactive" }, "%r%h%w", "BrightGrayBg")
 
-stl.add({ "SyntaxViewer", "Treesitter", "Debugging" }, { "Inactive" }, function()
-   return "[TS: " .. vim.fn["nvim_treesitter#statusline"](90) .. "]"
-end, "DraculaGreen")
+
+
+
 stl.add({ "SyntaxViewer", "Debugging" }, { "Inactive" }, function()
    local cursor = a.nvim_win_get_cursor(0)
-   return "[Syntax: " .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2] + 1, 0), "name") .. "]"
-end, "DraculaOrangeBold")
+   return "  Syntax: " .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2] + 1, 0), "name") .. " "
+end, "GitGreen")
 stl.add({ "IndentViewer", "Debugging" }, { "Inactive" }, function()
    local indentexpr
    do
@@ -221,8 +226,8 @@ stl.add({ "IndentViewer", "Debugging" }, { "Inactive" }, function()
          return ""
       end
    end
-   return ("[Indent: %d]"):format(indent / shiftwidth)
-end, "DraculaGreenBold")
+   return ("  Indent: %d "):format(indent / shiftwidth)
+end, "GreenInverted")
 
 stl.add({ "ActiveSeparator", "Active" }, { "Inactive" }, "%=", "BrightGrayBg")
 stl.add({ "InactiveSeparator", "Inactive" }, { "Active" }, "%=", "DarkGrayBg")
@@ -259,11 +264,14 @@ end)
 
 
 local append = require("euclidian.append")
-map("n", "<leader>a,", partial(append.toCurrentLine, ","))
-map("v", "<leader>a,", function()
+local getchar = vim.fn.getchar
+map("n", "<leader>a", function()
+   append.toCurrentLine(string.char(getchar()))
+end)
+map("v", "<leader>a", function()
    local start = (a.nvim_buf_get_mark(0, "<"))[1] - 1
    local finish = (a.nvim_buf_get_mark(0, ">"))[1]
-   append.toRange(start, finish, ",")
+   append.toRange(start, finish, string.char(getchar()))
 end)
 
 
@@ -298,7 +306,7 @@ map("v", "<leader>F", function()
 end)
 
 
-local function termFunc()
+local function setupTerm()
    local termCmd = vim.fn.input("Command to execute in terminal: ")
    if #trim(termCmd) == 0 then
       return
@@ -311,29 +319,20 @@ local function termFunc()
       print("Unable to get terminal job id\n")
       return
    end
-   unmap("n", "<leader>t")
-   unmap("n", "<leader>T")
    map("n", "<leader>t", function()
       local ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
       if not ok then
          print("[<leader>t] Unable to send command to terminal, (" .. termCmd .. ")")
       end
    end)
-   map("n", "<leader>T", function()
-      pcall(a.nvim_win_close, termWin, true)
-      unmap("n", "<leader>T")
-      map("n", "<leader>t", termFunc)
-   end)
-
-
-
-
-
-
-   print(", [<leader>t execute '" .. termCmd .. "'] [<leader>T close]")
+   cmd("autocmd BufDelete <buffer> lua require'euclidian.config'.stuff.setupTermMapping()")
+end
+export.stuff.setupTermMapping = function()
+   unmap("n", "<leader>t")
+   map("n", "<leader>t", setupTerm)
 end
 
-map("n", "<leader>t", termFunc)
+map("n", "<leader>t", setupTerm)
 
 
 map("n", "<leader>lp", function()

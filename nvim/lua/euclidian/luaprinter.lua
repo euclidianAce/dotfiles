@@ -14,24 +14,25 @@ local LuaBuffer = {}
 local cache = setmetatable({}, { __mode = "v" })
 
 local function getLuaBuf(buf)
-   buf = buf or (vim.fn.bufnr())
+   buf = buf or a.nvim_get_current_buf()
    if cache[buf] then
-      return cache[buf]
+      return cache[buf], true
    end
    local ft = a.nvim_buf_get_option(buf, "filetype")
    local ns = a.nvim_create_namespace("luaprinter")
-   return {
+   local lbuf = {
       buf = buf,
       ns = ns,
       printed = {},
       isTeal = ft == "teal",
    }
+   cache[buf] = lbuf
+   return lbuf, false
 end
 
 local newPrint = ([[
 stdout_write = io.write
 print = function(...)
-	local inspect_opts = {newline = " ", indent = ""}
 	local ok, inspect = pcall(require, "inspect")
 	if not ok then inspect = tostring end
 	stdout_write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))
@@ -57,18 +58,18 @@ local function compileTealBuf(buf)
 end
 
 local loop = vim.loop
-local function runBuffer(b, timeout)
+local function runBuffer(b, timeout, cb)
    timeout = timeout or 10000
-   local info = {}
+   b.printed = {}
    local function onread(err, data)
       if err then          error(err) end
       if data then
          for lnum, str in data:gmatch(string.char(1) .. "(%d+)" .. string.char(1) .. "(.-)" .. string.char(1)) do
             local lineNum = tonumber(lnum)
-            if not info[lineNum] then
-               info[lineNum] = {}
+            if not b.printed[lineNum] then
+               b.printed[lineNum] = {}
             end
-            table.insert(info[lineNum], str)
+            table.insert(b.printed[lineNum], str)
          end
       end
    end
@@ -87,9 +88,10 @@ local function runBuffer(b, timeout)
          stderr:close()
          handle:close()
          a.nvim_buf_clear_namespace(b.buf, b.ns, 0, -1)
-         for linenum, data in pairs(info) do
-            a.nvim_buf_set_virtual_text(b.buf, b.ns, linenum - 1, { { table.concat(data, "  "), "Comment" } }, {})
+         for linenum, data in pairs(b.printed) do
+            a.nvim_buf_set_virtual_text(b.buf, b.ns, linenum - 1, { { table.concat(data, "  "):gsub("\n", " "), "Comment" } }, {})
          end
+         if cb then             cb() end
       end
    end)
    local name = a.nvim_buf_get_name(b.buf)
@@ -115,6 +117,36 @@ end
 
 function M.runBuffer(buf, timeout)
    runBuffer(getLuaBuf(buf), timeout)
+end
+
+local cmd = a.nvim_command
+function M.attach(buf)
+   buf = buf or a.nvim_get_current_buf()
+   cmd("augroup luaprinter")
+   cmd("autocmd BufWritePost <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 10000)")
+   cmd("autocmd InsertLeave  <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 1500)")
+   cmd("augroup END")
+   local fname = a.nvim_buf_get_name(buf)
+   print("[euclidian.luaprinter] Attached lua printer to buffer", buf, "(", fname, ")")
+end
+
+function M.getLine(lineNum, bufNum)
+   local b, wasCached = getLuaBuf(bufNum)
+   local function createWin()
+      local buf = a.nvim_create_buf(false, true)
+      local win = a.nvim_open_win(buf, true, {
+         relative = "cursor", style = "minimal", anchor = "NW",
+         width = 65, height = 15,
+         row = 1, col = 0,
+      })
+      a.nvim_buf_set_lines(buf, 0, -1, false, b.printed[lineNum] or { "[euclidian.luaprinter] Nothing was printed on this line :D" })
+   end
+   if not wasCached then
+      M.attach(bufNum or a.nvim_get_current_buf())
+      runBuffer(b, 1000, createWin)
+   else
+      createWin()
+   end
 end
 
 return M

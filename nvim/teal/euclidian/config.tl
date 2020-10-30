@@ -353,14 +353,10 @@ end
 map("n", "<leader>t", setupTerm)
 -- }}}
 -- {{{ luaprinter binding
-map("n", "<leader>lp", function()
-	local curBuf = vim.fn.bufnr() as number
-	cmd "augroup luaprinter"
-	cmd 	("autocmd BufWritePost <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 10000)")
-	cmd 	("autocmd InsertLeave  <buffer=" .. curBuf .. "> lua require('euclidian.luaprinter').runBuffer(" .. curBuf .. ", 1500)")
-	cmd "augroup END"
-	local fname = a.nvim_buf_get_name(0)
-	print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf, "(", fname, ")")
+local luaprinter = require("euclidian.luaprinter")
+map("n", "<leader>lp", luaprinter.attach)
+map("n", "<leader>ll", function()
+	luaprinter.getLine(a.nvim_win_get_cursor(0)[1])
 end)
 -- }}}
 -- {{{ Snippets 

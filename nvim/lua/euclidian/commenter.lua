@@ -21,10 +21,22 @@ local function split(str, delimiter)
    return str:sub(1, a - 1), str:sub(a + #delimiter, -1)
 end
 
-function M.commentStr(cs, str)
-   if trim(str) == "" then       return str end
+local function getCommentString(buf)
+   local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
+   if not ok then
+      print("[commenter] Couldn't get commentstring")
+      return
+   end
+   return c
+end
 
-   local pre, post = split(cs, "%s")
+local function isCommented(csPre, csPost, str)
+   local commented = str:match("^%s*" .. escapeStr(csPre) .. " ?.-" .. escapeStr(csPost) .. "$")
+   return commented
+end
+
+local function commentStr(pre, post, str)
+   if trim(str) == "" then       return str end
    local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)" .. escapeStr(post) .. "$")
 
 
@@ -38,14 +50,32 @@ function M.commentStr(cs, str)
 end
 
 function M.commentLine(buf, lineNum)
-   local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
-   if not ok then
+   local cs = getCommentString(buf)
+   if not cs then
       print("[commenter] Couldn't get commentstring")
       return
    end
+   local pre, post = split(cs, "%s")
    a.nvim_buf_set_lines(buf, lineNum - 1, lineNum, false, {
-      M.commentStr(c, a.nvim_buf_get_lines(buf, lineNum - 1, lineNum, false)[1]),
+      commentStr(pre, post, a.nvim_buf_get_lines(buf, lineNum - 1, lineNum, false)[1]),
    })
+end
+
+function M.commentRange(buf, start, finish)
+   local lines = a.nvim_buf_get_lines(buf, start, finish, false)
+   local cs = getCommentString(buf)
+   local pre, post = split(cs, "%s")
+   local shouldBeCommented = not isCommented(pre, post, lines[1])
+
+   lines[1] = commentStr(pre, post, lines[1])
+   for i = 2, #lines do
+      if (shouldBeCommented and not isCommented(pre, post, lines[i])) or
+         (not shouldBeCommented and isCommented(pre, post, lines[i])) then
+
+         lines[i] = commentStr(pre, post, lines[i])
+      end
+   end
+   a.nvim_buf_set_lines(buf, start, finish, false, lines)
 end
 
 return M

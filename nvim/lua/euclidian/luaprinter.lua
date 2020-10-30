@@ -10,6 +10,7 @@ local LuaBuffer = {}
 
 
 
+
 local cache = setmetatable({}, { __mode = "v" })
 
 local function getLuaBuf(buf)
@@ -22,6 +23,7 @@ local function getLuaBuf(buf)
    return {
       buf = buf,
       ns = ns,
+      printed = {},
       isTeal = ft == "teal",
    }
 end
@@ -29,7 +31,7 @@ end
 local newPrint = ([[
 stdout_write = io.write
 print = function(...)
-	local inspect_opts = {newline = "", indent = ""}
+	local inspect_opts = {newline = " ", indent = ""}
 	local ok, inspect = pcall(require, "inspect")
 	if not ok then inspect = tostring end
 	stdout_write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))

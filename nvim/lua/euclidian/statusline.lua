@@ -178,7 +178,13 @@ function M.setActive(win_id)
 end
 
 function M.toggleTag(name)
-   currentTags[name] = not currentTags[name]
+   if type(name) == "string" then
+      currentTags[name] = not currentTags[name]
+   else
+      for _, v in ipairs(name) do
+         currentTags[v] = not currentTags[v]
+      end
+   end
    M.updateWindows()
 end
 

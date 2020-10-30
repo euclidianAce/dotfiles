@@ -21,31 +21,61 @@ local function split(str: string, delimiter: string): string, string
 	return str:sub(1, a - 1), str:sub(a + #delimiter, -1)
 end
 
-function M.commentStr(cs: string, str: string): string
-	if trim(str) == "" then return str end
+local function getCommentString(buf: number): string
+	local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring") as (boolean, string)
+	if not ok then
+		print("[commenter] Couldn't get commentstring")
+		return
+	end
+	return c
+end
 
-	local pre, post = split(cs, "%s")
+local function isCommented(csPre: string, csPost: string, str: string): boolean
+	local commented = str:match("^%s*" .. escapeStr(csPre) .. " ?.-" .. escapeStr(csPost) .. "$")
+	return commented as boolean
+end
+
+local function commentStr(pre: string, post: string, str: string): string
+	if trim(str) == "" then return str end
 	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)" .. escapeStr(post) .. "$")
 
-	-- uncommented string
+	-- str is commented, uncomment it
 	if ws then
 		return ws .. m
 	end
 
-	-- commented string
+	-- str is uncommented, comment it
 	local leadingWs, rest = str:match("^(%s*)(.*)$")
 	return leadingWs .. pre .. " " .. rest .. post
 end
 
 function M.commentLine(buf: number, lineNum: number)
-	local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
-	if not ok then
+	local cs = getCommentString(buf)
+	if not cs then
 		print("[commenter] Couldn't get commentstring")
 		return
 	end
+	local pre, post = split(cs, "%s")
 	a.nvim_buf_set_lines(buf, lineNum-1, lineNum, false, {
-		M.commentStr(c as string, a.nvim_buf_get_lines(buf, lineNum-1, lineNum, false)[1])
+		commentStr(pre, post, a.nvim_buf_get_lines(buf, lineNum-1, lineNum, false)[1])
 	})
+end
+
+function M.commentRange(buf: number, start: number, finish: number)
+	local lines <const> = a.nvim_buf_get_lines(buf, start, finish, false)
+	local cs <const> = getCommentString(buf)
+	local pre, post = split(cs, "%s")
+	local shouldBeCommented <const> = not isCommented(pre, post, lines[1])
+
+	lines[1] = commentStr(pre, post, lines[1])
+	for i = 2, #lines do
+		if (shouldBeCommented and not isCommented(pre, post, lines[i]))
+			or (not shouldBeCommented and isCommented(pre, post, lines[i]))
+		then
+			lines[i] = commentStr(pre, post, lines[i])
+		end
+	end
+	a.nvim_buf_set_lines(buf, start, finish, false, lines)
 end
 
 return M

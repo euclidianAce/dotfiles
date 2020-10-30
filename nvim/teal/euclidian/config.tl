@@ -1,5 +1,9 @@
 
-package.loaded["euclidian.config"] = nil
+global function dump(...)
+	for i = 1, select("#", ...) do
+		print(vim.inspect((select(i, ...))))
+	end
+end
 
 local a = vim.api
 local cmd = a.nvim_command
@@ -113,6 +117,23 @@ for server, settings in pairs(lspSettings) do
 end
 -- }}}
 -- {{{ Statusline Config
+local function clamp(n: number, min: number, max: number): number
+	return math.min(max, math.max(min, n))
+end
+local function lighten(color: string, amount: number): string
+	local r, g, b = color:match("#(..)(..)(..)")
+	local nr = clamp(tonumber(r, 16) + (amount or 16), 0, 255)
+	local ng = clamp(tonumber(g, 16) + (amount or 16), 0, 255)
+	local nb = clamp(tonumber(b, 16) + (amount or 16), 0, 255)
+	return string.format("#%02x%02x%02x", nr, ng, nb)
+end
+local function darken(color: string, amount: number): string
+	local r, g, b = color:match("#(..)(..)(..)")
+	local nr = clamp(tonumber(r, 16) - (amount or 16), 0, 255)
+	local ng = clamp(tonumber(g, 16) - (amount or 16), 0, 255)
+	local nb = clamp(tonumber(b, 16) - (amount or 16), 0, 255)
+	return string.format("#%02x%02x%02x", nr, ng, nb)
+end
 local dracula = {
 	background = "#282a36",
 	currentLine = "#44475a",
@@ -129,22 +150,20 @@ local dracula = {
 local stl = require("euclidian.statusline")
 local stlHiGroup <const> = "mySTL"
 local function addHiGroup(name: string, fg: string, bg: string)
-	cmd(
-		"hi! def " .. name
-			.. " guifg=" .. fg
-			.. " guibg=" .. bg
-	)
+	cmd("hi! def " .. name
+		.. " guifg=" .. fg
+		.. " guibg=" .. bg)
 end
 for mode, text, fg, bg in unpacker{
-	{"n", "Normal", dracula.background, dracula.cyan},
-	{"i", "Insert", dracula.background, dracula.green},
-	{"ic", "Insert-Completion", dracula.background, dracula.green},
-	{"c", "Command", dracula.background, dracula.pink},
-	{"R", "Replace", dracula.background, dracula.red},
-	{"t", "Terminal", dracula.background, dracula.orange},
-	{"v", "Visual", dracula.background, dracula.yellow},
-	{"V", "Visual Line", dracula.background, dracula.yellow},
-	{"", "Visual Block", dracula.background, dracula.yellow},
+	{"n", "Normal", darken(dracula.cyan, 2^7), dracula.cyan},
+	{"i", "Insert", darken(dracula.green, 2^7), dracula.green},
+	{"ic", "Insert-Completion", darken(dracula.green, 2^7), dracula.green},
+	{"c", "Command", darken(dracula.pink, 2^7), dracula.pink},
+	{"R", "Replace", darken(dracula.red, 2^7), dracula.red},
+	{"t", "Terminal", darken(dracula.orange, 2^7), dracula.orange},
+	{"v", "Visual", darken(dracula.yellow, 2^7), dracula.yellow},
+	{"V", "Visual Line", darken(dracula.yellow, 2^7), dracula.yellow},
+	{"", "Visual Block", darken(dracula.yellow, 2^7), dracula.yellow},
 } do
 	addHiGroup(stlHiGroup .. mode, fg, bg)
 	stl.mode(mode, text, stlHiGroup .. mode)
@@ -156,7 +175,7 @@ for hiGroupName, fg, bg in unpacker{
 	{"GreenInverted", dracula.background, dracula.green},
 	{"BrightGrayBg", dracula.background, "#6F6F6F"},
 	{"DarkGrayBg", dracula.background, "#1F1F1F"},
-	{"GitGreen", dracula.background, "#34d058"},
+	{"GitGreen", darken("#34d058", 2^7), "#34d058"},
 } do
 	addHiGroup(hiGroupName, fg, bg)
 end
@@ -178,8 +197,7 @@ stl.add({"GitBranch", "Active", "Inactive"}, {"Debugging"}, function(): string
 	return "  * " .. branch .. " "
 end, "GitGreen")
 local maxFileNameLen <const> = 20
-stl.add({"FileName", "Active", "Inactive"}, {"Debugging"},
-function(winId: number): string
+stl.add({"FileName", "Active", "Inactive"}, {"Debugging"}, function(winId: number): string
 	local ok, buf = pcall(a.nvim_win_get_buf, winId)
 	if ok and buf then
 		local fname = a.nvim_buf_get_name(buf)
@@ -257,9 +275,7 @@ end)
 map("v", "<leader>c", function()
 	local start = (a.nvim_buf_get_mark(0, "<") as {number})[1]
 	local finish = (a.nvim_buf_get_mark(0, ">") as {number})[1]
-	for i = start, finish do
-		commenter.commentLine(0, i)
-	end
+	commenter.commentRange(0, start-1, finish+1)
 end)
 -- }}}
 -- {{{ appending things
@@ -311,9 +327,10 @@ local function setupTerm()
 	if #trim(termCmd) == 0 then
 		return
 	end
+	local currentWin <const> = a.nvim_get_current_win()
 	cmd("sp +term")
-	local termWin = a.nvim_get_current_win()
-	local termBuf = a.nvim_get_current_buf()
+	local termWin <const> = a.nvim_get_current_win()
+	local termBuf <const> = a.nvim_get_current_buf()
 	local ok, job: boolean, number = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
 	if not ok then
 		print("Unable to get terminal job id\n")
@@ -326,6 +343,7 @@ local function setupTerm()
 		end
 	end)
 	cmd "autocmd BufDelete <buffer> lua require'euclidian.config'.stuff.setupTermMapping()"
+	a.nvim_set_current_win(currentWin)
 end
 export.stuff.setupTermMapping = function()
 	unmap("n", "<leader>t")
@@ -345,6 +363,31 @@ map("n", "<leader>lp", function()
 	print("[euclidian.luaprinter] Attached lua printer to buffer", curBuf, "(", fname, ")")
 end)
 -- }}}
+-- {{{ Snippets 
+local snippet = require("euclidian.snippet")
+map("n", "<leader>s", snippet.start)
+snippet.create("pairs", [[for %1, %2 in pairs(%3) do
+
+end]], {"k", "v", ""})
+snippet.create("ipairs", [[for %1, %2 in ipairs(%3) do
+
+end]], {"i", "v", ""})
+snippet.create("lfunc", [[local function %1(%2)%3
+end]])
+snippet.create("gfunc", [[global function %1(%2)%3
+end]])
+-- }}}
+
+--map("n", "K", vim.lsp.buf.hover)
+--map("n", "<c-k>", vim.lsp.buf.signature_help)
+
+local r = require
+map("n", "<leader>fz", partial(r("telescope.builtin") as table .find_files as function, {}))
+map("n", "<leader>g",  (r("telescope.builtin") as table).live_grep as function)
+
+cmd [[autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc]]
+cmd [[autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc]]
+
 -- }}}
 
 return export

@@ -66,7 +66,7 @@ function update_ps1 {
 		return 0
 	fi
 	# using utf8 needs a utf8 lib, which luajit doesn't come with
-	PS1=$(lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
+	PS1=$(/usr/bin/lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1
 	fi

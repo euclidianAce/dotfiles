@@ -47,20 +47,17 @@ end
 
 -- Use custom theme
 beautiful.init("~/.config/awesome/theme.lua")
-local icon_path = "/home/corey/.config/awesome/icons/"
+--local icon_path = "/home/corey/.config/awesome/icons/"
 
 -- Set Wallpaper
 for s = 1, screen.count() do
 	gears.wallpaper.maximized(beautiful.wallpaper, s, true)
 end
 
--- Set default terminal and editor
-terminal   = "sakura"
-editor     = os.getenv("EDITOR") or "vi"
-editor_cmd = terminal .. " -e " .. editor
+local terminal   = "sakura"
 
 -- Set modkey to Win
-modkey = "Mod4"
+local modkey = "Mod4"
 
 -- Layouts for window tiling
 awful.layout.layouts = {
@@ -98,7 +95,7 @@ awful.screen.connect_for_each_screen(function(s)
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])
 	-- tags
-	s.mytaglist = awful.widget.taglist(
+	s.taglist = awful.widget.taglist(
 		s, -- screen
 		awful.widget.taglist.filter.all --filter
 	)
@@ -112,7 +109,7 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Center
 			layout = wibox.layout.fixed.horizontal,
-			wibox.widget.textbox(""),
+			spacer,
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
@@ -121,7 +118,7 @@ awful.screen.connect_for_each_screen(function(s)
 			s.wifi, spacer,
 			s.battery or wibox.widget.textbox(" "),
 			s.battery and spacer or wibox.widget.textbox(" "),
-			s.mytaglist,
+			s.taglist,
 		},
 	}
 end)
@@ -134,8 +131,8 @@ local crtl 	= "Control"
 local shft 	= "Shift"
 local alt 	= "Mod1"
 
+
 local globalkeys = gears.table.join(
---	awful.key(KEYS			FUNCTION			DESCRIPTION)
 	awful.key(
 		{m}, "s",
 		hotkeys_popup.show_help,
@@ -349,16 +346,16 @@ client.connect_signal("manage", function(c)
 		awful.placement.no_offscreen(c)
 	end
 
-	local buttons = gears.table.join(
-	awful.button({}, 1, function()
-		c:emit_signal("request::activate", "titlebar", {raise=true})
-		awful.mouse.client.move(c)
-	end),
-	awful.button({}, 3, function()
-		c:emit_signal("request::activate", "titlebar", {raise=true})
-		awful.mouse.client.resize(c)
-	end)
-	)
+	--local buttons = gears.table.join(
+	--awful.button({}, 1, function()
+		--c:emit_signal("request::activate", "titlebar", {raise=true})
+		--awful.mouse.client.move(c)
+	--end),
+	--awful.button({}, 3, function()
+		--c:emit_signal("request::activate", "titlebar", {raise=true})
+		--awful.mouse.client.resize(c)
+	--end)
+	--)
 	c:emit_signal("property::window")
 end)
 

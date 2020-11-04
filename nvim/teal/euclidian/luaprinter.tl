@@ -33,6 +33,7 @@ end
 local newPrint = ([[
 stdout_write = io.write
 print = function(...)
+	local inspect_opts = {newline = " ", tab = ""}
 	local ok, inspect = pcall(require, "inspect")
 	if not ok then inspect = tostring end
 	stdout_write(string.char(1), debug.getinfo(2, "l").currentline, string.char(1))

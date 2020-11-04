@@ -41,8 +41,7 @@ local function unpacker(arr)
    local i = 0
    return function()
       i = i + 1
-      if not arr[i] then          return end
-      return unpack(arr[i])
+      return unpack(arr[i] or {})
    end
 end
 
@@ -275,7 +274,7 @@ end)
 map("v", "<leader>c", function()
    local start = (a.nvim_buf_get_mark(0, "<"))[1]
    local finish = (a.nvim_buf_get_mark(0, ">"))[1]
-   commenter.commentRange(0, start - 1, finish + 1)
+   commenter.commentRange(0, start - 1, finish)
 end)
 
 
@@ -362,19 +361,41 @@ end)
 
 local snippet = require("euclidian.snippet")
 map("n", "<leader>s", snippet.start)
-snippet.create("pairs", [[for %1, %2 in pairs(%3) do
+local snip = snippet.ftCreate
+snip({ "lua", "teal" }, "for", [[for %1 = %2, %3 do
 
-end]], { "k", "v", "" })
-snippet.create("ipairs", [[for %1, %2 in ipairs(%3) do
+end]], { "i", "1", "" })
+snip({ "lua", "teal" }, "pairs", [[for %1, %2 in pairs(%3) do
 
-end]], { "i", "v", "" })
-snippet.create("lfunc", [[local function %1(%2)%3
+end]], { "k", "v", "{}" })
+snip({ "lua", "teal" }, "ipairs", [[for %1, %2 in ipairs(%3) do
+
+end]], { "i", "v", "{}" })
+snip({ "lua", "teal" }, "lfunc", [[local function %1(%2)%3
+
 end]])
-snippet.create("gfunc", [[global function %1(%2)%3
+snip({ "lua", "teal" }, "gfunc", [[global function %1(%2)%3
+
 end]])
+snip({ "lua", "teal" }, "it", [[it("%1", function()
 
+end)]])
+snip({ "lua", "teal" }, "desc", [[describe("%1", function()
 
+end)]])
+snip("c", "inc", [[#include <%1>]])
+snip("c", "linc", [[#include "%1"]])
+snip("c", "main", [[int main(void) {
 
+	return 0;
+}]])
+snip("c", "fmain", [[int main(int argc, char **argv) {
+
+	return 0;
+}]])
+snip("c", "func", [[%1 %2(%3) {
+
+}]])
 
 
 local r = require

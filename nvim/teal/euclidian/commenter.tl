@@ -52,7 +52,6 @@ end
 function M.commentLine(buf: number, lineNum: number)
 	local cs = getCommentString(buf)
 	if not cs then
-		print("[commenter] Couldn't get commentstring")
 		return
 	end
 	local pre, post = split(cs, "%s")

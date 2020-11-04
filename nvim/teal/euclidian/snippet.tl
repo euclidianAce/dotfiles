@@ -37,10 +37,17 @@ local record Evaluator
 end
 
 local snippets: {string:Snippet} = {}
+local ftSnippets: {string:{string:Snippet}} = setmetatable({}, {
+	__index = function(self: {string:{string:Snippet}}, key: string): {string:Snippet}
+		local t: {string:Snippet} = {}
+		rawset(self, key, t)
+		return t
+	end
+})
 local evaluators: {number:Evaluator} = {}
 
 local function createEvaluator(kind: Evaluator.Kind): Evaluator
-	-- TODO: fiddle with window positions when the cursor is near the bottom of the terminal
+	-- TODO: fiddle with window positions when the cursor is near screen edges
 	local origWin <const> = a.nvim_get_current_win()
 	local origBuf <const> = a.nvim_get_current_buf()
 	local cursorRow <const> = a.nvim_win_get_cursor(origWin)[1]
@@ -48,17 +55,14 @@ local function createEvaluator(kind: Evaluator.Kind): Evaluator
 	local outputWin <const> = a.nvim_open_win(outputBuf, false, {
 		relative = "cursor", style = "minimal", anchor = "NW",
 		   width = 50,      height = 5,
-		     row = -2,         col = -4,
+		     row = -7,         col = -4,
 	})
 	local inputBuf <const> = a.nvim_create_buf(false, true)
 	local inputWin <const> = a.nvim_open_win(inputBuf, true, {
 		relative = "cursor", style = "minimal", anchor = "NW",
 		   width = 50,      height = 5,
-		     row = 1,          col = -4,
+		     row = 3,          col = -4,
 	})
-	-- TODO: this doesn't work for some reason
-	-- a.nvim_buf_set_option(inputBuf, "bufhidden", "delete")
-	-- a.nvim_buf_set_option(outputBuf, "bufhidden", "delete")
 
 	a.nvim_win_set_option(outputWin, "winhl", "NormalFloat:Special")
 	local e <const> = {
@@ -70,8 +74,8 @@ local function createEvaluator(kind: Evaluator.Kind): Evaluator
 	}
 	evaluators[origWin] = e
 	cmdf([[autocmd TextChanged,TextChangedI <buffer=%d> lua require'euclidian.snippet'.eval(%d)]], e.input.buf, e.orig.win)
-	cmdf([[inoremap <silent> <buffer> <CR> <Esc>:lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
-	cmdf([[nnoremap <silent> <buffer> <CR> <Esc>:lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
+	cmdf([[inoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
+	cmdf([[nnoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
 	cmdf("startinsert")
 	return e
 end
@@ -86,7 +90,11 @@ local function updateEvalBuf(e: Evaluator)
 				if not n then
 					return m
 				elseif n-1 == #e.snippetInput then
-					return a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
+					local res <const> = a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
+					return res ~= ""
+						and res
+						or e.snippet.defaults[n]
+						or ""
 				else
 					return e.snippetInput[n]
 				end
@@ -102,18 +110,34 @@ local function delete(e: Evaluator)
 	evaluators[e.orig.win] = nil
 end
 
+local function putResult(e: Evaluator)
+	local result <const> = a.nvim_buf_get_lines(e.output.buf, 0, -1, false)
+	a.nvim_buf_set_lines(e.orig.buf, e.cursorRow-1, e.cursorRow-1, false, result)
+	a.nvim_win_set_cursor(e.orig.win, {e.cursorRow, 0})
+	delete(e)
+	a.nvim_input(string.format("<Esc>%d==j", #result))
+end
+
 global loadstring: function(string, string): function(...: any): any...
 local stub <const> = function() end
 local function evaluate(e: Evaluator)
 	if e.kind == "start" then
+		local current_ft = a.nvim_buf_get_option(e.orig.buf, "ft") as string
 		local name <const> = a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
-		if snippets[name] then
-			e.kind = "snippet"
-			e.snippetStep = 1
-			e.snippetInput = {}
-			e.snippet = snippets[name]
-			a.nvim_buf_set_lines(e.input.buf, 0, -1, false, {})
-			a.nvim_buf_set_lines(e.output.buf, 0, -1, false, vim.split(snippets[name].content, "\n"))
+
+		local snip = ftSnippets[current_ft][name] or snippets[name]
+
+		if snip then
+			a.nvim_buf_set_lines(e.output.buf, 0, -1, false, vim.split(snip.content, "\n"))
+			if snip.length == 0 then
+				putResult(e)
+			else
+				e.kind = "snippet"
+				e.snippetStep = 1
+				e.snippetInput = {}
+				e.snippet = snip
+				a.nvim_buf_set_lines(e.input.buf, 0, -1, false, {})
+			end
 		elseif name == "lua" then
 			e.kind = "lua"
 			a.nvim_buf_set_lines(e.input.buf, 0, -1, false, {})
@@ -130,27 +154,24 @@ local function evaluate(e: Evaluator)
 	end
 end
 
-local function putResult(e: Evaluator)
-	local result <const> = a.nvim_buf_get_lines(e.output.buf, 0, -1, false)
-	delete(e)
-	a.nvim_put(result, "l", true, true)
-end
-
 local function step(e: Evaluator)
-	local content <const> = a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
+	local content = a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
 	if e.kind == "snippet" then
-		table.insert(e.snippetInput, content)
-		if e.snippetStep == e.snippet.length then
-			putResult(e)
-			evaluators[e.orig.win] = nil
+		if content == "" then
+			content = e.snippet.defaults[#e.snippetInput + 1] or content
 		end
-		a.nvim_buf_set_lines(e.input.buf, 0, -1, false, {})
-		updateEvalBuf(e)
-		e.snippetStep = e.snippetStep + 1
-		cmdf("startinsert")
+		table.insert(e.snippetInput, content)
+		if e.snippetStep >= e.snippet.length then
+			updateEvalBuf(e)
+			putResult(e)
+		else
+			a.nvim_buf_set_lines(e.input.buf, 0, -1, false, {})
+			updateEvalBuf(e)
+			e.snippetStep = e.snippetStep + 1
+			cmdf("startinsert")
+		end
 	elseif e.kind == "lua" then
 		putResult(e)
-		evaluators[e.orig.win] = nil
 	end
 end
 
@@ -160,8 +181,23 @@ function snippet.create(name: string, content: string, defaults: {string})
 	snippets[name] = {
 		content = content,
 		defaults = defaults or {},
+		length = select(2, content:gsub("%%%d+", "%1")) as number,
 	}
-	snippets[name].length = select(2, content:gsub("%%%d+", "%1")) as number
+end
+
+function snippet.ftCreate(ft: string|{string}, name: string, content: string, defaults: {string})
+	local snip: Snippet = {
+		content = content,
+		defaults = defaults or {},
+		length = select(2, content:gsub("%%%d+", "%1")) as number,
+	}
+	if ft is string then
+		ftSnippets[ft][name] = snip
+	else
+		for i, v in ipairs(ft) do
+			ftSnippets[v][name] = snip
+		end
+	end
 end
 
 function snippet.start()

@@ -1,5 +1,6 @@
 filetype plugin indent on
 let mapleader=" "
+" {{{ Plugins
 " Install VimPlug if not present
 if empty(glob('~/.local/share/nvim/site/autoload/plug.vim'))
   silent !curl -fLo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs \
@@ -12,7 +13,7 @@ call plug#begin()
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
 
-Plug 'tpope/vim-endwise'
+" Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'neovim/nvim-lsp'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
@@ -25,15 +26,20 @@ Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-treesitter/playground'
 
 Plug 'nvim-lua/telescope.nvim'
+
+Plug 'ziglang/zig.vim'
+
 " My stuff
 Plug 'euclidianAce/BetterLua.vim'
 Plug 'teal-language/vim-teal'
 call plug#end()
-
+" }}}
 " {{{ set options
 set termguicolors
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 set belloff=all
-set guicursor=
+" set guicursor=
 " set mouse=a
 set undodir=$HOME/.vim/undo
 set undofile
@@ -101,14 +107,28 @@ hi! link TSParameter DraculaOrangeItalic
 " Dracula Cyan Bold
 hi clear TODO
 hi! Todo guifg=#8BE9FD gui=bold
+hi clear MatchParen
+hi! MatchParen guifg=#BD93F9 gui=bold
+
 hi! link Search mySTLn
+hi! link Visual mySTLc
+
+autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTLn", timeout = 250, on_macro = true }
 " }}}
 " Lua config part
-autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTLn", timeout = 250, on_macro = true }
 lua require'euclidian.config'
 lua << EOF
 require'nvim-treesitter.configs'.setup {
-   ensure_installed = { "teal", "c" },
+   ensure_installed = "maintained",
    highlight = { enable = true },
+   -- incremental_selection = {
+   --    enable = true,
+   --    keymaps = {
+   --       init_selection    = " is",
+   --       node_incremental  = " ni",
+   --       node_decremental  = " nd",
+   --       scope_incremental = "",
+   --    },
+   -- },
 }
 EOF

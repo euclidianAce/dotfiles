@@ -2,6 +2,5 @@
 xrdb -merge ~/.Xresources
 setxkbmap us -variant colemak
 xmodmap $DOTFILE_DIR/remaps.Xmodmap
-exec sakura & awesome
+exec st & awesome
 # exec ~/dev/mywm/a.out > log.txt
-#exec urxvtc & ~/Applications/firefox/firefox & ~/Applications/mywm/run

@@ -37,10 +37,10 @@ export MANPAGER="nvim +Man!"
 eval $(luarocks path --bin)
 export LUA_PATH+=";$HOME/dev/teal-cli/build/?.lua;$HOME/dev/tl/?.lua;$HOME/dev/luastuffs/ltreesitter/?.lua"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
-export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build:$HOME/Applications/firefox-nightly"
+export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build:$HOME/Applications/firefox-nightly:$HOME/Applications/zig-linux-x86_64-0.6.0/"
 
 # xterm-kitty doesn't work over ssh
-export TERM=xterm-256color
+# export TERM=xterm-256color
 
 #################
 #### ALIASES ####

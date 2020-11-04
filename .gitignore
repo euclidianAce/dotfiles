@@ -1,6 +1,7 @@
 awesome/customWidgets/wificonfig.lua
 .prev_locations.txt
 nvim/.tup
+nvim/.*
 nvim/plugged
 nvim/ftdetect
 nvim/syntax

@@ -8,3 +8,5 @@
 	pager = less -F -X
 [init]
 	defaultBranch = main
+[advice]
+	detachedHead = false

@@ -178,18 +178,30 @@ end
 function snippet.eval(winId: number) evaluate(evaluators[winId]) end
 function snippet.step(winId: number) step(evaluators[winId]) end
 function snippet.create(name: string, content: string, defaults: {string})
+	local len = 0
+	for d in content:gmatch("%%(%d+)") do
+		if tonumber(d) > len then
+			len = tonumber(d)
+		end
+	end
 	snippets[name] = {
 		content = content,
 		defaults = defaults or {},
-		length = select(2, content:gsub("%%%d+", "%1")) as number,
+		length = len,
 	}
 end
 
 function snippet.ftCreate(ft: string|{string}, name: string, content: string, defaults: {string})
+	local len = 0
+	for d in content:gmatch("%%(%d+)") do
+		if tonumber(d) > len then
+			len = tonumber(d)
+		end
+	end
 	local snip: Snippet = {
 		content = content,
 		defaults = defaults or {},
-		length = select(2, content:gsub("%%%d+", "%1")) as number,
+		length = len,
 	}
 	if ft is string then
 		ftSnippets[ft][name] = snip

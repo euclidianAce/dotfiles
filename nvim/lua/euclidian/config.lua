@@ -399,8 +399,9 @@ snip("c", "func", [[%1 %2(%3) {
 
 
 local r = require
-map("n", "<leader>fz", partial((r("telescope.builtin")).find_files, {}))
-map("n", "<leader>g", (r("telescope.builtin")).live_grep)
+local teleBuiltin = r("telescope.builtin")
+map("n", "<leader>fz", teleBuiltin.find_files)
+map("n", "<leader>g", teleBuiltin.live_grep)
 
 cmd([[autocmd Filetype lua setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
 cmd([[autocmd Filetype [ch] setlocal omnifunc=v:lua.vim.lsp.omnifunc]])

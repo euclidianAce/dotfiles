@@ -125,7 +125,7 @@ function M.attach(buf: number)
 	buf = buf or a.nvim_get_current_buf()
 	cmd "augroup luaprinter"
 	cmd 	("autocmd BufWritePost <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 10000)")
-	cmd 	("autocmd InsertLeave  <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 1500)")
+	-- cmd 	("autocmd InsertLeave  <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 1500)")
 	cmd "augroup END"
 	local fname <const> = a.nvim_buf_get_name(buf)
 	print("[euclidian.luaprinter] Attached lua printer to buffer", buf, "(", fname, ")")

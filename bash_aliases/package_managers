@@ -12,6 +12,14 @@ case "$distro" in
 		alias emergev="sudo emerge --ask"
 		alias emergef="sudo emerge --ask --fetchonly --quiet"
 		alias etc-update="sudo etc-update"
+
+		# convenience for patches
+		function patch-dir {
+			cd "/etc/portage/patches/$1"
+		}
+		function ebuild-dir {
+			cd "$(portageq get_repo_path / gentoo)/$1"
+		}
 		;;
 	"void")
 		alias xbps-update="sudo xbps-install -Su"

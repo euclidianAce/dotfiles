@@ -214,9 +214,9 @@ stl.add({ "EditInfo", "Inactive" }, { "Debugging", "Active" }, "%m ", "BrightGra
 stl.add({ "EditInfo", "Active" }, { "Debugging", "Inactive" }, "%m", "BrightGrayBg")
 stl.add({ "EditInfo", "Active" }, { "Debugging", "Inactive" }, "%r%h%w", "BrightGrayBg")
 
-
-
-
+stl.add({ "SyntaxViewer", "Treesitter", "Debugging" }, { "Inactive" }, function()
+   return "[TS: " .. vim.fn["nvim_treesitter#statusline"](90) .. "]"
+end, "GitGreen")
 stl.add({ "SyntaxViewer", "Debugging" }, { "Inactive" }, function()
    local cursor = a.nvim_win_get_cursor(0)
    return "  Syntax: " .. vim.fn.synIDattr(vim.fn.synID(cursor[1], cursor[2] + 1, 0), "name") .. " "
@@ -327,7 +327,7 @@ local function setupTerm()
       return
    end
    local currentWin = a.nvim_get_current_win()
-   cmd("sp +term")
+   cmd([[sp +term]])
    local termWin = a.nvim_get_current_win()
    local termBuf = a.nvim_get_current_buf()
    local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
@@ -338,10 +338,10 @@ local function setupTerm()
    map("n", "<leader>t", function()
       local ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
       if not ok then
-         print("[<leader>t] Unable to send command to terminal, (" .. termCmd .. ")")
+         print("Unable to send command to terminal, (" .. termCmd .. ")")
       end
    end)
-   cmd("autocmd BufDelete <buffer> lua require'euclidian.config'.stuff.setupTermMapping()")
+   cmd([[autocmd BufDelete <buffer> lua require'euclidian.config'.stuff.setupTermMapping()]])
    a.nvim_set_current_win(currentWin)
 end
 export.stuff.setupTermMapping = function()
@@ -371,6 +371,9 @@ end]], { "k", "v", "{}" })
 snip({ "lua", "teal" }, "ipairs", [[for %1, %2 in ipairs(%3) do
 
 end]], { "i", "v", "{}" })
+snip({ "lua", "teal" }, "func", [[function %1(%2)%3
+
+end]])
 snip({ "lua", "teal" }, "lfunc", [[local function %1(%2)%3
 
 end]])
@@ -383,6 +386,9 @@ end)]])
 snip({ "lua", "teal" }, "desc", [[describe("%1", function()
 
 end)]])
+snip({ "lua", "teal" }, "module", [[local %1 = {}
+
+return %1]])
 snip("c", "inc", [[#include <%1>]])
 snip("c", "linc", [[#include "%1"]])
 snip("c", "main", [[int main(void) {

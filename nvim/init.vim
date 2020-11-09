@@ -36,8 +36,6 @@ call plug#end()
 " }}}
 " {{{ set options
 set termguicolors
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 set belloff=all
 " set guicursor=
 " set mouse=a
@@ -55,8 +53,6 @@ set splitbelow splitright
 set incsearch " highlight results as they're typed
 set inccommand=split
 set laststatus=2 noshowmode
-set foldmethod=marker
-set foldcolumn=3
 set modeline
 set scrolloff=2
 set linebreak
@@ -79,11 +75,13 @@ set gdefault " regex //g by default
 set virtualedit=block " allow selection of blocks even when text isnt there
 set signcolumn=yes:1
 
+set foldcolumn=3
+set foldmethod=marker
 " }}}
 " {{{ Keymaps
 " auto complete brackets/etc. only when hitting enter
 inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
-inoremap [<CR> []<Esc>i<CR><CR><Esc>kS
+" inoremap [<CR> []<Esc>i<CR><CR><Esc>kS
 inoremap (<CR> ()<Esc>i<CR><CR><Esc>kS
 
 let g:netrw_liststyle = 3
@@ -95,6 +93,9 @@ inoremap <silent> .Shrug ¯\\\_(ツ)\_/¯
 nnoremap <silent> <leader>n :noh<CR>
 nnoremap <leader>5 :w<CR>:source %<CR>:echo "Sourced " . expand("%")<CR>
 
+" }}}
+" {{{ Autocmds
+autocmd BufRead *.tl setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr()
 " }}}
 " {{{ colors
 colorscheme dracula

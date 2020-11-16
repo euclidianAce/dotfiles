@@ -115,7 +115,7 @@ local function putResult(e: Evaluator)
 	a.nvim_buf_set_lines(e.orig.buf, e.cursorRow-1, e.cursorRow-1, false, result)
 	a.nvim_win_set_cursor(e.orig.win, {e.cursorRow, 0})
 	delete(e)
-	a.nvim_input(string.format("<Esc>%d==j", #result))
+	a.nvim_input(string.format("<Esc>%d==", #result))
 end
 
 global loadstring: function(string, string): function(...: any): any...

@@ -111,13 +111,14 @@ hi! Todo guifg=#8BE9FD gui=bold
 hi clear MatchParen
 hi! MatchParen guifg=#BD93F9 gui=bold
 
-hi! link Search mySTLn
-hi! link Visual mySTLc
+hi! link Search mySTLi
+hi! link Visual mySTLn
 
 autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTLn", timeout = 250, on_macro = true }
 " }}}
 " Lua config part
 lua require'euclidian.config'
+let g:vimsyn_embed = 'l' " embedded lua highlighting
 lua << EOF
 require'nvim-treesitter.configs'.setup {
    ensure_installed = "maintained",
@@ -132,4 +133,20 @@ require'nvim-treesitter.configs'.setup {
    --    },
    -- },
 }
+
+-- me own language server
+function attach_teal_lang_server(buf)
+	local client_id = vim.lsp.start_client{
+		cmd = {"/home/corey/dev/teal-language-server/run"},
+		root_dir = ".",
+		callbacks = vim.lsp.callbacks,
+	}
+	print("attached server to buf: ", buf)
+	vim.lsp.buf_attach_client(buf, client_id)
+end
 EOF
+" augroup tealLSP
+	" au!
+	" autocmd BufRead,BufNewFile *.tl call v:lua.attach_teal_lang_server(bufnr())
+" augroup END
+

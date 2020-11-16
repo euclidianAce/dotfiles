@@ -389,6 +389,8 @@ end)]])
 snip({ "lua", "teal" }, "module", [[local %1 = {}
 
 return %1]])
+snip({ "lua", "teal" }, "req", [[local %1 = require("%1")]])
+
 snip("c", "inc", [[#include <%1>]])
 snip("c", "linc", [[#include "%1"]])
 snip("c", "main", [[int main(void) {

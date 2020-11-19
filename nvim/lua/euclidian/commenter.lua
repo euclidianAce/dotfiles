@@ -1,9 +1,10 @@
 
 
 
+local util = require("euclidian.util")
 local a = vim.api
 
-local M = {}
+local commenter = {}
 
 local function escapeStr(str)
    return (str:gsub("[-+.*()%[%]%%]", "%%%1"))
@@ -49,7 +50,7 @@ local function commentStr(pre, post, str)
    return leadingWs .. pre .. " " .. rest .. post
 end
 
-function M.commentLine(buf, lineNum)
+function commenter.commentLine(buf, lineNum)
    local cs = getCommentString(buf)
    if not cs then
       return
@@ -60,7 +61,7 @@ function M.commentLine(buf, lineNum)
    })
 end
 
-function M.commentRange(buf, start, finish)
+function commenter.commentRange(buf, start, finish)
    local lines = a.nvim_buf_get_lines(buf, start, finish, false)
    local cs = getCommentString(buf)
    local pre, post = split(cs, "%s")
@@ -68,13 +69,11 @@ function M.commentRange(buf, start, finish)
 
    lines[1] = commentStr(pre, post, lines[1])
    for i = 2, #lines do
-      if (shouldBeCommented and not isCommented(pre, post, lines[i])) or
-         (not shouldBeCommented and isCommented(pre, post, lines[i])) then
-
+      if util.xor(shouldBeCommented, isCommented(pre, post, lines[i])) then
          lines[i] = commentStr(pre, post, lines[i])
       end
    end
    a.nvim_buf_set_lines(buf, start, finish, false, lines)
 end
 
-return M
+return commenter

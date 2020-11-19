@@ -111,10 +111,10 @@ hi! Todo guifg=#8BE9FD gui=bold
 hi clear MatchParen
 hi! MatchParen guifg=#BD93F9 gui=bold
 
-hi! link Search mySTLi
-hi! link Visual mySTLn
+hi! link Search mySTL_Insert
+hi! link Visual mySTL_Normal
 
-autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTLn", timeout = 250, on_macro = true }
+autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTL_Normal", timeout = 250, on_macro = true }
 " }}}
 " Lua config part
 lua require'euclidian.config'

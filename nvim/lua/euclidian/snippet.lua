@@ -1,9 +1,6 @@
 
 local a = vim.api
-
-local function cmdf(fmt, ...)
-   a.nvim_command(string.format(fmt, ...))
-end
+local cmdf = require("euclidian.util").cmdf
 
 local snippet = {}
 
@@ -64,7 +61,12 @@ local function createEvaluator(kind)
       row = 3, col = -4,
    })
 
-   a.nvim_win_set_option(outputWin, "winhl", "NormalFloat:Special")
+   local ft = a.nvim_buf_get_option(origBuf, "filetype")
+   a.nvim_buf_set_option(outputBuf, "filetype", ft)
+
+   a.nvim_win_set_option(outputWin, "winblend", 30)
+   a.nvim_win_set_option(inputWin, "winblend", 30)
+
    local e = {
       kind = kind,
       cursorRow = cursorRow,
@@ -77,6 +79,7 @@ local function createEvaluator(kind)
    cmdf([[inoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
    cmdf([[nnoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
    cmdf("startinsert")
+
    return e
 end
 
@@ -112,7 +115,12 @@ end
 
 local function putResult(e)
    local result = a.nvim_buf_get_lines(e.output.buf, 0, -1, false)
-   a.nvim_buf_set_lines(e.orig.buf, e.cursorRow - 1, e.cursorRow - 1, false, result)
+   local currentLineContent = a.nvim_buf_get_lines(e.orig.buf, e.cursorRow - 1, e.cursorRow, false)[1]
+   local offset = 1
+   if vim.trim(currentLineContent) == "" then
+      offset = 0
+   end
+   a.nvim_buf_set_lines(e.orig.buf, e.cursorRow - 1, e.cursorRow - offset, false, result)
    a.nvim_win_set_cursor(e.orig.win, { e.cursorRow, 0 })
    delete(e)
    a.nvim_input(string.format("<Esc>%d==", #result))
@@ -172,6 +180,8 @@ local function step(e)
       end
    elseif e.kind == "lua" then
       putResult(e)
+   else
+      delete(e)
    end
 end
 
@@ -194,8 +204,9 @@ end
 function snippet.ftCreate(ft, name, content, defaults)
    local len = 0
    for d in content:gmatch("%%(%d+)") do
-      if tonumber(d) > len then
-         len = tonumber(d)
+      local n = tonumber(d)
+      if n > len then
+         len = n
       end
    end
    local snip = {

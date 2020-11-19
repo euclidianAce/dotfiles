@@ -20,9 +20,10 @@ local export = {
 	stuff: {string:function} = {},
 }
 -- {{{ Random stuffs
-local function cmdf(command: string, ...: any)
-	cmd(command:format(...))
-end
+local util = require("euclidian.util")
+local cmdf = util.cmdf
+local trim = util.trim
+local unpacker = util.unpacker
 
 local function partial<T, K>(f: function(...: T): K..., a: T): function(...: T): K...
 	return function(...: T): K...
@@ -30,20 +31,6 @@ local function partial<T, K>(f: function(...: T): K..., a: T): function(...: T):
 	end
 end
 
-local function trim(s: string): string
-	return (s:gsub("^%s*(.*)%s*$", "%1"))
-end
-
-global unpack: function<T>({T}): T...
--- TODO: fix
--- https://github.com/teal-language/tl/issues/237
-local function unpacker<T>(arr: {{T}}): (function(): T, T, T, T, T...)
-	local i = 0
-	return function(): T, T, T, T, T...
-		i = i + 1
-		return unpack(arr[i] or {})
-	end
-end
 -- }}}
 -- {{{ Keymaps with lua functions
 local settings: {string:any} = {noremap = true, silent = true}
@@ -78,11 +65,11 @@ end
 -- }}}
 -- }}}
 -- {{{ LSP
-local lsp = require("nvim_lsp")
+local lsp = require("lspconfig")
 local lspSettings = {
 -- {{{ sumneko lua
 	sumneko_lua = { settings = { Lua = {
-		runtime = { version = "Lua 5.3" },
+		runtime = { version = "Lua 5.4" },
 		diagnostics = {
 			globals = {
 				-- Vim api
@@ -157,15 +144,17 @@ for mode, text, fg, bg in unpacker{
 	{"n", "Normal", darken(dracula.cyan, 2^7), dracula.cyan},
 	{"i", "Insert", darken(dracula.green, 2^7), dracula.green},
 	{"ic", "Insert-Completion", darken(dracula.green, 2^7), dracula.green},
-	{"c", "Command", darken(dracula.pink, 2^7), dracula.pink},
+	{"c", "Command", darken(dracula.purple, 2^7), dracula.purple},
+	{"r", "Confirm", darken(dracula.pink, 2^7), dracula.pink},
 	{"R", "Replace", darken(dracula.red, 2^7), dracula.red},
 	{"t", "Terminal", darken(dracula.orange, 2^7), dracula.orange},
 	{"v", "Visual", darken(dracula.yellow, 2^7), dracula.yellow},
 	{"V", "Visual Line", darken(dracula.yellow, 2^7), dracula.yellow},
 	{"", "Visual Block", darken(dracula.yellow, 2^7), dracula.yellow},
 } do
-	addHiGroup(stlHiGroup .. mode, fg, bg)
-	stl.mode(mode, text, stlHiGroup .. mode)
+	local higroup <const> = stlHiGroup .. "_" .. text:gsub("[- ]", "_")
+	addHiGroup(higroup, fg, bg)
+	stl.mode(mode, text, higroup)
 end
 
 for hiGroupName, fg, bg in unpacker{
@@ -294,8 +283,8 @@ for mvkey, szkey in unpacker{
 	{"h", "<"},
 	{"j", "+"},
 	{"k", "-"},
-	{"l", ">"}} do
-
+	{"l", ">"}}
+do
 	unmap("n", "<C-W>" .. mvkey)
 	map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
 	map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
@@ -361,49 +350,39 @@ end)
 -- {{{ Snippets
 local snippet = require("euclidian.snippet")
 map("n", "<leader>s", snippet.start)
-local snip = snippet.ftCreate
-snip({"lua", "teal"}, "for", [[for %1 = %2, %3 do
+do
+	local snip <const> = snippet.ftCreate
+	local lua_teal = {"lua", "teal"}
+	snip(lua_teal, "for",    'for %1 = %2, %3 do\n\nend',           {"i", "1", "10"})
+	snip(lua_teal, "pairs",  'for %1, %2 in pairs(%3) do\n\nend',   {"k", "v", "{}"})
+	snip(lua_teal, "ipairs", 'for %1, %2 in ipairs(%3) do\n\nend',  {"i", "v", "{}"})
+	
+	-- busted stuff
+	snip(lua_teal, "it",     'it("%1", function()\n\nend)')
+	snip(lua_teal, "desc",   'describe("%1", function()\n\nend)')
+	snip(lua_teal, "pend",   'pending("%1", function()\n\nend)')
 
-end]], {"i", "1", ""})
-snip({"lua", "teal"}, "pairs", [[for %1, %2 in pairs(%3) do
+	-- lua vs teal differences
+	snip("lua", "req,",    'local %1 = require("%1")')
+	snip("lua", "req.",    'local %1 = require("%2")')
+	snip("lua", "module",  'local %1 = {}\n\nreturn %1')
+	snip("lua", "func",    'function %1(%2)\n\nend')
+	snip("lua", "lfunc",   'local function %1(%2)\n\nend')
+	
+	snip("teal", "req,",   'local %1 <const> = require("%1")')
+	snip("teal", "req.",   'local %1 <const> = require("%2")')
+	snip("teal", "module", 'local %1 <const> = {}\n\nreturn %1')
+	snip("teal", "func",   'function %1(%2): %3\n\nend')
+	snip("teal", "lfunc",  'local function %1(%2)%3\n\nend')
+	snip("teal", "gfunc",  'global function %1(%2)%3\n\nend')
+	snip("teal", "const",  'local %1 <const> = %2')
 
-end]], {"k", "v", "{}"})
-snip({"lua", "teal"}, "ipairs", [[for %1, %2 in ipairs(%3) do
-
-end]], {"i", "v", "{}"})
-snip({"lua", "teal"}, "func", [[function %1(%2)%3
-
-end]])
-snip({"lua", "teal"}, "lfunc", [[local function %1(%2)%3
-
-end]])
-snip({"lua", "teal"}, "gfunc", [[global function %1(%2)%3
-
-end]])
-snip({"lua", "teal"}, "it", [[it("%1", function()
-
-end)]])
-snip({"lua", "teal"}, "desc", [[describe("%1", function()
-
-end)]])
-snip({"lua", "teal"}, "module", [[local %1 = {}
-
-return %1]])
-snip({"lua", "teal"}, "req", [[local %1 = require("%1")]])
-
-snip("c", "inc", [[#include <%1>]])
-snip("c", "linc", [[#include "%1"]])
-snip("c", "main", [[int main(void) {
-
-	return 0;
-}]])
-snip("c", "fmain", [[int main(int argc, char **argv) {
-
-	return 0;
-}]])
-snip("c", "func", [[%1 %2(%3) {
-
-}]])
+	snip("c", "inc",   '#include <%1>')
+	snip("c", "linc",  '#include "%1"')
+	snip("c", "main",  'int main(void) {\nreturn 0;\n}')
+	snip("c", "fmain", 'int main(int argc, char **argv) {\n\treturn 0;\n}')
+	snip("c", "func",  '%1 %2(%3) {\n\n}')
+end
 -- }}}
 
 local r = require

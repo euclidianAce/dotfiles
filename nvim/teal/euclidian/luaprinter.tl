@@ -52,6 +52,7 @@ io.write = print
 local function compileTealBuf(buf: number): string
 	local lines = a.nvim_buf_get_lines(buf, 0, -1, false)
 	local code = table.concat(lines, "\n")
+	-- TODO: compile in a separate process as this kinda blocks on larger tl scripts
 	local tl = require("tl")
 
 	local luaCode = tl.gen(code) or ""

@@ -1,4 +1,4 @@
-local M = {
+local statusline = {
 	_funcs: {function(number): string} = {}
 }
 
@@ -38,14 +38,17 @@ local enum Mode
 	"ce" -- Normal Ex mode |Q|
 	"r" -- Hit-enter prompt
 	"rm" -- The -- more -- prompt
-	"r" -- |:confirm| query of some sort
+	"r?" -- |:confirm| query of some sort
 	"!" -- Shell or external command is executing
 	"t" -- Terminal mode: keys go to the job
+
+	"?" -- Handle internal errors with this
 end
 
 local modeMap: {Mode:{string}} = setmetatable({
 	["n"] = {"Normal", "Constant"},
 	["i"] = {"Insert", "Function"},
+	["r"] = {"Confirm", "Special"},
 	["R"] = {"Replace", "Special"},
 	["v"] = {"Visual", "String"},
 	["V"] = {"Visual Line", "String"},
@@ -56,23 +59,29 @@ local modeMap: {Mode:{string}} = setmetatable({
 	[""] = {"Select Block", "Visual"},
 	["t"] = {"Terminal", "Number"},
 	["!"] = {"Shell", "Comment"},
+	["?"] = {" ???? ", "Error"},
 }, {
 	__index = function(self: {Mode:{string}}, key: Mode): {string}
-		return self[string.sub(key,1,1) as Mode]
+		return rawget(self, string.sub(key, 1, 1) as Mode) or self["?"]
 	end
 })
 
-local userModes: {string:{string}} = setmetatable({}, { __index = modeMap })
+local userModes: {string:{string}} = setmetatable({}, {
+	__index = function(self: {string:{string}}, key: string): {string}
+		return rawget(self, string.sub(key, 1, 1)) or modeMap[key as Mode]
+	end
+})
 
-function M.mode(mode: string, text: string, hlgroup: string)
+function statusline.mode(mode: string, text: string, hlgroup: string)
 	userModes[mode] = {text, hlgroup}
 end
 
-function M.getModeText(): string
+function statusline.getModeText(): string
 	local m: Mode = vim.fn.mode(true) as Mode
-	local map = userModes[m] and userModes or modeMap as {string:{string}}
-	cmd("hi! link StatuslineModeText " .. map[m][2])
-	return map[m][1]
+	local map <const> = userModes[m]
+	-- print("current mode " .. m .. " hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
+	cmd("hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
+	return map[1]
 end
 
 local record Component
@@ -85,7 +94,7 @@ end
 local lineComponents: {Component} = {}
 local currentTags: {string:boolean} = {}
 
-function M.add(tags: {string}, invertedTags: {string}, text: string|function(number): (string), hiGroup: string)
+function statusline.add(tags: {string}, invertedTags: {string}, text: string|function(number): (string), hiGroup: string)
 	local comp: Component = {
 		tags = set(tags),
 		invertedTags = set(invertedTags)
@@ -93,11 +102,11 @@ function M.add(tags: {string}, invertedTags: {string}, text: string|function(num
 	if text is string then
 		comp.text = {
 			("%%#%s#"):format(hiGroup),
-			text as string,
+			text,
 			"%#Normal#"
 		}
 	elseif text is function(number): string then
-		M._funcs[#lineComponents+1] = text as function(): string
+		statusline._funcs[#lineComponents+1] = text
 		comp.isFunc = true
 		comp.text = {
 			("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.statusline'._funcs[%d](]]):format(#lineComponents+1),
@@ -161,23 +170,23 @@ local function setLine(winId: number)
 	vim.api.nvim_win_set_option(winId or 0, "statusline", makeLine(tags, winId))
 end
 
-function M.updateWindows()
+function statusline.updateWindows()
 	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 		setLine(win_id)
 	end
 end
 
-function M.setInactive(win_id: number)
+function statusline.setInactive(win_id: number)
 	vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 0)
-	M.updateWindows()
+	statusline.updateWindows()
 end
 
-function M.setActive(win_id: number)
+function statusline.setActive(win_id: number)
 	vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 1)
-	M.updateWindows()
+	statusline.updateWindows()
 end
 
-function M.toggleTag(name: string|{string})
+function statusline.toggleTag(name: string|{string})
 	if name is string then
 		currentTags[name] = not currentTags[name]
 	else
@@ -185,7 +194,7 @@ function M.toggleTag(name: string|{string})
 			currentTags[v] = not currentTags[v]
 		end
 	end
-	M.updateWindows()
+	statusline.updateWindows()
 end
 
 cmd "augroup customstatus"
@@ -194,7 +203,7 @@ cmd	"autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'eu
 cmd	"autocmd WinLeave *             let w:statusline_active = 0"
 cmd "augroup END"
 
-M.setActive()
-M.updateWindows()
+statusline.setActive()
+statusline.updateWindows()
 
-return M
+return statusline

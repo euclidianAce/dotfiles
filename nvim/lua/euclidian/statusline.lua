@@ -1,4 +1,4 @@
-local M = {
+local statusline = {
    _funcs = {},
 }
 
@@ -43,9 +43,12 @@ local Mode = {}
 
 
 
+
+
 local modeMap = setmetatable({
    ["n"] = { "Normal", "Constant" },
    ["i"] = { "Insert", "Function" },
+   ["r"] = { "Confirm", "Special" },
    ["R"] = { "Replace", "Special" },
    ["v"] = { "Visual", "String" },
    ["V"] = { "Visual Line", "String" },
@@ -56,23 +59,29 @@ local modeMap = setmetatable({
    [""] = { "Select Block", "Visual" },
    ["t"] = { "Terminal", "Number" },
    ["!"] = { "Shell", "Comment" },
+   ["?"] = { " ???? ", "Error" },
 }, {
    __index = function(self, key)
-      return self[string.sub(key, 1, 1)]
+      return rawget(self, string.sub(key, 1, 1)) or self["?"]
    end,
 })
 
-local userModes = setmetatable({}, { __index = modeMap })
+local userModes = setmetatable({}, {
+   __index = function(self, key)
+      return rawget(self, string.sub(key, 1, 1)) or modeMap[key]
+   end,
+})
 
-function M.mode(mode, text, hlgroup)
+function statusline.mode(mode, text, hlgroup)
    userModes[mode] = { text, hlgroup }
 end
 
-function M.getModeText()
+function statusline.getModeText()
    local m = vim.fn.mode(true)
-   local map = userModes[m] and userModes or modeMap
-   cmd("hi! link StatuslineModeText " .. map[m][2])
-   return map[m][1]
+   local map = userModes[m]
+
+   cmd("hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
+   return map[1]
 end
 
 local Component = {}
@@ -85,7 +94,7 @@ local Component = {}
 local lineComponents = {}
 local currentTags = {}
 
-function M.add(tags, invertedTags, text, hiGroup)
+function statusline.add(tags, invertedTags, text, hiGroup)
    local comp = {
       tags = set(tags),
       invertedTags = set(invertedTags),
@@ -97,7 +106,7 @@ function M.add(tags, invertedTags, text, hiGroup)
          "%#Normal#",
       }
    elseif type(text) == "function" then
-      M._funcs[#lineComponents + 1] = text
+      statusline._funcs[#lineComponents + 1] = text
       comp.isFunc = true
       comp.text = {
          ("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.statusline'._funcs[%d](]]):format(#lineComponents + 1),
@@ -161,23 +170,23 @@ local function setLine(winId)
    vim.api.nvim_win_set_option(winId or 0, "statusline", makeLine(tags, winId))
 end
 
-function M.updateWindows()
+function statusline.updateWindows()
    for _, win_id in ipairs(vim.api.nvim_list_wins()) do
       setLine(win_id)
    end
 end
 
-function M.setInactive(win_id)
+function statusline.setInactive(win_id)
    vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 0)
-   M.updateWindows()
+   statusline.updateWindows()
 end
 
-function M.setActive(win_id)
+function statusline.setActive(win_id)
    vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 1)
-   M.updateWindows()
+   statusline.updateWindows()
 end
 
-function M.toggleTag(name)
+function statusline.toggleTag(name)
    if type(name) == "string" then
       currentTags[name] = not currentTags[name]
    else
@@ -185,7 +194,7 @@ function M.toggleTag(name)
          currentTags[v] = not currentTags[v]
       end
    end
-   M.updateWindows()
+   statusline.updateWindows()
 end
 
 cmd("augroup customstatus")
@@ -194,7 +203,7 @@ cmd("autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'eu
 cmd("autocmd WinLeave *             let w:statusline_active = 0")
 cmd("augroup END")
 
-M.setActive()
-M.updateWindows()
+statusline.setActive()
+statusline.updateWindows()
 
-return M
+return statusline

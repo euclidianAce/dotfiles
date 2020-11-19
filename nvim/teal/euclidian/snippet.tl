@@ -1,11 +1,8 @@
 
 local a = vim.api
+local cmdf = require("euclidian.util").cmdf
 
-local function cmdf(fmt: string, ...: any)
-	a.nvim_command(string.format(fmt, ...))
-end
-
-local snippet = {}
+local snippet <const> = {}
 
 local record Snippet
 	content: string
@@ -64,7 +61,12 @@ local function createEvaluator(kind: Evaluator.Kind): Evaluator
 		     row = 3,          col = -4,
 	})
 
-	a.nvim_win_set_option(outputWin, "winhl", "NormalFloat:Special")
+	local ft <const> = a.nvim_buf_get_option(origBuf, "filetype")
+	a.nvim_buf_set_option(outputBuf, "filetype", ft)
+
+	a.nvim_win_set_option(outputWin, "winblend", 30)
+	a.nvim_win_set_option(inputWin,  "winblend", 30)
+
 	local e <const> = {
 		kind = kind,
 		cursorRow = cursorRow,
@@ -77,6 +79,7 @@ local function createEvaluator(kind: Evaluator.Kind): Evaluator
 	cmdf([[inoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
 	cmdf([[nnoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
 	cmdf("startinsert")
+
 	return e
 end
 
@@ -112,7 +115,12 @@ end
 
 local function putResult(e: Evaluator)
 	local result <const> = a.nvim_buf_get_lines(e.output.buf, 0, -1, false)
-	a.nvim_buf_set_lines(e.orig.buf, e.cursorRow-1, e.cursorRow-1, false, result)
+	local currentLineContent <const> = a.nvim_buf_get_lines(e.orig.buf, e.cursorRow-1, e.cursorRow, false)[1]
+	local offset = 1
+	if vim.trim(currentLineContent) == "" then
+		offset = 0
+	end
+	a.nvim_buf_set_lines(e.orig.buf, e.cursorRow-1, e.cursorRow-offset, false, result)
 	a.nvim_win_set_cursor(e.orig.win, {e.cursorRow, 0})
 	delete(e)
 	a.nvim_input(string.format("<Esc>%d==", #result))
@@ -172,6 +180,8 @@ local function step(e: Evaluator)
 		end
 	elseif e.kind == "lua" then
 		putResult(e)
+	else
+		delete(e)
 	end
 end
 
@@ -194,8 +204,9 @@ end
 function snippet.ftCreate(ft: string|{string}, name: string, content: string, defaults: {string})
 	local len = 0
 	for d in content:gmatch("%%(%d+)") do
-		if tonumber(d) > len then
-			len = tonumber(d)
+		local n <const> = tonumber(d)
+		if n > len then
+			len = n
 		end
 	end
 	local snip: Snippet = {

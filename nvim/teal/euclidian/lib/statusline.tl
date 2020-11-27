@@ -1,5 +1,6 @@
 local statusline = {
-	_funcs: {function(number): string} = {}
+	higroup = "StatuslineModeText",
+	_funcs: {function(number): string} = {},
 }
 
 local cmd = vim.api.nvim_command
@@ -79,7 +80,6 @@ end
 function statusline.getModeText(): string
 	local m: Mode = vim.fn.mode(true) as Mode
 	local map <const> = userModes[m]
-	-- print("current mode " .. m .. " hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
 	cmd("hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
 	return map[1]
 end
@@ -109,7 +109,7 @@ function statusline.add(tags: {string}, invertedTags: {string}, text: string|fun
 		statusline._funcs[#lineComponents+1] = text
 		comp.isFunc = true
 		comp.text = {
-			("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.statusline'._funcs[%d](]]):format(#lineComponents+1),
+			("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](]]):format(#lineComponents+1),
 			[[)")}]],
 			"%#Normal#",
 		}
@@ -199,7 +199,7 @@ end
 
 cmd "augroup customstatus"
 cmd	"autocmd!"
-cmd	"autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'euclidian.statusline'.updateWindows()"
+cmd	"autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'euclidian.lib.statusline'.updateWindows()"
 cmd	"autocmd WinLeave *             let w:statusline_active = 0"
 cmd "augroup END"
 

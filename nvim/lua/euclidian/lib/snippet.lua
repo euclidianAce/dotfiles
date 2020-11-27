@@ -1,10 +1,14 @@
 
 local a = vim.api
-local cmdf = require("euclidian.util").cmdf
+local cmdf = require("euclidian.lib.util").cmdf
 
 local snippet = {}
 
 local Snippet = {}
+
+
+
+local ResolvedSnippet = {}
 
 
 
@@ -75,9 +79,9 @@ local function createEvaluator(kind)
       orig = { buf = origBuf, win = origWin },
    }
    evaluators[origWin] = e
-   cmdf([[autocmd TextChanged,TextChangedI <buffer=%d> lua require'euclidian.snippet'.eval(%d)]], e.input.buf, e.orig.win)
-   cmdf([[inoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
-   cmdf([[nnoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.snippet'.step(%d)<CR>]], e.orig.win)
+   cmdf([[autocmd TextChanged,TextChangedI <buffer=%d> lua require'euclidian.lib.snippet'.eval(%d)]], e.input.buf, e.orig.win)
+   cmdf([[inoremap <silent> <buffer> <CR> <cmd>lua require'euclidian.lib.snippet'.step(%d)<CR>]], e.orig.win)
+   cmdf([[nnoremap <silent> <buffer> <CR> <cmd>lua require'euclidian..lib.snippet'.step(%d)<CR>]], e.orig.win)
    cmdf("startinsert")
 
    return e
@@ -126,6 +130,34 @@ local function putResult(e)
    a.nvim_input(string.format("<Esc>%d==", #result))
 end
 
+local function getSnippetLength(txt)
+   local len = 0
+   for d in txt:gmatch("%%(%d+)") do
+      if tonumber(d) > len then
+         len = tonumber(d)
+      end
+   end
+   return len
+end
+local function resolveSnippet(snip, buf)
+   if not snip then       return end
+   local content = snip.content
+   if type(content) == "function" then
+      local newContent = content(buf) or ""
+      return {
+         length = getSnippetLength(newContent),
+         content = newContent,
+         defaults = snip.defaults,
+      }
+   else
+      return {
+         length = getSnippetLength(content),
+         content = content,
+         defaults = snip.defaults,
+      }
+   end
+end
+
 
 local stub = function() end
 local function evaluate(e)
@@ -133,7 +165,7 @@ local function evaluate(e)
       local current_ft = a.nvim_buf_get_option(e.orig.buf, "ft")
       local name = a.nvim_buf_get_lines(e.input.buf, 0, -1, false)[1]
 
-      local snip = ftSnippets[current_ft][name] or snippets[name]
+      local snip = resolveSnippet(ftSnippets[current_ft][name] or snippets[name], e.orig.buf)
 
       if snip then
          a.nvim_buf_set_lines(e.output.buf, 0, -1, false, vim.split(snip.content, "\n"))
@@ -187,32 +219,18 @@ end
 
 function snippet.eval(winId)    evaluate(evaluators[winId]) end
 function snippet.step(winId)    step(evaluators[winId]) end
+
 function snippet.create(name, content, defaults)
-   local len = 0
-   for d in content:gmatch("%%(%d+)") do
-      if tonumber(d) > len then
-         len = tonumber(d)
-      end
-   end
    snippets[name] = {
       content = content,
       defaults = defaults or {},
-      length = len,
    }
 end
 
 function snippet.ftCreate(ft, name, content, defaults)
-   local len = 0
-   for d in content:gmatch("%%(%d+)") do
-      local n = tonumber(d)
-      if n > len then
-         len = n
-      end
-   end
    local snip = {
       content = content,
       defaults = defaults or {},
-      length = len,
    }
    if type(ft) == "string" then
       ftSnippets[ft][name] = snip

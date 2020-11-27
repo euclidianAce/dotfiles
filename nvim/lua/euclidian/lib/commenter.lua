@@ -1,7 +1,7 @@
 
 
 
-local util = require("euclidian.util")
+local util = require("euclidian.lib.util")
 local a = vim.api
 
 local commenter = {}

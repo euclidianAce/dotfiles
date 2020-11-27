@@ -2,12 +2,18 @@
 local a = vim.api
 local util = {}
 
+function util.partial(f, a)
+   return function(...)
+      return f(a, ...)
+   end
+end
+
 function util.xor(a, b)
    return ((not a) and b) or (a and (not b))
 end
 
 function util.cmdf(fmt, ...)
-   a.nvim_command(string.format(fmt, ...))
+   a.nvim_command(fmt:format(...))
 end
 
 function util.trim(s)

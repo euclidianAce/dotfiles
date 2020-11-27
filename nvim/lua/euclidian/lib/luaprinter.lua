@@ -52,6 +52,7 @@ io.write = print
 local function compileTealBuf(buf)
    local lines = a.nvim_buf_get_lines(buf, 0, -1, false)
    local code = table.concat(lines, "\n")
+
    local tl = require("tl")
 
    local luaCode = tl.gen(code) or ""
@@ -124,7 +125,7 @@ local cmd = a.nvim_command
 function M.attach(buf)
    buf = buf or a.nvim_get_current_buf()
    cmd("augroup luaprinter")
-   cmd("autocmd BufWritePost <buffer=" .. buf .. "> lua require('euclidian.luaprinter').runBuffer(" .. buf .. ", 10000)")
+   cmd("autocmd BufWritePost <buffer=" .. buf .. "> lua require('euclidian.lib.luaprinter').runBuffer(" .. buf .. ", 10000)")
 
    cmd("augroup END")
    local fname = a.nvim_buf_get_name(buf)

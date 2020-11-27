@@ -1,6 +1,9 @@
 filetype plugin indent on
 let mapleader=" "
 " {{{ Plugins
+" TODO: Nov 27 00:56 2020
+"       try out packer.nvim, hopefully teal typedefs wont be too hard
+
 " Install VimPlug if not present
 if empty(glob('~/.local/share/nvim/site/autoload/plug.vim'))
   silent !curl -fLo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs \
@@ -13,7 +16,6 @@ call plug#begin()
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
 
-" Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'neovim/nvim-lsp'
 Plug 'glacambre/firenvim', { 'do': { _ -> firenvim#install(0) } }
@@ -21,6 +23,7 @@ Plug 'editorconfig/editorconfig-vim'
 
 " Colors
 Plug 'dracula/vim', { 'as': 'dracula' }
+Plug 'norcalli/nvim-colorizer.lua'
 
 Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-treesitter/playground'
@@ -30,7 +33,7 @@ Plug 'nvim-lua/telescope.nvim'
 Plug 'ziglang/zig.vim'
 
 " My stuff
-Plug 'euclidianAce/BetterLua.vim'
+" Plug 'euclidianAce/BetterLua.vim'
 Plug 'teal-language/vim-teal'
 call plug#end()
 " }}}
@@ -78,60 +81,25 @@ set signcolumn=yes:1
 set foldcolumn=3
 set foldmethod=marker
 " }}}
-" {{{ Keymaps
+
 " auto complete brackets/etc. only when hitting enter
 inoremap {<CR> {}<Esc>i<CR><CR><Esc>kS
-" inoremap [<CR> []<Esc>i<CR><CR><Esc>kS
 inoremap (<CR> ()<Esc>i<CR><CR><Esc>kS
 
-let g:netrw_liststyle = 3
-let g:netrw_banner = 0
-
 tnoremap <silent> <Esc> <C-\><C-n>
-inoremap <silent> .shrug ¯\_(ツ)_/¯
-inoremap <silent> .Shrug ¯\\\_(ツ)\_/¯
 nnoremap <silent> <leader>n :noh<CR>
 nnoremap <leader>5 :w<CR>:source %<CR>:echo "Sourced " . expand("%")<CR>
 
-" }}}
-" {{{ Autocmds
 autocmd BufRead *.tl setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr()
-" }}}
-" {{{ colors
-colorscheme dracula
+autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 250, on_macro = true }
 
-hi! link Folded Comment
-hi! link FoldColumn Comment
-hi! link SignColumn Comment
-hi! link Error DraculaRedInverse
-hi! link TSParameter DraculaOrangeItalic
-" Dracula Cyan Bold
-hi clear TODO
-hi! Todo guifg=#8BE9FD gui=bold
-hi clear MatchParen
-hi! MatchParen guifg=#BD93F9 gui=bold
-
-hi! link Search mySTL_Insert
-hi! link Visual mySTL_Normal
-
-autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "mySTL_Normal", timeout = 250, on_macro = true }
-" }}}
 " Lua config part
-lua require'euclidian.config'
 let g:vimsyn_embed = 'l' " embedded lua highlighting
 lua << EOF
-require'nvim-treesitter.configs'.setup {
+require("euclidian.config")
+require("nvim-treesitter.configs").setup {
    ensure_installed = "maintained",
    highlight = { enable = true },
-   -- incremental_selection = {
-   --    enable = true,
-   --    keymaps = {
-   --       init_selection    = " is",
-   --       node_incremental  = " ni",
-   --       node_decremental  = " nd",
-   --       scope_incremental = "",
-   --    },
-   -- },
 }
 
 -- me own language server
@@ -144,9 +112,11 @@ function attach_teal_lang_server(buf)
 	print("attached server to buf: ", buf)
 	vim.lsp.buf_attach_client(buf, client_id)
 end
+
+require("colorizer").setup()
 EOF
+
 " augroup tealLSP
 	" au!
 	" autocmd BufRead,BufNewFile *.tl call v:lua.attach_teal_lang_server(bufnr())
 " augroup END
-

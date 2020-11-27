@@ -9,7 +9,7 @@ local winOption = a.nvim_win_get_option
 local hi = color.scheme.hi
 hi.STLBufferInfo = { 0, hi.Comment[1] }
 hi.STLGit = { 0, p.darkGreen }
-hi.STLFname = { 0, p.gray }
+hi.STLFname = { 0, p.brightGray }
 hi.STLNormal = { 0, p.blue }
 hi.STLInsert = { 0, p.green }
 hi.STLCommand = { 0, p.purple }
@@ -50,13 +50,13 @@ stl.add({ "FileName", "Active", "Inactive" }, { "Debugging" }, function(winId)
          return ""
       end
       if #fname > maxFileNameLen then
-         return "  <" .. fname:sub(-maxFileNameLen, -1)
+         fname = fname:sub(-maxFileNameLen, -1)
       end
-      return "  " .. fname
+      return "  " .. fname .. " "
    end
    return " ??? "
 end, "STLFname")
-stl.add({ "EditInfo", "Active", "inactive" }, { "Debugging" }, "%m", "STLFname")
+stl.add({ "EditInfo", "Active", "Inactive" }, { "Debugging" }, "%m", "STLFname")
 stl.add({ "EditInfo", "Active" }, { "Debugging", "Inactive" }, "%r%h%w", "STLFname")
 
 stl.add({ "ActiveSeparator", "Active" }, { "Inactive" }, " %= ", "StatusLineNC")
@@ -72,5 +72,4 @@ stl.add({ "Shiftwidth", "Tabstop", "Expandtab", "Active" }, { "Inactive" }, func
    return ("  %s (%d) "):format(expandtab and "spaces" or "tabs", num)
 end, "STLBufferInfo")
 stl.add({ "LineNumber", "NavInfo", "Active", "Inactive" }, {}, " %l/%L:%c ", "STLBufferInfo")
-stl.add({ "FilePercent", "NavInfo", "Active", "Inactive" }, { "Debugging" }, "%3p%%", "STLBufferInfo")
-stl.add({ "TrailingSpace", "Spaces", "Active", "Inactive" }, {}, " ", "STLBufferInfo")
+stl.add({ "FilePercent", "NavInfo", "Active", "Inactive" }, { "Debugging" }, "%3p%% ", "STLBufferInfo")

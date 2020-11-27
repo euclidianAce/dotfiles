@@ -73,7 +73,7 @@ hi.Identifier = { p.purple }
 hi.Function = { p.brightBlue, nil, "bold" }
 
 hi.Statement = { p.blue }
-hi.Operator = { p.darkPurple }
+hi.Operator = { p.purple }
 
 hi.Type = { p.darkPurple, nil, "bold" }
 hi.Structure = { p.darkPurple }

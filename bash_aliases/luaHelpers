@@ -1,5 +1,16 @@
 # vim: filetype=sh
 
+# almost a luaenv sorta thing
 function luaVersion() {
-	``eval `luarocks path --bin --lua-version=$1``` && echo "Lua version changed to $1"
+	local lua_ver=$1
+	local eselect_num=$(echo $1 | awk '{split($0,a,"."); print a[2]}')
+	if [ "$1" == "jit" ]; then
+		lua_ver="5.1"
+		eselect_num="4"
+	fi
+	echo $lua_ver
+	echo $eselect_num
+	sudo eselect lua set $eselect_num
+		&& ``eval `luarocks path --bin --lua-version=$lua_ver``` \
+		&& echo "Lua version changed to $1"
 }

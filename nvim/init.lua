@@ -1,7 +1,9 @@
 
 local cmdf = require("euclidian.lib.util").cmdf
+cmdf [[let mapleader = " "]]
+cmdf [[set termguicolors]]
 
-cmdf[[packadd packer.nvim]]
+cmdf [[packadd packer.nvim]]
 require("packer").startup(function()
 	use {"wbthomason/packer.nvim", opt = true}
 
@@ -23,9 +25,6 @@ require("packer").startup(function()
 	use "teal-language/vim-teal"
 end)
 
-cmdf[[let mapleader = " "]]
-cmdf[[set termguicolors]]
-
 require("nvim-treesitter.configs").setup{
    ensure_installed = "maintained",
    highlight = { enable = true },
@@ -33,12 +32,13 @@ require("nvim-treesitter.configs").setup{
 
 require("colorizer").setup()
 
-cmdf [[autocmd BufRead *.tl setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr()]]
+cmdf [[autocmd BufRead *.tl setlocal ft=teal | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr()]]
 cmdf [[autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]]
+
+cmdf [[set undodir=$HOME/.vim/undo]]
 
 local opts = {
 	belloff = "all",
-	undodir = os.getenv("HOME") .. "/.vim/undo",
 	undofile = true,
 	swapfile = false,
 	switchbuf = "useopen",

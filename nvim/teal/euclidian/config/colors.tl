@@ -1,9 +1,9 @@
 
 -- Colorscheme
 local color <const> = require("euclidian.lib.color")
+vim.g.colors_name = "euclidian"
 
-vim.api.nvim_command("set bg=dark")
-local palette <const>: {string:number} = {
+local p <const>: {string:number} = {
 	darkFg   = 0x817998,
 	fg       = 0xD8CEE4,
 	brightFg = 0xEFEFEF,
@@ -20,24 +20,29 @@ local palette <const>: {string:number} = {
 	red       = 0xD16161,
 	brightRed = 0xE69090,
 
-	darkPurple   = 0x826BB7,
-	purple       = 0x9674D8,
-	brightPurple = 0xC7B1F2,
-
 	darkGreen   = 0x50D480,
 	green       = 0x62F5A2,
+	brightGreen = 0xA8EBC5,
 
 	darkBlue   = 0x395081,
 	blue       = 0x799AE0,
 	brightBlue = 0xAAC3FD,
 
-	orange = 0xE8AB73,
+	darkYellow   = 0xA59844,
+	yellow       = 0xD5C876,
+	brightYellow = 0xF0E7AC,
+
+	darkPurple   = 0x826BB7,
+	purple       = 0x9674D8,
+	brightPurple = 0xC7B1F2,
+
+	darkOrange   = 0xB47B46,
+	orange       = 0xE8AB73,
+	brightOrange = 0xC3AA93,
 }
 
-local p <const> = palette
 local hi <const> = color.scheme.hi
 
--- ENV stuff would be nice here...
 -- ui stuffs
 hi.Normal   = { p.fg, p.bg }
 hi.Visual   = { p.fg, p.darkGray }
@@ -63,7 +68,7 @@ hi.Folded       = { p.darkRed, nil, "bold" }
 hi.FoldColumn   = { p.darkRed, p.darkBg, "bold" }
 hi.SignColumn   = { p.brightBg, p.darkBg }
 hi.NonText      = { p.brightBg }
-hi.MatchParen   = { p.brightBlue, nil, "bold" }
+hi.MatchParen   = { p.red, p.darkRed, "bold" }
 
 -- syntax
 hi.Comment    = { p.darkRed }
@@ -87,12 +92,7 @@ hi.PreProc = { p.brightRed }
 hi.Todo    = { p.brightRed, nil, "bold" }
 hi.Error   = { nil, p.red, "bold" }
 
--- FIXME: Nov 26 20:55 2020
---        This cast should not be necessary
---        teal sees this literal as {string|nil} instead of
---        a tuple of [nil, nil, string], which is compatible with
---        Color -> [number, number, string]
-hi.Underlined = { nil, nil, "underline" } as color.Color
+hi.Underlined = { nil, nil, "underline" }
 
 -- Treesitter
 hi.TSConstructor           = {  }
@@ -117,6 +117,7 @@ hi.Typedef     = hi.Type
 
 hi.SpecialComment = hi.Special
 hi.SpecialChar    = hi.Special
+hi.SpecialKey     = hi.Special
 hi.Tag            = hi.Special
 hi.Debug          = hi.Special
 
@@ -124,5 +125,9 @@ hi.PreCondit = hi.PreProc
 hi.Include   = hi.PreProc
 hi.Define    = hi.PreProc
 hi.Macro     = hi.PreProc
+
+hi.Directory = { p.blue }
+hi.WarningMsg = { nil, p.red }
+hi.WildMenu = { p.bg, p.yellow }
 
 return p

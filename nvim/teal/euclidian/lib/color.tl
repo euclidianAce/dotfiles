@@ -1,16 +1,16 @@
 
+local bit = require("bit")
 local util = require("euclidian.lib.util")
 
-local record c
-	type Color = [number, number, string]
+local record color
+	type Color = {number, number, string}
 	record scheme
 		hi: {string:Color}
 		groups: function(): (function(): string, number, number, string)
 	end
 end
-local Color = c.Color
-
-c.scheme.hi = {}
+color.scheme.hi = {}
+local Color = color.Color
 
 local function tiFmt(t: {string}, fmt: string, ...: any)
 	table.insert(t, string.format(fmt, ...))
@@ -29,12 +29,15 @@ end
 local groups: {Color:string} = {}
 local actualHi: {string:Color} = {}
 
-setmetatable(c.scheme.hi, {
+setmetatable(color.scheme.hi, {
 	__index = function(self: {string:Color}, key: string): Color
 		return actualHi[key]
 	end,
 	__newindex = function(self: {string:Color}, key: string, val: Color)
-		if groups[val] then
+		if not val then
+			util.cmdf("hi link %s NONE", key)
+			actualHi[key] = nil
+		elseif groups[val] then
 			-- just link the group
 			util.cmdf("hi clear %s", key)
 			util.cmdf("hi link %s %s", key, groups[val])
@@ -48,13 +51,28 @@ setmetatable(c.scheme.hi, {
 	end,
 })
 
-function c.scheme.groups(): function(): (string, number, number, string)
-	return coroutine.wrap(function()
-		for k, v in pairs(actualHi) do
-			coroutine.yield(k, v[1], v[2], v[3])
+function color.scheme.groups(): function(): (string, number, number, string)
+	local idx: string
+	local val: Color
+	return function(): (string, number, number, string)
+		idx, val = next(actualHi, idx)
+		if val then
+			return idx, val[1], val[2], val[3]
 		end
-	end) as function(): (string, number, number, string)
+	end
 end
 
-return c
+function color.hexToRgb(hex: number): number, number, number
+	return bit.rshift(hex, 16), bit.band(bit.rshift(hex, 8), 0x0000ff), bit.band(hex, 0x0000ff)
+end
+
+function color.rgbToHex(r: number, g: number, b: number): number
+	return bit.bor(
+		bit.lshift(r, 16),
+		bit.lshift(g, 8),
+		b
+	)
+end
+
+return color
 

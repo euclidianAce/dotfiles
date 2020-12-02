@@ -83,4 +83,11 @@ map("n", "<leader>g", teleBuiltin.live_grep)
 
 map("n", "<leader>s", require("euclidian.lib.snippet").start)
 
+map("t", "<Esc>", "<C-\\><C-n>")
+map("n", "<leader>n", ":noh<CR>")
+map("n", "<leader>5", ":w<CR>:source %<CR>:echo 'Sourced'")
+
+map("i", "{<CR>", "{}<Esc>i<CR><CR><Esc>kS")
+map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
+
 return M

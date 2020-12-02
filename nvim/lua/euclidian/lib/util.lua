@@ -8,6 +8,14 @@ function util.partial(f, a)
    end
 end
 
+function util.set(t)
+   local s = {}
+   for _, v in ipairs(t) do
+      s[v] = true
+   end
+   return s
+end
+
 function util.xor(a, b)
    return ((not a) and b) or (a and (not b))
 end

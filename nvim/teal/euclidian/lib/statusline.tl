@@ -1,16 +1,22 @@
+
+local util <const> = require("euclidian.lib.util")
+local set <const> = util.set
+local a <const> = vim.api
+
 local statusline = {
 	higroup = "StatuslineModeText",
 	_funcs: {function(number): string} = {},
+	-- flag = {
+		-- column = "%c",
+		-- lineNum = "%l",
+		-- numLines = "%L",
+		-- filePercent = "%p",
+		-- sep = "%=",
+		-- modified = "%m",
+	-- },
 }
 
 local cmd = vim.api.nvim_command
-local function set<T>(t: {T}): {T:boolean}
-	local s = {}
-	for _, v in ipairs(t) do
-		s[v] = true
-	end
-	return s
-end
 
 local enum Mode
 	"n" -- Normal
@@ -195,6 +201,10 @@ function statusline.toggleTag(name: string|{string})
 		end
 	end
 	statusline.updateWindows()
+end
+
+function statusline.isActive(winid: number): boolean
+	return a.nvim_win_get_var(winid or 0, "statusline_active") == 1
 end
 
 cmd "augroup customstatus"

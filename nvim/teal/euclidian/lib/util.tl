@@ -8,6 +8,14 @@ function util.partial<T, K>(f: function(...: T): K..., a: T): function(...: T): 
 	end
 end
 
+function util.set<T>(t: {T}): {T:boolean}
+	local s = {}
+	for _, v in ipairs(t) do
+		s[v] = true
+	end
+	return s
+end
+
 function util.xor(a: any, b: any): boolean
 	return ((not a) and b as boolean) or (a as boolean and (not b))
 end

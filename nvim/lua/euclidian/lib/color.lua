@@ -1,16 +1,16 @@
 
+local bit = require("bit")
 local util = require("euclidian.lib.util")
 
-local c = {scheme = {}, }
+local color = {scheme = {}, }
 
 
 
 
 
 
-local Color = c.Color
-
-c.scheme.hi = {}
+color.scheme.hi = {}
+local Color = color.Color
 
 local function tiFmt(t, fmt, ...)
    table.insert(t, string.format(fmt, ...))
@@ -29,12 +29,15 @@ end
 local groups = {}
 local actualHi = {}
 
-setmetatable(c.scheme.hi, {
+setmetatable(color.scheme.hi, {
    __index = function(self, key)
       return actualHi[key]
    end,
    __newindex = function(self, key, val)
-      if groups[val] then
+      if not val then
+         util.cmdf("hi link %s NONE", key)
+         actualHi[key] = nil
+      elseif groups[val] then
 
          util.cmdf("hi clear %s", key)
          util.cmdf("hi link %s %s", key, groups[val])
@@ -48,12 +51,27 @@ setmetatable(c.scheme.hi, {
    end,
 })
 
-function c.scheme.groups()
-   return coroutine.wrap(function()
-      for k, v in pairs(actualHi) do
-         coroutine.yield(k, v[1], v[2], v[3])
+function color.scheme.groups()
+   local idx
+   local val
+   return function()
+      idx, val = next(actualHi, idx)
+      if val then
+         return idx, val[1], val[2], val[3]
       end
-   end)
+   end
 end
 
-return c
+function color.hexToRgb(hex)
+   return bit.rshift(hex, 16), bit.band(bit.rshift(hex, 8), 0x0000ff), bit.band(hex, 0x0000ff)
+end
+
+function color.rgbToHex(r, g, b)
+   return bit.bor(
+bit.lshift(r, 16),
+bit.lshift(g, 8),
+b)
+
+end
+
+return color

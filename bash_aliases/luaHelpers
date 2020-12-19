@@ -8,9 +8,7 @@ function luaVersion() {
 		lua_ver="5.1"
 		eselect_num="4"
 	fi
-	echo $lua_ver
-	echo $eselect_num
-	sudo eselect lua set $eselect_num
+	sudo eselect lua set $eselect_num \
 		&& ``eval `luarocks path --bin --lua-version=$lua_ver``` \
 		&& echo "Lua version changed to $1"
 }

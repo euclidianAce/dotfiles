@@ -12,6 +12,12 @@ function dump(...)
    end
 end
 
+_req = require
+function req(lib)
+   package.loaded[lib] = nil
+   return _req(lib)
+end
+
 require("euclidian.config.lsp")
 require("euclidian.config.snippets")
 require("euclidian.config.statusline")

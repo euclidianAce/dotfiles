@@ -2,44 +2,30 @@
 local cmdf = require("euclidian.lib.util").cmdf
 cmdf [[let mapleader = " "]]
 cmdf [[set termguicolors]]
+cmdf [[filetype indent on]]
 
-cmdf [[packadd packer.nvim]]
-require("packer").startup(function()
-	use {"wbthomason/packer.nvim", opt = true}
-
-	use "nvim-lua/popup.nvim"
-	use "nvim-lua/plenary.nvim"
-	use "neovim/nvim-lsp"
-	use "tpope/vim-fugitive"
-
-	use "editorconfig/editorconfig-vim"
-
-	use "ziglang/zig.vim"
-
-	use "norcalli/nvim-colorizer.lua"
-
-	use "nvim-treesitter/nvim-treesitter"
-	use "nvim-treesitter/playground"
-
-	use "nvim-lua/telescope.nvim"
-	use "teal-language/vim-teal"
-end)
+require("euclidian.lib.package-manager").enableSet("World")
 
 require("nvim-treesitter.configs").setup{
-   ensure_installed = "maintained",
-   highlight = { enable = true },
+	ensure_installed = "maintained",
+	highlight = { enable = true },
 }
 
 require("colorizer").setup()
 
-cmdf [[autocmd BufRead *.tl setlocal ft=teal | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr()]]
+cmdf [[syntax enable]]
+-- lua autocmds would be nice
+cmdf [[autocmd BufReadPre,BufRead,BufNewFile *.tl,*.lua syntax off | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]]
+cmdf [[autocmd BufReadPre,BufRead,BufNewFile *.c,*.h setlocal sw=4 ts=4]]
+cmdf [[autocmd BufRead *.adb setlocal sw=3 ts=3]]
 cmdf [[autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]]
 
+cmdf [[set undofile]]
 cmdf [[set undodir=$HOME/.vim/undo]]
 
 local opts = {
+	mouse = "a",
 	belloff = "all",
-	undofile = true,
 	swapfile = false,
 	switchbuf = "useopen",
 	wildmenu = true,
@@ -56,7 +42,7 @@ local opts = {
 	smartcase = true,
 	gdefault = true,
 	listchars = "tab:  │,eol:↵,trail:✗,space:·,precedes:<,extends:>,nbsp:+",
-	fillchars = "fold: ",
+	fillchars = "fold: ,vert: ",
 	inccommand = "split",
 	laststatus = 2,
 	scrolloff = 2,

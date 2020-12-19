@@ -48,6 +48,7 @@ hi.Normal = { p.fg, p.bg }
 hi.Visual = { p.fg, p.darkGray }
 hi.ErrorMsg = { nil, p.red }
 hi.Search = { p.bg, p.green }
+hi.Question = { p.darkGreen }
 
 hi.VertSplit = { nil, p.gray }
 hi.StatusLine = { nil, p.brightGray }
@@ -62,7 +63,8 @@ hi.PmenuSbar = { nil, p.brightGray }
 hi.PmenuThumb = { nil, p.gray }
 
 hi.LineNr = { p.gray, p.darkBg }
-hi.CursorLineNr = { p.lightGray, p.darkBg, "bold" }
+hi.CursorLine = { nil, p.brightBg }
+hi.CursorLineNr = { nil, p.darkBg }
 
 hi.Folded = { p.darkRed, nil, "bold" }
 hi.FoldColumn = { p.darkRed, p.darkBg, "bold" }

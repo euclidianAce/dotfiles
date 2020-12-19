@@ -38,16 +38,19 @@ end
 
 local function commentStr(pre: string, post: string, str: string): string
 	if trim(str) == "" then return str end
-	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)" .. escapeStr(post) .. "$")
+	local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)%s*" .. escapeStr(post) .. "$")
 
 	-- str is commented, uncomment it
 	if ws then
 		return ws .. m
 	end
 
+	pre = trim(pre)
+	post = trim(post)
+
 	-- str is uncommented, comment it
 	local leadingWs, rest = str:match("^(%s*)(.*)$")
-	return leadingWs .. pre .. " " .. rest .. post
+	return leadingWs .. pre .. " " .. rest .. (#post > 0 and " " .. post or "")
 end
 
 function commenter.commentLine(buf: number, lineNum: number)

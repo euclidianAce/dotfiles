@@ -13,7 +13,7 @@ do
 end
 
 project "deps"             { "neovim" }
-project "preload_modules"  { "vim" }
+project "preload_modules"  { "vim", "51compat" }
 project "include_dir"      { "teal" }
 
 compiler "skip_compat53"

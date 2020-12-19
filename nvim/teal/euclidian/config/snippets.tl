@@ -29,7 +29,7 @@ snippet.create("fix", function(buf: number): string
 end)
 
 local snip <const> = snippet.ftCreate
-local lua_teal = {"lua", "teal"}
+local lua_teal <const> = { "lua", "teal" }
 -- Generic stuff
 snip(lua_teal, "for",    'for %1 = %2, %3 do\n\nend',           {"i", "1", "10"})
 snip(lua_teal, "pairs",  'for %1, %2 in pairs(%3) do\n\nend',   {"k", "v", "{}"})
@@ -50,14 +50,15 @@ snip("lua",   "lfunc",   'local function %1(%2)\n\nend')
 snip("teal",  "req,",    'local %1 <const> = require("%1")')
 snip("teal",  "req.",    'local %1 <const> = require("%2")')
 snip("teal",  "module",  'local %1 <const> = {}\n\nreturn %1')
-snip("teal",  "func",    'function %1(%2): %3\n\nend')
+snip("teal",  "func",    'function %1(%2)%3\n\nend')
 snip("teal",  "lfunc",   'local function %1(%2)%3\n\nend')
 snip("teal",  "gfunc",   'global function %1(%2)%3\n\nend')
 snip("teal",  "const",   'local %1 <const> = %2')
 snip("teal",  "tconst",  'local %1 <const>: %2 = %3')
 
-snip("c",     "inc",     '#include <%1>')
-snip("c",     "linc",    '#include "%1"')
-snip("c",     "main",    'int main(void) {\nreturn 0;\n}')
-snip("c",     "fmain",   'int main(int argc, char **argv) {\n\treturn 0;\n}')
-snip("c",     "func",    '%1 %2(%3) {\n\n}')
+local c <const> = { "c", "cpp" }
+snip(c,       "inc",     '#include <%1>')
+snip(c,       "linc",    '#include "%1"')
+snip(c,       "main",    'int main(void) {\n\treturn 0;\n}')
+snip(c,       "fmain",   'int main(int argc, char **argv) {\n\treturn 0;\n}')
+snip(c,       "func",    '%1 %2(%3) {\n\n}')

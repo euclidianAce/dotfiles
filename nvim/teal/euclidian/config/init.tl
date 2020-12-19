@@ -12,6 +12,12 @@ global function dump(...: any)
 	end
 end
 
+global _req <const> = require as function(string): any
+global function req(lib: string): any
+	package.loaded[lib] = nil
+	return _req(lib)
+end
+
 require("euclidian.config.lsp")
 require("euclidian.config.snippets")
 require("euclidian.config.statusline")

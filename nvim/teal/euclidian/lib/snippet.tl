@@ -68,8 +68,8 @@ local function createEvaluator(kind: Evaluator.Kind): Evaluator
 	local ft <const> = a.nvim_buf_get_option(origBuf, "filetype")
 	a.nvim_buf_set_option(outputBuf, "filetype", ft)
 
-	a.nvim_win_set_option(outputWin, "winblend", 30)
-	a.nvim_win_set_option(inputWin,  "winblend", 30)
+	a.nvim_win_set_option(outputWin, "winblend", 15)
+	a.nvim_win_set_option(inputWin,  "winblend", 15)
 
 	local e <const> = {
 		kind = kind,
@@ -158,7 +158,6 @@ local function resolveSnippet(snip: Snippet, buf: number): ResolvedSnippet
 	end
 end
 
-global loadstring: function(string, string): function(...: any): any...
 local stub <const> = function() end
 local function evaluate(e: Evaluator)
 	if e.kind == "start" then

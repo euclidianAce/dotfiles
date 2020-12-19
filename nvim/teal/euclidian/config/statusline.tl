@@ -96,28 +96,35 @@ stl.add(active, inactive, "%r%h%w", "STLFname")
 stl.add(active, inactive, " %= ", "StatusLine")
 stl.add(inactive, active, " %= ", "StatusLineNC")
 
+local minWid <const> = 100
 stl.add(alwaysActive, empty, function(winid: number): string
 	local currentBuf <const> = a.nvim_win_get_buf(winid)
 	local cursorPos <const> = a.nvim_win_get_cursor(winid) as {number, number}
+	local wid <const> = a.nvim_win_get_width(winid) as number
 	local out: {string} = {}
 	if stl.isActive(winid) then
 		-- tabs/spaces info
-		local expandtab = a.nvim_buf_get_option(currentBuf, "expandtab") as boolean
-		local num: number
-		if expandtab then num = a.nvim_buf_get_option(currentBuf, "shiftwidth") as number
-		else              num = a.nvim_buf_get_option(currentBuf, "tabstop") as number
+		if wid > minWid then
+			local expandtab = a.nvim_buf_get_option(currentBuf, "expandtab") as boolean
+			local num: number
+			if expandtab then num = a.nvim_buf_get_option(currentBuf, "shiftwidth") as number
+			else              num = a.nvim_buf_get_option(currentBuf, "tabstop") as number
+			end
+			tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 		end
-		tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 
 		-- line info
 		local totalLines <const> = #a.nvim_buf_get_lines(currentBuf, 0, -1, false)
-		tiFmt(out, "Ln: %3d of %3d", cursorPos[1], totalLines)
-		tiFmt(out, "Col: %3d", cursorPos[2])
-		tiFmt(out, "%3d%%", math.floor(cursorPos[1] / totalLines * 100))
+		if wid > minWid then
+			tiFmt(out, "Ln: %3d of %3d", cursorPos[1], totalLines)
+			tiFmt(out, "Col: %3d", cursorPos[2] + 1)
+			tiFmt(out, "%3d%%", math.floor(cursorPos[1] / totalLines * 100))
+		else
+			tiFmt(out, "Ln:%d C:%d", cursorPos[1], cursorPos[2])
+		end
 	else
-		tiFmt(out, "Ln %3d", cursorPos[1])
+		tiFmt(out, "Ln: %3d", cursorPos[1])
 	end
 	-- | vs │ ?
 	return "  " .. table.concat(out, " | ") .. "  "
 end, "STLBufferInfo")
-

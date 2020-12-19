@@ -68,8 +68,8 @@ local function createEvaluator(kind)
    local ft = a.nvim_buf_get_option(origBuf, "filetype")
    a.nvim_buf_set_option(outputBuf, "filetype", ft)
 
-   a.nvim_win_set_option(outputWin, "winblend", 30)
-   a.nvim_win_set_option(inputWin, "winblend", 30)
+   a.nvim_win_set_option(outputWin, "winblend", 15)
+   a.nvim_win_set_option(inputWin, "winblend", 15)
 
    local e = {
       kind = kind,
@@ -157,7 +157,6 @@ local function resolveSnippet(snip, buf)
       }
    end
 end
-
 
 local stub = function() end
 local function evaluate(e)

@@ -73,6 +73,19 @@ function Dialog:setBufOpt(optName: string, val: any): Dialog
 	a.nvim_buf_set_option(self.buf, optName, val)
 	return self
 end
+function Dialog:setPrompt(prompt: string, cb: function(string))
+	a.nvim_buf_set_option(self.buf, "modifiable", true)
+	a.nvim_buf_set_option(self.buf, "buftype", "prompt")
+	-- TODO: pester someone about getting api functions for this
+	vim.fn.prompt_setprompt(self.buf, prompt or "> ")
+	vim.fn.prompt_setcallback(self.buf, cb)
+	a.nvim_command("startinsert")
+end
+function Dialog:unsetPrompt()
+	a.nvim_buf_set_option(self.buf, "modifiable", false)
+	a.nvim_buf_set_option(self.buf, "buftype", "nofile")
+	a.nvim_command("stopinsert")
+end
 function Dialog:close()
 	a.nvim_win_close(self.win, true)
 end

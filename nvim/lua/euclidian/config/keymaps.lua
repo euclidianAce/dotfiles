@@ -11,23 +11,32 @@ local map = function(m, lhs, rhs)
 end
 local unmap = keymapper.unmap
 
-
-map("n", "<leader>c", function()
+map("n", "<leader>cc", function()
    local cursorPos = a.nvim_win_get_cursor(0)
    require("euclidian.lib.commenter").commentLine(0, cursorPos[1])
 end)
-map("v", "<leader>c", function()
-   local start = (a.nvim_buf_get_mark(0, "<"))[1]
-   local finish = (a.nvim_buf_get_mark(0, ">"))[1]
-   require("euclidian.lib.commenter").commentRange(0, start - 1, finish)
-end)
+local OperatorfuncMode = {}
+
+
+M._exports.commentMotion = function(kind)
+   if kind ~= "line" then       return end
+   local l1 = a.nvim_buf_get_mark(0, '[')[1]
+   local l2 = a.nvim_buf_get_mark(0, ']')[1]
+   require("euclidian.lib.commenter").commentRange(0, l1 - 1, l2)
+end
+
+map(
+"n", "<leader>c",
+[[:set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
+
+
 local getchar = vim.fn.getchar
 map("n", "<leader>a", function()
    require("euclidian.lib.append").toCurrentLine(string.char(getchar()))
 end)
 map("v", "<leader>a", function()
-   local start = (a.nvim_buf_get_mark(0, "<"))[1] - 1
-   local finish = (a.nvim_buf_get_mark(0, ">"))[1]
+   local start = a.nvim_buf_get_mark(0, "<")[1] - 1
+   local finish = a.nvim_buf_get_mark(0, ">")[1]
    require("euclidian.lib.append").toRange(start, finish, string.char(getchar()))
 end)
 for mvkey, szkey in util.unpacker({
@@ -44,20 +53,19 @@ end
 
 local function setupTerm()
    local termCmd = vim.fn.input("Command to execute in terminal: ")
-   if #trim(termCmd) == 0 then
+   if trim(termCmd) == "" then
       return
    end
    local currentWin = a.nvim_get_current_win()
    cmdf([[sp +term]])
-   local termWin = a.nvim_get_current_win()
-   local termBuf = a.nvim_get_current_buf()
+
    local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
    if not ok then
       print("Unable to get terminal job id\n")
       return
    end
    map("n", "<leader>t", function()
-      local ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
+      ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
       if not ok then
          print("Unable to send command to terminal, (" .. termCmd .. ")")
       end
@@ -76,6 +84,8 @@ map("n", "<leader>ll", function()
    require("euclidian.lib.luaprinter").getLine(a.nvim_win_get_cursor(0)[1])
 end)
 
+map("n", "<leader>k", vim.lsp.diagnostic.show_line_diagnostics)
+
 local r = require
 local teleBuiltin = r("telescope.builtin")
 map("n", "<leader>fz", teleBuiltin.find_files)
@@ -83,11 +93,11 @@ map("n", "<leader>g", teleBuiltin.live_grep)
 
 map("n", "<leader>s", require("euclidian.lib.snippet").start)
 
-map("t", "<Esc>", "<C-\\><C-n>")
 map("n", "<leader>n", ":noh<CR>")
-map("n", "<leader>5", ":w<CR>:source %<CR>:echo 'Sourced'")
 
 map("i", "{<CR>", "{}<Esc>i<CR><CR><Esc>kS")
 map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
+
+map("t", "<Esc>", "<C-\\><C-n>")
 
 return M

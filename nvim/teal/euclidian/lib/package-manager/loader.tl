@@ -2,6 +2,11 @@
 local set <const> = require("euclidian.lib.package-manager.set")
 local loader <const> = {}
 
+-- TODO: ideally, we'd have a custom install location
+-- and we just add each path to rtp, but for now, just :packadd
+
+-- Holy shit packadd is cursed
+
 local function packadd(package: string)
 	vim.api.nvim_command(([[packadd %s]]):format(package))
 end

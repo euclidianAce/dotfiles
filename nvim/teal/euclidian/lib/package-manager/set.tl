@@ -1,5 +1,6 @@
 
-local Package = require("euclidian.lib.package-manager.Package")
+local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
+local Spec <const> = packagespec.Spec
 
 local set <const> = {}
 
@@ -8,9 +9,9 @@ local function tiFmt(t: {string}, s: string, ...: any)
 	ti(t, sf(s, ...))
 end
 
-local function generateDef(out: {string}, p: Package.Spec)
+local function generateDef(out: {string}, p: Spec)
 	assert(p.id, "Attempt to generate package def without id")
-	local leadingSpaces = (" "):rep(#("Package { "))
+	local leadingSpaces <const> = (" "):rep(#("Package { "))
 
 	local function ins(s: string, ...: any)
 		tiFmt(out, leadingSpaces .. s, ...)
@@ -37,9 +38,9 @@ local function generateDef(out: {string}, p: Package.Spec)
 	commaNewline()
 
 	if p.dependents then
-		local d = {}
+		local d <const> = {}
 		for _, dep in ipairs(p.dependents) do
-			if dep is Package.Spec then
+			if dep is Spec then
 				table.insert(d, tostring(dep.id))
 			end
 		end
@@ -55,10 +56,9 @@ local function generateDef(out: {string}, p: Package.Spec)
 	tiFmt(out, " }\n")
 end
 
-function set.serialize(ps: {Package.Spec}): string
-	local out = {}
-	local pkgs: {number:Package.Spec} = {}
-	local generated: {number:boolean} = {}
+function set.serialize(ps: {Spec}): string
+	local out <const> = {}
+	local pkgs <const>: {number:Spec} = {}
 
 	local lastId = 0
 	local function id(): number
@@ -66,7 +66,7 @@ function set.serialize(ps: {Package.Spec}): string
 		return lastId
 	end
 
-	local function gen(p: Package.Spec)
+	local function gen(p: Spec)
 		if not p.id then
 			p.id = id()
 			generateDef(out, p)
@@ -76,7 +76,7 @@ function set.serialize(ps: {Package.Spec}): string
 
 	for _, p in ipairs(ps) do
 		for _, dep in ipairs(p.dependents or {}) do
-			gen(dep as Package.Spec)
+			gen(dep as Spec)
 		end
 		gen(p)
 	end
@@ -84,19 +84,20 @@ function set.serialize(ps: {Package.Spec}): string
 	return table.concat(out)
 end
 
-function set.deserialize(str: string): {Package.Spec}
-	local packages: {number:Package.Spec} = {}
+function set.deserialize(str: string): {Spec}
+	local packages <const>: {number:Spec} = {}
 
-	local function Package(p: Package.Spec)
+	local function Package(p: Spec)
 		assert(p.id, "Package has no id!")
-		packages[p.id] = p
+		packages[p.id] = packagespec.new(p)
 	end
 
-	local chunk = assert(loadstring(str))
+	local chunk <const> = assert(loadstring(str))
 	setfenv(chunk, { Package = Package })
+	-- Should I be pcalling this? Yes. Am I? No.
 	chunk()
 
-	for id, pkg in pairs(packages) do
+	for _, pkg in pairs(packages) do
 		pkg.id = nil
 		if pkg.dependents then
 			for i, depId in ipairs(pkg.dependents) do
@@ -108,9 +109,9 @@ function set.deserialize(str: string): {Package.Spec}
 	return packages
 end
 
-local loadedSets: {string:{Package.Spec}} = {}
-local setPath = vim.fn.stdpath("config") as string .. "/sets"
-local function loadSet(name: string): {Package.Spec}
+local loadedSets <const>: {string:{Spec}} = {}
+local setPath <const> = vim.fn.stdpath("config") as string .. "/sets"
+local function loadSet(name: string): {Spec}
 	-- TODO: use luv to do the file read
 	local fh <const> = assert(io.open(setPath .. "/" .. name, "r"))
 	local content <const> = fh:read("*a")
@@ -118,14 +119,14 @@ local function loadSet(name: string): {Package.Spec}
 	return set.deserialize(content)
 end
 
-function set.load(name: string): {Package.Spec}
+function set.load(name: string): {Spec}
 	if not loadedSets[name] then
 		loadedSets[name] = loadSet(name)
 	end
 	return loadedSets[name]
 end
 
-function set.save(name: string, s: {Package.Spec})
+function set.save(name: string, s: {Spec})
 	assert(name) assert(s)
 	local fh <const> = assert(io.open(setPath .. "/" .. name, "w"))
 	fh:write(set.serialize(s), "\n")
@@ -137,7 +138,7 @@ local glob <const> = vim.fn.glob as function(string, boolean, boolean): {string}
 
 function set.list(): {string}
 	return map(function(s: string): string
-		return s:sub(#setPath+2, -1)
+		return s:sub(#setPath + 2, -1)
 	end, glob(setPath .. "/*", true, true))
 end
 

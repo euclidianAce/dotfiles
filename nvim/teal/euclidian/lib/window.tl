@@ -4,35 +4,42 @@ local a <const> = vim.api
 local record window
 	type WinId = number
 	type BufId = number
+	record UI
+		height: number
+		width: number
+	end
 end
 
-local record NvimUI
-	width: number
-	height: number
-end
-
-local function getUI(): NvimUI
-	return a.nvim_list_uis() as {NvimUI}[1]
-end
-
-local function initWin(winOpts: {string:any}): window.WinId, window.BufId
-	local buf <const> = a.nvim_create_buf(false, true)
+function window.init(winOpts: {string:any}, buf: window.BufId): window.WinId, window.BufId
+	if not buf then
+		buf = a.nvim_create_buf(false, true)
+	end
 	local win <const> = a.nvim_open_win(buf, true, winOpts)
 	return win, buf
 end
 
-local function floating(row: number, col: number, wid: number, hei: number): window.WinId, window.BufId
-	local win <const>, buf <const> = initWin{
+-- just grab the first ui
+function window.ui(): window.UI
+	return a.nvim_list_uis() as {window.UI}[1]
+end
+
+function window.floating(col: number, row: number, wid: number, hei: number, buf: window.BufId): window.WinId, window.BufId
+	local ui <const> = window.ui()
+
+	if col < 0 then
+		col = ui.width + col
+	end
+	if row < 0 then
+		row = ui.height + row
+	end
+
+	local win: window.WinId
+	win, buf = window.init({
 		relative = "editor", style = "minimal", anchor = "NW",
 		width = wid, height = hei,
 		row = row, col = col,
-	}
+	}, buf)
 	return win, buf
 end
 
-return {
-	t = window,
-	new = {
-		floating = floating,
-	},
-}
+return window

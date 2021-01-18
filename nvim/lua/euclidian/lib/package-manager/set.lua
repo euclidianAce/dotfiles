@@ -1,5 +1,6 @@
 
-local Package = require("euclidian.lib.package-manager.Package")
+local packagespec = require("euclidian.lib.package-manager.packagespec")
+local Spec = packagespec.Spec
 
 local set = {}
 
@@ -58,7 +59,6 @@ end
 function set.serialize(ps)
    local out = {}
    local pkgs = {}
-   local generated = {}
 
    local lastId = 0
    local function id()
@@ -89,14 +89,15 @@ function set.deserialize(str)
 
    local function Package(p)
       assert(p.id, "Package has no id!")
-      packages[p.id] = p
+      packages[p.id] = packagespec.new(p)
    end
 
    local chunk = assert(loadstring(str))
    setfenv(chunk, { Package = Package })
+
    chunk()
 
-   for id, pkg in pairs(packages) do
+   for _, pkg in pairs(packages) do
       pkg.id = nil
       if pkg.dependents then
          for i, depId in ipairs(pkg.dependents) do

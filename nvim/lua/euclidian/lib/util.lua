@@ -28,15 +28,25 @@ function util.trim(s)
    return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
 
-
-
-
 function util.unpacker(arr)
    local i = 0
    return function()
       i = i + 1
       return unpack(arr[i] or {})
    end
+end
+
+function util.proxy(t, index, newindex)
+   return setmetatable({}, {
+      __index = function(_, key)
+         if index then             index(t, key) end
+         return t[key]
+      end,
+      __newindex = function(_, key, val)
+         if newindex then             newindex(t, key, val) end
+         t[key] = val
+      end,
+   })
 end
 
 return util

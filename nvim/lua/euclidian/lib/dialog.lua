@@ -14,8 +14,8 @@ local Dialog = {Opts = {}, }
 
 
 
-local function new()
-   local win, buf = window.new.floating(10, 10, 50, 5)
+local function new(x, y, wid, hei)
+   local win, buf = window.floating(x or 10, y or 10, wid or 50, hei or 5)
    a.nvim_buf_set_option(buf, "buftype", "nofile")
    a.nvim_buf_set_option(buf, "modifiable", false)
    a.nvim_win_set_option(win, "winblend", 5)
@@ -24,9 +24,17 @@ local function new()
       buf = buf,
    }, { __index = Dialog })
 end
-function Dialog:setTxt(txt)
+function Dialog:setLines(txt)
    a.nvim_buf_set_option(self.buf, "modifiable", true)
    a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
+   a.nvim_buf_set_option(self.buf, "modifiable", false)
+   return self
+end
+function Dialog:setText(edits)
+   a.nvim_buf_set_option(self.buf, "modifiable", true)
+   for _, edit in ipairs(edits) do
+      a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], { edit[1] })
+   end
    a.nvim_buf_set_option(self.buf, "modifiable", false)
    return self
 end
@@ -49,12 +57,8 @@ function Dialog:setWin(o)
    })
    return self
 end
-function Dialog:addKeymap(mode, lhs, data)
-   a.nvim_buf_set_keymap(
-self.buf, mode, lhs,
-string.format("<cmd>lua require'euclidian.lib.package-manager.interface'.advanceDialog(%q)<CR>", data or ""),
-{ silent = true, noremap = true })
-
+function Dialog:addKeymap(mode, lhs, rhs, opts)
+   a.nvim_buf_set_keymap(self.buf, mode, lhs, rhs, opts)
    return self
 end
 function Dialog:delKeymap(mode, lhs)

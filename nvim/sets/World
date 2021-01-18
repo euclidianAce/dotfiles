@@ -34,3 +34,7 @@ Package { kind = "git",
           id = 11,
           repo = "nvim-treesitter/nvim-treesitter",
           dependents = { 10 } }
+Package { kind = "git",
+          id = 12,
+          repo = "glacambre/firenvim" }
+

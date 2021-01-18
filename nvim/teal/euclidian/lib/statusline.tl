@@ -18,41 +18,7 @@ local statusline = {
 
 local cmd = vim.api.nvim_command
 
-local enum Mode
-	"n" -- Normal
-	"no" -- Operator-pending
-	"nov" -- Operator-pending (forced charwise |o_v|)
-	"noV" -- Operator-pending (forced linewise |o_V|)
-	"no" -- Operator-pending (forced blockwise |o_CTRL-V|)
-	"niI" -- Normal using |i_CTRL-O| in |Insert-mode|
-	"niR" -- Normal using |i_CTRL-O| in |Replace-mode|
-	"niV" -- Normal using |i_CTRL-O| in |Virtual-Replace-mode|
-	"v" -- Visual by character
-	"V" -- Visual by line
-	"" -- Visual blockwise
-	"s" -- Select by character
-	"S" -- Select by line
-	"" -- Select blockwise
-	"i" -- Insert
-	"ic" -- Insert mode completion |compl-generic|
-	"ix" -- Insert mode |i_CTRL-X| completion
-	"R" -- Replace |R|
-	"Rc" -- Replace mode completion |compl-generic|
-	"Rv" -- Virtual Replace |gR|
-	"Rx" -- Replace mode |i_CTRL-X| completion
-	"c" -- Command-line editing
-	"cv" -- Vim Ex mode |gQ|
-	"ce" -- Normal Ex mode |Q|
-	"r" -- Hit-enter prompt
-	"rm" -- The -- more -- prompt
-	"r?" -- |:confirm| query of some sort
-	"!" -- Shell or external command is executing
-	"t" -- Terminal mode: keys go to the job
-
-	"?" -- Handle internal errors with this
-end
-
-local modeMap: {Mode:{string}} = setmetatable({
+local modeMap: {vim.Mode:{string}} = setmetatable({
 	["n"] = {"Normal", "Constant"},
 	["i"] = {"Insert", "Function"},
 	["r"] = {"Confirm", "Special"},
@@ -66,16 +32,16 @@ local modeMap: {Mode:{string}} = setmetatable({
 	[""] = {"Select Block", "Visual"},
 	["t"] = {"Terminal", "Number"},
 	["!"] = {"Shell", "Comment"},
-	["?"] = {" ???? ", "Error"},
+	["?" as vim.Mode] = {" ???? ", "Error"},
 }, {
-	__index = function(self: {Mode:{string}}, key: Mode): {string}
-		return rawget(self, string.sub(key, 1, 1) as Mode) or self["?"]
+	__index = function(self: {vim.Mode:{string}}, key: vim.Mode): {string}
+		return rawget(self, string.sub(key, 1, 1) as vim.Mode) or self["?" as vim.Mode]
 	end
 })
 
 local userModes: {string:{string}} = setmetatable({}, {
 	__index = function(self: {string:{string}}, key: string): {string}
-		return rawget(self, string.sub(key, 1, 1)) or modeMap[key as Mode]
+		return rawget(self, string.sub(key, 1, 1)) or modeMap[key as vim.Mode]
 	end
 })
 
@@ -84,7 +50,7 @@ function statusline.mode(mode: string, text: string, hlgroup: string)
 end
 
 function statusline.getModeText(): string
-	local m: Mode = vim.fn.mode(true) as Mode
+	local m = vim.fn.mode(true) as vim.Mode
 	local map <const> = userModes[m]
 	cmd("hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
 	return map[1]

@@ -56,9 +56,10 @@ snip("teal", "gfunc", 'global function %1(%2)%3\n\nend')
 snip("teal", "const", 'local %1 <const> = %2')
 snip("teal", "tconst", 'local %1 <const>: %2 = %3')
 
-local c = { "c", "cpp" }
+local c = { "c", "cpp", "h", "hpp" }
 snip(c, "inc", '#include <%1>')
 snip(c, "linc", '#include "%1"')
 snip(c, "main", 'int main(void) {\n\treturn 0;\n}')
 snip(c, "fmain", 'int main(int argc, char **argv) {\n\treturn 0;\n}')
 snip(c, "func", '%1 %2(%3) {\n\n}')
+snip(c, "class", 'class %1 {\nprivate:\n\npublic:\n\n};')

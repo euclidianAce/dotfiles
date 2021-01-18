@@ -28,15 +28,25 @@ function util.trim(s: string): string
 	return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
 
-global unpack: function<T>({T}): T...
--- TODO: fix
--- https://github.com/teal-language/tl/issues/237
-function util.unpacker<T>(arr: {{T}}): (function(): T, T, T, T, T...)
+function util.unpacker<T>(arr: {{T}}): function(): T...
 	local i = 0
-	return function(): T, T, T, T, T...
+	return function(): T...
 		i = i + 1
 		return unpack(arr[i] or {})
 	end
+end
+
+function util.proxy<K, V>(t: {K:V}, index: function({K:V}, K), newindex: function({K:V}, K, V)): {K:V}
+	return setmetatable({} as {K:V}, {
+		__index = function(_: {K:V}, key: K): V
+			if index then index(t, key) end
+			return t[key]
+		end,
+		__newindex = function(_: {K:V}, key: K, val: V)
+			if newindex then newindex(t, key, val) end
+			t[key] = val
+		end,
+	})
 end
 
 return util

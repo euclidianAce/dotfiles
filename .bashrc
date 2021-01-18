@@ -77,5 +77,7 @@ PROMPT_COMMAND=update_ps1
 # This is silly
 # if [[ -z $NVIM_STARTED ]]; then
 # 	export NVIM_STARTED=1
-# 	exec nvim "+term"
+# 	exec nvim "+term" "+startinsert"
+# else
+# 	alias nvim="echo no;# "
 # fi

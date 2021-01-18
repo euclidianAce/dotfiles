@@ -30,10 +30,10 @@ local groups: {Color:string} = {}
 local actualHi: {string:Color} = {}
 
 setmetatable(color.scheme.hi, {
-	__index = function(self: {string:Color}, key: string): Color
+	__index = function(_self: {string:Color}, key: string): Color
 		return actualHi[key]
 	end,
-	__newindex = function(self: {string:Color}, key: string, val: Color)
+	__newindex = function(_self: {string:Color}, key: string, val: Color)
 		if not val then
 			util.cmdf("hi link %s NONE", key)
 			actualHi[key] = nil

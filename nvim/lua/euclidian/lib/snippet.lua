@@ -187,7 +187,7 @@ local function evaluate(e)
    elseif e.kind == "lua" then
       local code = "return (" .. table.concat(a.nvim_buf_get_lines(e.input.buf, 0, -1, false), " ") .. ")"
       local func = loadstring(code) or stub
-      local ok, res = pcall(func)
+      local _, res = pcall(func)
       local data = vim.split(tostring(res or ""), "\n", true)
       a.nvim_buf_set_lines(e.output.buf, 0, -1, false, data)
    end
@@ -234,7 +234,7 @@ function snippet.ftCreate(ft, name, content, defaults)
    if type(ft) == "string" then
       ftSnippets[ft][name] = snip
    else
-      for i, v in ipairs(ft) do
+      for _, v in ipairs(ft) do
          ftSnippets[v][name] = snip
       end
    end

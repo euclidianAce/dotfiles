@@ -10,12 +10,12 @@ local record Dialog
 		col: number
 	end
 	
-	buf: window.t.BufId
-	win: window.t.WinId
+	buf: window.BufId
+	win: window.WinId
 end
 
-local function new(): Dialog
-	local win <const>, buf <const> = window.new.floating(10, 10, 50, 5)
+local function new(x: number, y: number, wid: number, hei: number): Dialog
+	local win <const>, buf <const> = window.floating(x or 10, y or 10, wid or 50, hei or 5)
 	a.nvim_buf_set_option(buf, "buftype", "nofile")
 	a.nvim_buf_set_option(buf, "modifiable", false)
 	a.nvim_win_set_option(win, "winblend", 5)
@@ -24,9 +24,17 @@ local function new(): Dialog
 		buf = buf,
 	}, { __index = Dialog })
 end
-function Dialog:setTxt(txt: {string}): Dialog
+function Dialog:setLines(txt: {string}): Dialog
 	a.nvim_buf_set_option(self.buf, "modifiable", true)
 	a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
+	a.nvim_buf_set_option(self.buf, "modifiable", false)
+	return self
+end
+function Dialog:setText(edits: {{string, number, number, number, number}}): Dialog
+	a.nvim_buf_set_option(self.buf, "modifiable", true)
+	for _, edit in ipairs(edits) do
+		a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], {edit[1]})
+	end
 	a.nvim_buf_set_option(self.buf, "modifiable", false)
 	return self
 end
@@ -49,15 +57,11 @@ function Dialog:setWin(o: Dialog.Opts): Dialog
 	})
 	return self
 end
-function Dialog:addKeymap(mode: string, lhs: string, data: string): Dialog
-	a.nvim_buf_set_keymap(
-		self.buf, mode, lhs,
-		string.format("<cmd>lua require'euclidian.lib.package-manager.interface'.advanceDialog(%q)<CR>", data or ""),
-		{ silent = true, noremap = true }
-	)
+function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string, opts: {string:boolean}): Dialog
+	a.nvim_buf_set_keymap(self.buf, mode, lhs, rhs, opts)
 	return self
 end
-function Dialog:delKeymap(mode: string, lhs: string): Dialog
+function Dialog:delKeymap(mode: vim.Mode, lhs: string): Dialog
 	a.nvim_buf_del_keymap(self.buf, mode, lhs)
 	return self
 end

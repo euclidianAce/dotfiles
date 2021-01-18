@@ -18,40 +18,6 @@ local statusline = {
 
 local cmd = vim.api.nvim_command
 
-local Mode = {}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 local modeMap = setmetatable({
    ["n"] = { "Normal", "Constant" },
    ["i"] = { "Insert", "Function" },

@@ -15,11 +15,11 @@ local function trim(str)
 end
 
 local function split(str, delimiter)
-   local a, b = str:find(delimiter, 1, true)
-   if not a then
+   local found = str:find(delimiter, 1, true)
+   if not found then
       return str, ""
    end
-   return str:sub(1, a - 1), str:sub(a + #delimiter, -1)
+   return str:sub(1, found - 1), str:sub(found + #delimiter, -1)
 end
 
 local function getCommentString(buf)
@@ -65,13 +65,20 @@ function commenter.commentLine(buf, lineNum)
 end
 
 function commenter.commentRange(buf, start, finish)
+   assert(buf, "no buffer")
+   assert(start, "no start")
+   assert(finish, "no finish")
    local lines = a.nvim_buf_get_lines(buf, start, finish, false)
+   if not lines[1] then
+      return
+   end
    local cs = getCommentString(buf)
    local pre, post = split(cs, "%s")
    local shouldBeCommented = not isCommented(pre, post, lines[1])
 
    lines[1] = commentStr(pre, post, lines[1])
    for i = 2, #lines do
+      print(i)
       if util.xor(shouldBeCommented, isCommented(pre, post, lines[i])) then
          lines[i] = commentStr(pre, post, lines[i])
       end

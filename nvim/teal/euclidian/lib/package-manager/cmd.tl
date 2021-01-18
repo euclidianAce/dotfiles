@@ -1,125 +1,159 @@
 
-local uv <const> = vim.loop
-local ev <const> = require("euclidian.lib.ev")
 local tree <const> = require("euclidian.lib.package-manager.tree")
+local ev <const> = require("euclidian.lib.ev")
+local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
+local uv <const> = vim.loop
 
-local record CommandOpts
-	{string}
+local Spec <const> = packagespec.Spec
+
+local record cmdCallbacks
+	stdout: function(string)
+	stderr: function(string)
+
+	start: function
+	close: function
+end
+local record cmdOpts
+	on: cmdCallbacks
 	cwd: string
+	timeout: number
+	command: {string}
+	thread: thread
 end
 
-local function reader(t: thread, evName: string, streamName: string): function(string, string)
-	return function(err: string, data: string)
-		assert(not err, err)
-		if data then
-			ev.queueForThread(t, evName, streamName, data)
-		end
-	end
-end
+local function runCmd(o: cmdOpts)
+	assert(o)
+	local cbs <const> = o.on or {}
 
--- create a worker for the current event loop that emits events on:
---    command start
---    stdout
---    stderr
---    command done
--- additionally, the command will be killed when the msTimeout is reached
-local function runCmd(evName: string, msTimeout: number, opts: CommandOpts)
-	assert(opts)
-
-	local cmdName <const> = opts[1]
+	local cmdName <const> = o.command[1]
 	local args <const>: {string} = {}
-	for i = 2, #opts do
-		args[i-1] = opts[i]
+	for i = 2, #o.command do
+		args[i-1] = o.command[i]
 	end
 
-	-- stdin, stdout, stderr
-	local stdio <const> = {uv.new_pipe(), uv.new_pipe(), uv.new_pipe()}
-
-	local currentThread <const> = coroutine.running()
-
-	ev.queueForThread(currentThread, evName, "start")
-	local timeoutTimer <const> = uv.new_timer()
+	local stdout <const> = uv.new_pipe()
+	local stderr <const> = uv.new_pipe()
 
 	local handle: uv.Handle
+	local timeoutTimer <const> = uv.new_timer()
 	local closed = false
-	local function closer(a: any, b: any)
+	local function closer()
 		if closed then return end
 		closed = true
-		ev.queueForThread(currentThread, evName, "done")
-		handle:close()
 
-		stdio[1]:close()
-		stdio[2]:close() stdio[2]:read_stop()
-		stdio[3]:close() stdio[3]:read_stop()
-		timeoutTimer:close() timeoutTimer:stop()
+		handle:close()
+		stdout:close() stdout:read_stop()
+		stderr:close() stderr:read_stop()
+		timeoutTimer:stop() timeoutTimer:close()
+
+		if cbs.close then
+			cbs.close()
+		end
 	end
 
-	handle = uv.spawn(cmdName, {
-		cwd = opts.cwd,
+	handle = assert(uv.spawn(cmdName, {
+		cwd = o.cwd,
 		args = args,
-		stdio = stdio,
-	}, closer) as uv.Handle
+		stdio = { nil, stdout, stderr },
+	}, closer)) as uv.Handle
 
-	stdio[2]:read_start(reader(currentThread, evName, "stdout"))
-	stdio[3]:read_start(reader(currentThread, evName, "stderr"))
-
-	timeoutTimer:start(msTimeout, 0, closer)
-
-	ev.worker(function()
-		ev.waitUntil(function(): boolean
-			return closed
-		end)
+	stdout:read_start(function(err: string, data: string)
+		assert(not err, err)
+		if data and cbs.stdout then
+			cbs.stdout(data)
+		end
 	end)
+	stderr:read_start(function(err: string, data: string)
+		assert(not err, err)
+		if data and cbs.stderr then
+			cbs.stderr(data)
+		end
+	end)
+
+	timeoutTimer:start(o.timeout or 30000, 0, closer)
+
+	if cbs.start then
+		cbs.start()
+	end
 end
 
-local defaultTimeout <const> = 60000
-local luarocks <const> = {}
-do
-	local function cmd(evKind: string, ...: string)
-		runCmd(evKind, defaultTimeout, {"luarocks", "--tree", tree.luarocks, "--lua-version=5.1", ...})
-	end
+local function eventedCmd(opts: cmdOpts)
+	local thread <const> = opts.thread or coroutine.running()
+	local closed = false
+	local command <const>: {string} = opts.command
+	local optsOn: cmdCallbacks = opts.on or {}
+	runCmd{
+		command = command,
+		cwd = opts.cwd,
+		on = {
+			stdout = function(data: string)
+				ev.queue(thread, { kind = "stdout", data })
+				if optsOn.stdout then
+					vim.schedule(function()
+						optsOn.stdout(data)
+					end)
+				end
+			end,
+			stderr = function(data: string)
+				ev.queue(thread, { kind = "stderr", data })
+				if optsOn.stderr then
+					vim.schedule(function()
+						optsOn.stderr(data)
+					end)
+				end
+			end,
+			start = function()
+				ev.queue(thread, { kind = "start", command })
+				if optsOn.start then
+					vim.schedule(optsOn.start)
+				end
+			end,
+			close = function()
+				ev.queue(thread, { kind = "finish", command })
+				closed = true
+				if optsOn.close then
+					vim.schedule(optsOn.close)
+				end
+			end,
+		},
+	}
 
-	function luarocks.install(evKind: string, rock: string)
-		cmd(evKind, "install", rock)
-	end
-
-	function luarocks.remove(evKind: string, rock: string)
-		cmd(evKind, "remove", rock)
-	end
-
-	function luarocks.list(evKind: string)
-		cmd(evKind, "list")
-	end
+	ev.anchor(function(): boolean
+		return not closed
+	end)
 end
 
 local git <const> = {}
-do
-	function git.clone(evKind: string, repo: string, dest: string)
-		runCmd(evKind, defaultTimeout, {"git", "clone", "https://github.com/" .. repo, dest})
-	end
 
-	function git.pull(evKind: string, dir: string)
-		runCmd(evKind, defaultTimeout, {"git", "pull", cwd = dir})
-	end
+function git.clone(p: Spec)
+	assert(p.kind == "git", "Attempt to git.clone a non git package")
+	eventedCmd{
+		command = {"git", "clone", "https://github.com/" .. p.repo, p.repo:match("[^/]+$")}
+	}
 end
 
-local function wrapAsync(msInterval: number, f: function)
-	local l <const> = ev.loop(f)
-	local t <const> = uv.new_timer()
-	t:start(0, msInterval, function()
-		if l:isAlive() then
-			l:step()
-		elseif not t:is_closing() then
-			t:stop()
-			t:close()
-		end
-	end)
+function git.pull(p: Spec)
+	assert(p.kind == "git", "Attempt to git.pull a non git package")
+	eventedCmd{
+		command = {"git", "pull"},
+		cwd = tree.neovim .. "/" .. p.repo:match("[^/]+$"),
+	}
+end
+
+-- TODO: luarocks commands
+local luarocks <const> = {}
+function luarocks.list()
+end
+
+function luarocks.install()
+end
+
+function luarocks.remove()
 end
 
 return {
-	luarocks = luarocks,
+	run = runCmd,
+	runEvented = eventedCmd,
 	git = git,
-	wrapAsync = wrapAsync,
-	runCmd = runCmd,
+	luarocks = luarocks,
 }
-

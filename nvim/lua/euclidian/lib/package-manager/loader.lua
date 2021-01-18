@@ -2,6 +2,11 @@
 local set = require("euclidian.lib.package-manager.set")
 local loader = {}
 
+
+
+
+
+
 local function packadd(package)
    vim.api.nvim_command(([[packadd %s]]):format(package))
 end

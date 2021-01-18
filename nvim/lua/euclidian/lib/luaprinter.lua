@@ -136,7 +136,7 @@ function M.getLine(lineNum, bufNum)
    local b, wasCached = getLuaBuf(bufNum)
    local function createWin()
       local buf = a.nvim_create_buf(false, true)
-      local win = a.nvim_open_win(buf, true, {
+      a.nvim_open_win(buf, true, {
          relative = "cursor", style = "minimal", anchor = "NW",
          width = 65, height = 15,
          row = 1, col = 0,

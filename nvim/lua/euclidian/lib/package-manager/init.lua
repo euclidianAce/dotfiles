@@ -1,25 +1,26 @@
 
 local cmdf = require("euclidian.lib.util").cmdf
-local tree = require("euclidian.lib.package-manager.tree")
-local a = vim.api
-local pack = {}
+local manager = {}
 
+local interface = require("euclidian.lib.package-manager.interface")
+local commands = {
+   ["Install"] = interface.installSet,
+   ["Update"] = interface.updateSet,
+}
 
-package.path = tree.luarocks .. "/share/lua/5.1/?.lua;" ..
-tree.luarocks .. "/share/lua/5.1/?/init.lua;" ..
-package.path
-
-package.cpath = tree.luarocks .. "/lib/lua/5.1/?.so;" ..
-package.cpath
-
-function pack.enableSet(setName)
-   require("euclidian.lib.package-manager.loader").enableSet(setName)
+function manager.command(cmdName)
+   local cmd = commands[cmdName]
+   if not cmd then
+      return
+   end
+   cmd()
 end
 
+for name in pairs(commands) do
+   cmdf(
+[[command -nargs=0 PackageManager%s lua require'euclidian.lib.package-manager'.command(%q)]],
+name, name)
 
-local c = [[command %s lua require'euclidian.lib.package-manager.interface'.%s()]]
-cmdf(c, "PackageViewSets", "viewSets")
-cmdf(c, "PackageAdd", "addPackage")
+end
 
-
-return pack
+return manager

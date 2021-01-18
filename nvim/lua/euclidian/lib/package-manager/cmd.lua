@@ -1,124 +1,159 @@
 
-local uv = vim.loop
-local ev = require("euclidian.lib.ev")
 local tree = require("euclidian.lib.package-manager.tree")
+local ev = require("euclidian.lib.ev")
+local packagespec = require("euclidian.lib.package-manager.packagespec")
+local uv = vim.loop
 
-local CommandOpts = {}
+local Spec = packagespec.Spec
 
-
-
-
-local function reader(t, evName, streamName)
-   return function(err, data)
-      assert(not err, err)
-      if data then
-         ev.queueForThread(t, evName, streamName, data)
-      end
-   end
-end
+local cmdCallbacks = {}
 
 
 
 
 
 
+local cmdOpts = {}
 
-local function runCmd(evName, msTimeout, opts)
-   assert(opts)
 
-   local cmdName = opts[1]
+
+
+
+
+
+local function runCmd(o)
+   assert(o)
+   local cbs = o.on or {}
+
+   local cmdName = o.command[1]
    local args = {}
-   for i = 2, #opts do
-      args[i - 1] = opts[i]
+   for i = 2, #o.command do
+      args[i - 1] = o.command[i]
    end
 
-
-   local stdio = { uv.new_pipe(), uv.new_pipe(), uv.new_pipe() }
-
-   local currentThread = coroutine.running()
-
-   ev.queueForThread(currentThread, evName, "start")
-   local timeoutTimer = uv.new_timer()
+   local stdout = uv.new_pipe()
+   local stderr = uv.new_pipe()
 
    local handle
+   local timeoutTimer = uv.new_timer()
    local closed = false
-   local function closer(a, b)
+   local function closer()
       if closed then          return end
       closed = true
-      ev.queueForThread(currentThread, evName, "done")
-      handle:close()
 
-      stdio[1]:close()
-      stdio[2]:close(); stdio[2]:read_stop()
-      stdio[3]:close(); stdio[3]:read_stop()
-      timeoutTimer:close(); timeoutTimer:stop()
+      handle:close()
+      stdout:close(); stdout:read_stop()
+      stderr:close(); stderr:read_stop()
+      timeoutTimer:stop(); timeoutTimer:close()
+
+      if cbs.close then
+         cbs.close()
+      end
    end
 
-   handle = uv.spawn(cmdName, {
-      cwd = opts.cwd,
+   handle = assert(uv.spawn(cmdName, {
+      cwd = o.cwd,
       args = args,
-      stdio = stdio,
-   }, closer)
+      stdio = { nil, stdout, stderr },
+   }, closer))
 
-   stdio[2]:read_start(reader(currentThread, evName, "stdout"))
-   stdio[3]:read_start(reader(currentThread, evName, "stderr"))
-
-   timeoutTimer:start(msTimeout, 0, closer)
-
-   ev.worker(function()
-      ev.waitUntil(function()
-         return closed
-      end)
+   stdout:read_start(function(err, data)
+      assert(not err, err)
+      if data and cbs.stdout then
+         cbs.stdout(data)
+      end
    end)
+   stderr:read_start(function(err, data)
+      assert(not err, err)
+      if data and cbs.stderr then
+         cbs.stderr(data)
+      end
+   end)
+
+   timeoutTimer:start(o.timeout or 30000, 0, closer)
+
+   if cbs.start then
+      cbs.start()
+   end
 end
 
-local defaultTimeout = 60000
-local luarocks = {}
-do
-   local function cmd(evKind, ...)
-      runCmd(evKind, defaultTimeout, { "luarocks", "--tree", tree.luarocks, "--lua-version=5.1", ... })
-   end
+local function eventedCmd(opts)
+   local thread = opts.thread or coroutine.running()
+   local closed = false
+   local command = opts.command
+   local optsOn = opts.on or {}
+   runCmd({
+      command = command,
+      cwd = opts.cwd,
+      on = {
+         stdout = function(data)
+            ev.queue(thread, { kind = "stdout", data })
+            if optsOn.stdout then
+               vim.schedule(function()
+                  optsOn.stdout(data)
+               end)
+            end
+         end,
+         stderr = function(data)
+            ev.queue(thread, { kind = "stderr", data })
+            if optsOn.stderr then
+               vim.schedule(function()
+                  optsOn.stderr(data)
+               end)
+            end
+         end,
+         start = function()
+            ev.queue(thread, { kind = "start", command })
+            if optsOn.start then
+               vim.schedule(optsOn.start)
+            end
+         end,
+         close = function()
+            ev.queue(thread, { kind = "finish", command })
+            closed = true
+            if optsOn.close then
+               vim.schedule(optsOn.close)
+            end
+         end,
+      },
+   })
 
-   function luarocks.install(evKind, rock)
-      cmd(evKind, "install", rock)
-   end
-
-   function luarocks.remove(evKind, rock)
-      cmd(evKind, "remove", rock)
-   end
-
-   function luarocks.list(evKind)
-      cmd(evKind, "list")
-   end
+   ev.anchor(function()
+      return not closed
+   end)
 end
 
 local git = {}
-do
-   function git.clone(evKind, repo, dest)
-      runCmd(evKind, defaultTimeout, { "git", "clone", "https://github.com/" .. repo, dest })
-   end
 
-   function git.pull(evKind, dir)
-      runCmd(evKind, defaultTimeout, { "git", "pull", cwd = dir })
-   end
+function git.clone(p)
+   assert(p.kind == "git", "Attempt to git.clone a non git package")
+   eventedCmd({
+      command = { "git", "clone", "https://github.com/" .. p.repo, p.repo:match("[^/]+$") },
+   })
 end
 
-local function wrapAsync(msInterval, f)
-   local l = ev.loop(f)
-   local t = uv.new_timer()
-   t:start(0, msInterval, function()
-      if l:isAlive() then
-         l:step()
-      elseif not t:is_closing() then
-         t:stop()
-         t:close()
-      end
-   end)
+function git.pull(p)
+   assert(p.kind == "git", "Attempt to git.pull a non git package")
+   eventedCmd({
+      command = { "git", "pull" },
+      cwd = tree.neovim .. "/" .. p.repo:match("[^/]+$"),
+   })
+end
+
+
+local luarocks = {}
+function luarocks.list()
+end
+
+function luarocks.install()
+end
+
+function luarocks.remove()
 end
 
 return {
-   luarocks = luarocks,
+   run = runCmd,
+   runEvented = eventedCmd,
    git = git,
-   wrapAsync = wrapAsync,
-   runCmd = runCmd,
+   luarocks = luarocks,
 }

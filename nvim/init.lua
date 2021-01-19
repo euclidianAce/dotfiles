@@ -16,7 +16,7 @@ require("colorizer").setup()
 
 cmdf [[syntax enable]]
 -- lua autocmds would be nice
-cmdf [[autocmd BufReadPre,BufRead,BufNewFile *.tl,*.lua syntax off | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]]
+cmdf [[autocmd BufReadPre,BufAdd,BufNewFile *.tl,*.lua set syntax= | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]]
 cmdf [[autocmd BufReadPre,BufRead,BufNewFile *.c,*.h,*.cpp setlocal sw=4 ts=4]]
 cmdf [[autocmd TextYankPost * lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]]
 cmdf [[autocmd TermOpen * setlocal nonumber norelativenumber foldcolumn=0 signcolumn=no]]

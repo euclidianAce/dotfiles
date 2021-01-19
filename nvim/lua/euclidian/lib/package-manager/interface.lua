@@ -21,20 +21,35 @@ local function longest(lines)
    return idx, lines[idx]
 end
 
+local floor, ceil, max, min =
+math.floor, math.ceil, math.max, math.min
 local function getWinSize(wid, hei)
    local ui = window.ui()
-   local minWid = math.floor(ui.width / 4)
-   local minHei = math.floor(ui.height / 4)
 
-   wid = math.max(minWid, wid)
-   hei = math.max(minHei, hei)
+   local minWid = floor(ui.width * .25)
+   local minHei = floor(ui.height * .25)
 
-   return math.floor((ui.width - wid) / 2), math.floor((ui.height - hei) / 2), wid, hei
+   local maxWid = floor(ui.width * .90)
+   local maxHei = floor(ui.height * .90)
+
+   wid = min(max(minWid, wid), maxWid)
+   hei = min(max(minHei, hei), maxHei)
+
+   return floor((ui.width - wid) / 2), floor((ui.height - hei) / 2), wid, hei
 end
 
 local function getWinSizeTable(width, height)
    local col, row, wid, hei = getWinSize(width, height)
    return { col = col, row = row, wid = wid, hei = hei }
+end
+
+local function accommodateText(d)
+   local lines = d:getLines()
+   local twid = longest(lines)
+   local thei = #lines
+
+   local col, row, wid, hei = getWinSize(twid, thei)
+   d:setWin({ col = col, row = row, wid = wid, hei = hei })
 end
 
 function interface.displaySets()
@@ -49,8 +64,14 @@ end
 
 local currentDialog
 
-function interface._step()
-   coroutine.resume(currentDialog)
+function interface._step(data)
+   local ok, err = coroutine.resume(currentDialog, data)
+   if coroutine.status(currentDialog) == "dead" then
+      currentDialog = nil
+   end
+   if not ok then
+      error(err)
+   end
 end
 
 local function getLastLine(txt)
@@ -60,19 +81,24 @@ end
 math.randomseed(os.time())
 
 local stepCmd = "<cmd>lua require[[euclidian.lib.package-manager.interface]]._step()<cr>"
+local stepCmdFmt = "<cmd>lua require[[euclidian.lib.package-manager.interface]]._step(%q)<cr>"
 
 local function makeTitle(txt, width)
    local chars = width - #txt - 2
    return ("%s %s %s"):format(
-("="):rep(math.floor(chars / 2)),
+("="):rep(floor(chars / 2)),
 txt,
-("="):rep(math.ceil(chars / 2)))
+("="):rep(ceil(chars / 2)))
 
 end
 
 local function setCurrentDialog(fn)
    currentDialog = coroutine.create(fn)
    coroutine.resume(currentDialog)
+end
+
+local function setComparator(a, b)
+   return a:title() < b:title()
 end
 
 local function runForEachPkg(getCmd)
@@ -87,9 +113,7 @@ local function runForEachPkg(getCmd)
       local textSegments = {}
 
       local selectedSet = set.load(selected)
-      table.sort(selectedSet, function(a, b)
-         return a:title() < b:title()
-      end)
+      table.sort(selectedSet, setComparator)
 
       local maxCmds = 4
       local runningCmds = 0
@@ -137,7 +161,7 @@ local function runForEachPkg(getCmd)
       end
 
       local ui = window.ui()
-      local width = math.floor(ui.width * .9)
+      local width = floor(ui.width * .9)
       d:setWin(getWinSizeTable(width, #textSegments + 1))
       textSegments[1] = {
          makeTitle("Package", longestTitle),
@@ -187,8 +211,6 @@ local function runForEachPkg(getCmd)
 
       coroutine.yield()
       d:close()
-
-      currentDialog = nil
    end)
 end
 
@@ -205,5 +227,105 @@ function interface.updateSet()
       return { "echo", "git", "pull", "(" .. p:title() .. ")" }
    end)
 end
+
+function interface.addPackage()
+   setCurrentDialog(function()
+      local d = interface.displaySets()
+      d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+      coroutine.yield()
+
+      local selectedSet
+
+      do
+         local ln = d:getCursor()
+         local selected = d:getLine(ln)
+         print("selected", selected)
+         selectedSet = set.load(selected)
+         table.sort(selectedSet, setComparator)
+
+         local text = {}
+         for kind in pairs(packagespec.kinds) do
+            table.insert(text, kind)
+         end
+         table.sort(text)
+
+         d:setLines(text)
+         coroutine.yield()
+         d:delKeymap("n", "<cr>")
+      end
+
+      do
+         local ln = d:getCursor()
+         local selectedKind = d:getLine(ln)
+         print("kind of new package: ", selectedKind)
+
+         d:setLines({})
+         local promptText
+         if selectedKind == "git" then
+            promptText = "git repo: "
+         elseif selectedKind == "local" then
+            promptText = "local path: "
+         end
+         local result
+         d:setPrompt(promptText, function(txt)
+            result = txt
+            interface._step()
+         end)
+         coroutine.yield()
+         d:unsetPrompt()
+         d:setLines({
+            "name " .. result,
+            "kind " .. selectedKind,
+         })
+      end
+
+      do
+         d:setLines({
+            "Does this package depend on any other packages?",
+            "Yes",
+            "No",
+         })
+         d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+         local hasDependencies
+         repeat
+            coroutine.yield()
+            local ln = d:getCursor()
+            hasDependencies = d:getLine(ln) == "Yes"
+         until ln > 1
+         if hasDependencies then
+            local text = {}
+            for _, p in ipairs(selectedSet) do
+               table.insert(text, "[ ] " .. p:title())
+            end
+            d:setLines(text)
+            accommodateText(d)
+            d:addKeymap("n", "C", stepCmdFmt:format("C"), { silent = true, noremap = true })
+            while true do
+               local res = coroutine.yield()
+               if not res then                   break end
+               local ln = d:getCursor()
+               local line = d:getLine(ln)
+               d:setText({
+                  { line:match("^%[%*") and " " or "*", ln - 1, 1, ln - 1, 2 },
+               })
+            end
+
+            d:delKeymap("n", "C")
+            local deps = {}
+            local lines = d:getLines(1, -1)
+            for i, line in ipairs(lines) do
+               if line:match("^%[%*") then
+                  table.insert(deps, selectedSet[i + 1])
+               end
+            end
+         end
+      end
+
+      coroutine.yield()
+      d:close()
+   end)
+end
+
+vim.api.nvim_command([[command! -nargs=0 Ptest lua req'euclidian.lib.package-manager.interface'.addPackage()]])
 
 return interface

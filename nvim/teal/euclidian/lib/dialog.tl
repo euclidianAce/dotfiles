@@ -31,6 +31,7 @@ function Dialog:setLines(txt: {string}): Dialog
 	return self
 end
 function Dialog:setText(edits: {{string, number, number, number, number}}): Dialog
+	-- edit: {text, start_row, start_col, end_row, end_col}
 	a.nvim_buf_set_option(self.buf, "modifiable", true)
 	for _, edit in ipairs(edits) do
 		a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], {edit[1]})
@@ -48,6 +49,9 @@ function Dialog:getCursor(): number, number
 end
 function Dialog:getLine(n: number): string
 	return a.nvim_buf_get_lines(self.buf, n-1, n, false)[1]
+end
+function Dialog:getLines(min: number, max: number): {string}
+	return a.nvim_buf_get_lines(self.buf, min or 0, max or -1, false)
 end
 function Dialog:setWin(o: Dialog.Opts): Dialog
 	a.nvim_win_set_config(self.win, {
@@ -73,18 +77,20 @@ function Dialog:setBufOpt(optName: string, val: any): Dialog
 	a.nvim_buf_set_option(self.buf, optName, val)
 	return self
 end
-function Dialog:setPrompt(prompt: string, cb: function(string))
+function Dialog:setPrompt(prompt: string, cb: function(string)): Dialog
 	a.nvim_buf_set_option(self.buf, "modifiable", true)
 	a.nvim_buf_set_option(self.buf, "buftype", "prompt")
 	-- TODO: pester someone about getting api functions for this
 	vim.fn.prompt_setprompt(self.buf, prompt or "> ")
 	vim.fn.prompt_setcallback(self.buf, cb)
 	a.nvim_command("startinsert")
+	return self
 end
-function Dialog:unsetPrompt()
+function Dialog:unsetPrompt(): Dialog
 	a.nvim_buf_set_option(self.buf, "modifiable", false)
 	a.nvim_buf_set_option(self.buf, "buftype", "nofile")
 	a.nvim_command("stopinsert")
+	return self
 end
 function Dialog:close()
 	a.nvim_win_close(self.win, true)

@@ -31,6 +31,7 @@ function Dialog:setLines(txt)
    return self
 end
 function Dialog:setText(edits)
+
    a.nvim_buf_set_option(self.buf, "modifiable", true)
    for _, edit in ipairs(edits) do
       a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], { edit[1] })
@@ -48,6 +49,9 @@ function Dialog:getCursor()
 end
 function Dialog:getLine(n)
    return a.nvim_buf_get_lines(self.buf, n - 1, n, false)[1]
+end
+function Dialog:getLines(min, max)
+   return a.nvim_buf_get_lines(self.buf, min or 0, max or -1, false)
 end
 function Dialog:setWin(o)
    a.nvim_win_set_config(self.win, {
@@ -80,11 +84,13 @@ function Dialog:setPrompt(prompt, cb)
    vim.fn.prompt_setprompt(self.buf, prompt or "> ")
    vim.fn.prompt_setcallback(self.buf, cb)
    a.nvim_command("startinsert")
+   return self
 end
 function Dialog:unsetPrompt()
    a.nvim_buf_set_option(self.buf, "modifiable", false)
    a.nvim_buf_set_option(self.buf, "buftype", "nofile")
    a.nvim_command("stopinsert")
+   return self
 end
 function Dialog:close()
    a.nvim_win_close(self.win, true)

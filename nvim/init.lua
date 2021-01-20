@@ -7,12 +7,10 @@ cmdf [[filetype indent on]]
 require("euclidian.lib.package-manager")
 require("euclidian.lib.package-manager.loader").enableSet("World")
 
-require("nvim-treesitter.configs").setup{
-	ensure_installed = { "teal" },
-	highlight = { enable = { "teal" } },
-}
-
-require("colorizer").setup()
+-- require("nvim-treesitter.configs").setup{
+-- 	ensure_installed = { "teal" },
+-- 	highlight = { enable = { "teal" } },
+-- }
 
 cmdf [[syntax enable]]
 -- lua autocmds would be nice

@@ -7,6 +7,7 @@ local dialog = require("euclidian.lib.dialog")
 local ev = require("euclidian.lib.ev")
 
 local Spec = packagespec.Spec
+local Dialog = dialog.Dialog
 
 local interface = {}
 
@@ -101,10 +102,12 @@ local function setComparator(a, b)
    return a:title() < b:title()
 end
 
+local defaultKeymapOpts = { silent = true, noremap = true }
+
 local function runForEachPkg(getCmd)
    setCurrentDialog(function()
       local d = interface.displaySets()
-      d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+      d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
       coroutine.yield()
       d:delKeymap("n", "<cr>")
       local ln = d:getCursor()
@@ -203,10 +206,10 @@ local function runForEachPkg(getCmd)
             end
             updateText()
 
-            d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+            d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
          end):asyncRun(150)
       else
-         d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+         d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
       end
 
       coroutine.yield()
@@ -228,13 +231,72 @@ function interface.updateSet()
    end)
 end
 
+local function ask(d, question, confirm, deny)
+   d:setLines({
+      question,
+      confirm or "Yes",
+      deny or "No",
+   })
+
+
+
+
+
+
+   d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+
+   local ln
+   repeat
+      coroutine.yield()
+      ln = d:getCursor()
+   until ln > 1
+
+   d:delKeymap("n", "<cr>")
+
+   return ln == 2
+end
+
+local function setChecklist(d, s)
+   local text = {}
+   for _, p in ipairs(s) do
+      table.insert(text, "[ ] " .. p:title())
+   end
+   d:setLines(text)
+   accommodateText(d)
+
+   d:addKeymap("n", "C", stepCmdFmt:format("C"), defaultKeymapOpts)
+   d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+
+   while true do
+      local res = coroutine.yield()
+      if not res then          break end
+      local ln = d:getCursor()
+      local line = d:getLine(ln)
+      d:setText({
+         { line:match("^%[%*") and " " or "*", ln - 1, 1, ln - 1, 2 },
+      })
+   end
+
+   d:delKeymap("n", "C")
+   local checked = {}
+   local lines = d:getLines(1, -1)
+   for i, line in ipairs(lines) do
+      if line:match("^%[%*") then
+         table.insert(checked, s[i + 1])
+      end
+   end
+
+   return checked
+end
+
 function interface.addPackage()
    setCurrentDialog(function()
       local d = interface.displaySets()
-      d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+      d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
       coroutine.yield()
 
       local selectedSet
+      local newPackage = {}
 
       do
          local ln = d:getCursor()
@@ -257,6 +319,7 @@ function interface.addPackage()
       do
          local ln = d:getCursor()
          local selectedKind = d:getLine(ln)
+         newPackage.kind = selectedKind
          print("kind of new package: ", selectedKind)
 
          d:setLines({})
@@ -273,53 +336,19 @@ function interface.addPackage()
          end)
          coroutine.yield()
          d:unsetPrompt()
-         d:setLines({
-            "name " .. result,
-            "kind " .. selectedKind,
-         })
       end
 
-      do
-         d:setLines({
-            "Does this package depend on any other packages?",
-            "Yes",
-            "No",
-         })
-         d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
-         local hasDependencies
-         repeat
-            coroutine.yield()
-            local ln = d:getCursor()
-            hasDependencies = d:getLine(ln) == "Yes"
-         until ln > 1
-         if hasDependencies then
-            local text = {}
-            for _, p in ipairs(selectedSet) do
-               table.insert(text, "[ ] " .. p:title())
-            end
-            d:setLines(text)
-            accommodateText(d)
-            d:addKeymap("n", "C", stepCmdFmt:format("C"), { silent = true, noremap = true })
-            while true do
-               local res = coroutine.yield()
-               if not res then                   break end
-               local ln = d:getCursor()
-               local line = d:getLine(ln)
-               d:setText({
-                  { line:match("^%[%*") and " " or "*", ln - 1, 1, ln - 1, 2 },
-               })
-            end
+      if ask(d, "Does this package depend on any other packages?") then
+         local _dependencies = setChecklist(d, selectedSet)
 
-            d:delKeymap("n", "C")
-            local deps = {}
-            local lines = d:getLines(1, -1)
-            for i, line in ipairs(lines) do
-               if line:match("^%[%*") then
-                  table.insert(deps, selectedSet[i + 1])
-               end
-            end
-         end
       end
+
+      if ask(d, "Do any other packages depend on this package?") then
+         local _dependents = setChecklist(d, selectedSet)
+
+      end
+
+
 
       coroutine.yield()
       d:close()

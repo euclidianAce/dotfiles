@@ -44,6 +44,7 @@ local function generateDef(out: {string}, p: Spec)
 				table.insert(d, tostring(dep.id))
 			end
 		end
+
 		if #d > 0 then
 			ins("dependents = { %s }", table.concat(d, ", "))
 		else
@@ -61,14 +62,14 @@ function set.serialize(ps: {Spec}): string
 	local pkgs <const>: {number:Spec} = {}
 
 	local lastId = 0
-	local function id(): number
+	local function nextId(): number
 		lastId = lastId + 1
 		return lastId
 	end
 
 	local function gen(p: Spec)
 		if not p.id then
-			p.id = id()
+			p.id = nextId()
 			generateDef(out, p)
 			pkgs[p.id] = p
 		end

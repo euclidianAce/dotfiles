@@ -1,7 +1,7 @@
 
 local record ffi
-	cdef: function(string)
 	C: {string:function}
+	cdef: function(string)
 	new: function(string, number): any
 end
 

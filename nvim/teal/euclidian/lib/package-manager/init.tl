@@ -3,6 +3,7 @@ local cmdf <const> = require("euclidian.lib.util").cmdf
 local manager <const> = {}
 
 local interface <const> = require("euclidian.lib.package-manager.interface")
+
 local commands <const>: {string:function} = {
 	["Install"] = interface.installSet,
 	["Update"] = interface.updateSet,

@@ -7,8 +7,9 @@ local loader <const> = {}
 
 -- Holy shit packadd is cursed
 
+local command <const> = vim.api.nvim_command
 local function packadd(package: string)
-	vim.api.nvim_command(([[packadd %s]]):format(package))
+	command(([[packadd %s]]):format(package))
 end
 
 local function packaddSet(setname: string)
@@ -18,7 +19,6 @@ local function packaddSet(setname: string)
 		if pkg.kind == "git" then
 			packadd(pkg.alias or pkg.repo:match("[^/]+$"))
 		elseif pkg.kind == "local" then
-			-- print("adding", pkg.path, "to rtp")
 			table.insert(pre, 1, pkg.path)
 			table.insert(post, pkg.path .. "/after")
 		end
@@ -26,7 +26,7 @@ local function packaddSet(setname: string)
 	local rtp <const> = vim.api.nvim_list_runtime_paths()
 	vim.list_extend(pre, rtp)
 	vim.list_extend(pre, post)
-	vim.api.nvim_command([[set rtp=]] .. table.concat(pre, ","))
+	command([[set rtp=]] .. table.concat(pre, ","))
 end
 
 function loader.enableSet(setname: string)

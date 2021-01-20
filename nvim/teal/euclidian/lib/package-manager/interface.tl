@@ -7,6 +7,7 @@ local dialog <const> = require("euclidian.lib.dialog")
 local ev <const> = require("euclidian.lib.ev")
 
 local Spec <const> = packagespec.Spec
+local Dialog <const> = dialog.Dialog
 
 local interface <const> = {}
 
@@ -38,12 +39,12 @@ local function getWinSize(wid: number, hei: number): number, number, number, num
 	return floor((ui.width - wid) / 2), floor((ui.height - hei) / 2), wid, hei
 end
 
-local function getWinSizeTable(width: number, height: number): dialog.Dialog.Opts
+local function getWinSizeTable(width: number, height: number): Dialog.Opts
 	local col <const>, row <const>, wid <const>, hei <const> = getWinSize(width, height)
 	return { col = col, row = row, wid = wid, hei = hei }
 end
 
-local function accommodateText(d: dialog.Dialog)
+local function accommodateText(d: Dialog)
 	local lines <const> = d:getLines()
 	local twid <const> = longest(lines)
 	local thei <const> = #lines
@@ -52,7 +53,7 @@ local function accommodateText(d: dialog.Dialog)
 	d:setWin{ col = col, row = row, wid = wid, hei = hei }
 end
 
-function interface.displaySets(): dialog.Dialog
+function interface.displaySets(): Dialog
 	local sets <const> = set.list()
 	local _, longestSetName = longest(sets)
 
@@ -101,10 +102,12 @@ local function setComparator(a: Spec, b: Spec): boolean
 	return a:title() < b:title()
 end
 
+local defaultKeymapOpts <const> = { silent = true, noremap = true }
+
 local function runForEachPkg(getCmd: function(Spec): {string})
 	setCurrentDialog(function()
 		local d <const> = interface.displaySets()
-		d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		coroutine.yield()
 		d:delKeymap("n", "<cr>")
 		local ln <const> = d:getCursor()
@@ -203,10 +206,10 @@ local function runForEachPkg(getCmd: function(Spec): {string})
 				end
 				updateText()
 
-				d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+				d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 			end):asyncRun(150)
 		else
-			d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+			d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		end
 
 		coroutine.yield()
@@ -228,13 +231,72 @@ function interface.updateSet()
 	end)
 end
 
+local function ask(d: Dialog, question: string, confirm: string, deny: string): boolean
+	d:setLines{
+		question,
+		confirm or "Yes",
+		deny or "No",
+	}
+	-- TODO: Only add this mapping if a <cr> mapping doesn't exist
+
+	-- there isn't a simple way to just check if a buffer has a mapping for an lhs
+	-- we can get the mappings for a buffer, but the <> parts get capitalized differently
+	-- ex: <CR> vs <Cmd>
+	-- Though this may not matter for the lhs? Who knows?
+	d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+
+	local ln: number
+	repeat
+		coroutine.yield()
+		ln = d:getCursor()
+	until ln > 1
+
+	d:delKeymap("n", "<cr>")
+
+	return ln == 2
+end
+
+local function setChecklist(d: Dialog, s: {Spec}): {Spec}
+	local text <const> = {}
+	for _, p in ipairs(s) do
+		table.insert(text, "[ ] " .. p:title())
+	end
+	d:setLines(text)
+	accommodateText(d)
+
+	d:addKeymap("n", "C", stepCmdFmt:format("C"), defaultKeymapOpts)
+	d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+
+	while true do
+		local res = coroutine.yield()
+		if not res then break end
+		local ln <const> = d:getCursor()
+		local line <const> = d:getLine(ln)
+		d:setText{
+			{ line:match"^%[%*" and " " or "*", ln-1, 1, ln-1, 2 },
+		}
+	end
+
+	d:delKeymap("n", "C")
+	local checked <const>: {Spec} = {}
+	local lines <const> = d:getLines(1, -1)
+	for i, line in ipairs(lines) do
+		if line:match"^%[%*" then
+			table.insert(checked, s[i+1])
+		end
+	end
+
+	return checked
+end
+
 function interface.addPackage()
 	setCurrentDialog(function()
 		local d <const> = interface.displaySets()
-		d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
+		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		coroutine.yield()
 
 		local selectedSet: {Spec}
+		local newPackage: Spec = {}
 
 		do
 			local ln <const> = d:getCursor()
@@ -257,6 +319,7 @@ function interface.addPackage()
 		do
 			local ln <const> = d:getCursor()
 			local selectedKind <const> = d:getLine(ln)
+			newPackage.kind = selectedKind as packagespec.Kind
 			print("kind of new package: ", selectedKind)
 
 			d:setLines{}
@@ -273,53 +336,19 @@ function interface.addPackage()
 			end)
 			coroutine.yield()
 			d:unsetPrompt()
-			d:setLines{
-				"name " .. result,
-				"kind " .. selectedKind,
-			}
 		end
 
-		do
-			d:setLines{
-				"Does this package depend on any other packages?",
-				"Yes",
-				"No",
-			}
-			d:addKeymap("n", "<cr>", stepCmd, { silent = true, noremap = true })
-			local hasDependencies: boolean
-			repeat
-				coroutine.yield()
-				local ln <const> = d:getCursor()
-				hasDependencies = d:getLine(ln) == "Yes"
-			until ln > 1
-			if hasDependencies then
-				local text <const> = {}
-				for _, p in ipairs(selectedSet) do
-					table.insert(text, "[ ] " .. p:title())
-				end
-				d:setLines(text)
-				accommodateText(d)
-				d:addKeymap("n", "C", stepCmdFmt:format("C"), { silent = true, noremap = true })
-				while true do
-					local res = coroutine.yield()
-					if not res then break end
-					local ln <const> = d:getCursor()
-					local line <const> = d:getLine(ln)
-					d:setText{
-						{ line:match"^%[%*" and " " or "*", ln-1, 1, ln-1, 2 },
-					}
-				end
-
-				d:delKeymap("n", "C")
-				local deps <const>: {Spec} = {}
-				local lines <const> = d:getLines(1, -1)
-				for i, line in ipairs(lines) do
-					if line:match"^%[%*" then
-						table.insert(deps, selectedSet[i+1])
-					end
-				end
-			end
+		if ask(d, "Does this package depend on any other packages?") then
+			local _dependencies <const> = setChecklist(d, selectedSet)
+			-- TODO
 		end
+
+		if ask(d, "Do any other packages depend on this package?") then
+			local _dependents <const> = setChecklist(d, selectedSet)
+			-- TODO
+		end
+
+		-- TODO: reserialize + save set
 
 		coroutine.yield()
 		d:close()

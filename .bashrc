@@ -34,6 +34,7 @@ export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 
 # Additions to PATH
+alias luarocks="luarocks --lua-version 5.4"
 eval $(luarocks path --bin)
 export LUA_PATH+=";$HOME/dev/teal-cli/build/?.lua;$HOME/dev/tl/?.lua;$HOME/dev/luastuffs/ltreesitter/?.lua"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"

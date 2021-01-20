@@ -77,12 +77,13 @@ function Dialog:setBufOpt(optName: string, val: any): Dialog
 	a.nvim_buf_set_option(self.buf, optName, val)
 	return self
 end
-function Dialog:setPrompt(prompt: string, cb: function(string)): Dialog
+function Dialog:setPrompt(prompt: string, cb: function(string), int: function()): Dialog
 	a.nvim_buf_set_option(self.buf, "modifiable", true)
 	a.nvim_buf_set_option(self.buf, "buftype", "prompt")
 	-- TODO: pester someone about getting api functions for this
 	vim.fn.prompt_setprompt(self.buf, prompt or "> ")
-	vim.fn.prompt_setcallback(self.buf, cb)
+	if cb then vim.fn.prompt_setcallback(self.buf, cb) end
+	if int then vim.fn.prompt_setinterrupt(self.buf, int) end
 	a.nvim_command("startinsert")
 	return self
 end

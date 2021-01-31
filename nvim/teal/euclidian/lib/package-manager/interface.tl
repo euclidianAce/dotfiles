@@ -9,6 +9,8 @@ local ev <const> = require("euclidian.lib.ev")
 local Spec <const> = packagespec.Spec
 local Dialog <const> = dialog.Dialog
 
+local yield <const> = coroutine.yield
+
 local interface <const> = {}
 
 local function longest(lines: {string}): number, string
@@ -99,16 +101,27 @@ local function setCurrentDialog(fn: function)
 end
 
 local function setComparator(a: Spec, b: Spec): boolean
+	if not b then
+		return true
+	end
+	if not a then
+		return false
+	end
 	return a:title() < b:title()
 end
 
 local defaultKeymapOpts <const> = { silent = true, noremap = true }
 
-local function runForEachPkg(getCmd: function(Spec): {string})
+local record PkgInfo
+	{string}
+	cwd: string
+end
+
+local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 	setCurrentDialog(function()
 		local d <const> = interface.displaySets()
 		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
-		coroutine.yield()
+		yield()
 		d:delKeymap("n", "<cr>")
 		local ln <const> = d:getCursor()
 		local selected <const> = d:getLine(ln)
@@ -141,7 +154,7 @@ local function runForEachPkg(getCmd: function(Spec): {string})
 				table.insert(jobs, function(t: thread)
 					cmd.runEvented{
 						command = command,
-						cwd = p:location(),
+						cwd = command.cwd,
 						on = {
 							start = function()
 								runningCmds = runningCmds + 1
@@ -212,13 +225,13 @@ local function runForEachPkg(getCmd: function(Spec): {string})
 			d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		end
 
-		coroutine.yield()
+		yield()
 		d:close()
 	end)
 end
 
 function interface.installSet()
-	runForEachPkg(function(p: Spec): {string}
+	runForEachPkg(function(p: Spec): PkgInfo
 		if not p:isInstalled() then
 			return p:installCmd()
 		end
@@ -226,8 +239,12 @@ function interface.installSet()
 end
 
 function interface.updateSet()
-	runForEachPkg(function(p: Spec): {string}
-		return { "echo", "git", "pull", "(" .. p:title() .. ")" }
+	runForEachPkg(function(p: Spec): PkgInfo
+		if p:isInstalled() then
+			return { "git", "pull", cwd = p:location() }
+		else
+			return p:installCmd()
+		end
 	end)
 end
 
@@ -247,7 +264,7 @@ local function ask(d: Dialog, question: string, confirm: string, deny: string): 
 
 	local ln: number
 	repeat
-		coroutine.yield()
+		yield()
 		ln = d:getCursor()
 	until ln > 1
 
@@ -256,6 +273,7 @@ local function ask(d: Dialog, question: string, confirm: string, deny: string): 
 	return ln == 2
 end
 
+local checkKeymap <const> = "a"
 local function setChecklist(d: Dialog, s: {Spec}): {Spec}
 	local text <const> = {}
 	for _, p in ipairs(s) do
@@ -264,11 +282,11 @@ local function setChecklist(d: Dialog, s: {Spec}): {Spec}
 	d:setLines(text)
 	accommodateText(d)
 
-	d:addKeymap("n", "C", stepCmdFmt:format("C"), defaultKeymapOpts)
+	d:addKeymap("n", checkKeymap, stepCmdFmt:format("C"), defaultKeymapOpts)
 	d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 
 	while true do
-		local res = coroutine.yield()
+		local res = yield()
 		if not res then break end
 		local ln <const> = d:getCursor()
 		local line <const> = d:getLine(ln)
@@ -277,7 +295,7 @@ local function setChecklist(d: Dialog, s: {Spec}): {Spec}
 		}
 	end
 
-	d:delKeymap("n", "C")
+	d:delKeymap("n", checkKeymap)
 	local checked <const>: {Spec} = {}
 	local lines <const> = d:getLines(1, -1)
 	for i, line in ipairs(lines) do
@@ -293,15 +311,16 @@ function interface.addPackage()
 	setCurrentDialog(function()
 		local d <const> = interface.displaySets()
 		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
-		coroutine.yield()
+		yield()
 
 		local selectedSet: {Spec}
+		local setName: string
 		local newPackage: Spec = {}
 
 		do
 			local ln <const> = d:getCursor()
 			local selected <const> = d:getLine(ln)
-			print("selected", selected)
+			setName = selected
 			selectedSet = set.load(selected)
 			table.sort(selectedSet, setComparator)
 
@@ -312,7 +331,7 @@ function interface.addPackage()
 			table.sort(text)
 
 			d:setLines(text)
-			coroutine.yield()
+			yield()
 			d:delKeymap("n", "<cr>")
 		end
 
@@ -320,7 +339,6 @@ function interface.addPackage()
 			local ln <const> = d:getCursor()
 			local selectedKind <const> = d:getLine(ln)
 			newPackage.kind = selectedKind as packagespec.Kind
-			print("kind of new package: ", selectedKind)
 
 			d:setLines{}
 			local promptText: string
@@ -329,33 +347,33 @@ function interface.addPackage()
 			elseif selectedKind == "local" then
 				promptText = "local path: "
 			end
-			local result: string
 			d:setPrompt(promptText, function(txt: string)
-				result = txt
+				if selectedKind == "git" then
+					newPackage.repo = txt
+				elseif selectedKind == "local" then
+					newPackage.path = txt
+				end
+
 				interface._step()
 			end)
-			coroutine.yield()
+			yield()
 			d:unsetPrompt()
 		end
 
-		if ask(d, "Does this package depend on any other packages?") then
-			local _dependencies <const> = setChecklist(d, selectedSet)
-			-- TODO
-		end
-
 		if ask(d, "Do any other packages depend on this package?") then
-			local _dependents <const> = setChecklist(d, selectedSet)
-			-- TODO
+			newPackage.dependents = setChecklist(d, selectedSet)
 		end
 
-		-- TODO: reserialize + save set
+		table.insert(selectedSet, newPackage)
+		set.save(setName, selectedSet)
 
-		coroutine.yield()
+		d:setLines{ ("Saved set %s"):format(setName) }
+		accommodateText(d)
+
+		yield()
 		d:close()
 	end)
 end
-
-vim.api.nvim_command[[command! -nargs=0 Ptest lua req'euclidian.lib.package-manager.interface'.addPackage()]]
 
 return interface
 

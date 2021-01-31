@@ -16,9 +16,9 @@ local function invert(fgColor)
    local r, g, b = color.hexToRgb(fgColor)
    return {
       color.rgbToHex(
-r - clamp(darkenFactor, r * 0.16, r * 0.90),
-g - clamp(darkenFactor, g * 0.16, g * 0.90),
-b - clamp(darkenFactor, b * 0.16, b * 0.90)),
+      r - clamp(darkenFactor, r * 0.16, r * 0.90),
+      g - clamp(darkenFactor, g * 0.16, g * 0.90),
+      b - clamp(darkenFactor, b * 0.16, b * 0.90)),
 
       fgColor,
    }
@@ -107,8 +107,8 @@ stl.add(alwaysActive, empty, function(winid)
       if wid > minWid then
          local expandtab = a.nvim_buf_get_option(currentBuf, "expandtab")
          local num
-         if expandtab then             num = a.nvim_buf_get_option(currentBuf, "shiftwidth")
-         else             num = a.nvim_buf_get_option(currentBuf, "tabstop")
+         if expandtab then num = a.nvim_buf_get_option(currentBuf, "shiftwidth")
+         else num = a.nvim_buf_get_option(currentBuf, "tabstop")
          end
          tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
       end

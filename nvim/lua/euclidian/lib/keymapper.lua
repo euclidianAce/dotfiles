@@ -34,10 +34,10 @@ local function map(mode, lhs, rhs, user_settings)
       keymapper._export.mapping[mode][correct_lhs] = util.partial(pcall, rhs)
       local vimRhs = string.format("<cmd>lua require('euclidian.lib.keymapper')._export.mapping[%q][%q]()<CR>", mode, lhs)
       a.nvim_set_keymap(
-mode,
-lhs,
-vimRhs,
-user_settings)
+      mode,
+      lhs,
+      vimRhs,
+      user_settings)
 
    end
 end

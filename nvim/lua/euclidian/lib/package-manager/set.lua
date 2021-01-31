@@ -1,8 +1,11 @@
 
+local tree = require("euclidian.lib.package-manager.tree")
 local packagespec = require("euclidian.lib.package-manager.packagespec")
 local Spec = packagespec.Spec
+local uv = vim.loop
 
 local set = {}
+local setPath = tree.set
 
 local ti, sf = table.insert, string.format
 local function tiFmt(t, s, ...)
@@ -82,15 +85,21 @@ function set.serialize(ps)
       gen(p)
    end
 
+   table.insert(out, "\n\n-- vim: ft=lua")
+
    return table.concat(out)
 end
 
 function set.deserialize(str)
    local packages = {}
 
+   local largestId = -1
    local function Package(p)
       assert(p.id, "Package has no id!")
       packages[p.id] = packagespec.new(p)
+      if p.id > largestId then
+         largestId = p.id
+      end
    end
 
    local chunk = assert(loadstring(str))
@@ -107,19 +116,26 @@ function set.deserialize(str)
       end
    end
 
+
+   for i = largestId, 1, -1 do
+      if packages[i] == nil then
+         table.remove(packages, i)
+      end
+   end
+
    return packages
 end
 
-local loadedSets = {}
-local setPath = vim.fn.stdpath("config") .. "/sets"
-local function loadSet(name)
 
+
+local function loadSet(name)
    local fh = assert(io.open(setPath .. "/" .. name, "r"))
    local content = fh:read("*a")
    fh:close()
    return set.deserialize(content)
 end
 
+local loadedSets = {}
 function set.load(name)
    if not loadedSets[name] then
       loadedSets[name] = loadSet(name)
@@ -128,19 +144,20 @@ function set.load(name)
 end
 
 function set.save(name, s)
-   assert(name); assert(s)
+   assert(name, "Can't save a set without a name"); assert(s, "No set to save")
    local fh = assert(io.open(setPath .. "/" .. name, "w"))
    fh:write(set.serialize(s), "\n")
    fh:close()
+   loadedSets[name] = nil
 end
 
-local map = vim.tbl_map
-local glob = vim.fn.glob
-
 function set.list()
-   return map(function(s)
-      return s:sub(#setPath + 2, -1)
-   end, glob(setPath .. "/*", true, true))
+   local list = {}
+   local dir = uv.fs_scandir(setPath)
+   for name in uv.fs_scandir_next, dir do
+      table.insert(list, name)
+   end
+   return list
 end
 
 return set

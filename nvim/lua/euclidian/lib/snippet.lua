@@ -89,10 +89,10 @@ end
 
 local function updateEvalBuf(e)
    a.nvim_buf_set_lines(
-e.output.buf,
-0, -1, false,
-vim.split(
-(e.snippet.content:gsub("%%(%d+)", function(m)
+   e.output.buf,
+   0, -1, false,
+   vim.split(
+   (e.snippet.content:gsub("%%(%d+)", function(m)
       local n = tonumber(m)
       if not n then
          return m
@@ -106,7 +106,7 @@ vim.split(
          return e.snippetInput[n]
       end
    end)),
-"\n"))
+   "\n"))
 
 
 end
@@ -140,7 +140,7 @@ local function getSnippetLength(txt)
    return len
 end
 local function resolveSnippet(snip, buf)
-   if not snip then       return end
+   if not snip then return end
    local content = snip.content
    if type(content) == "function" then
       local newContent = content(buf) or ""
@@ -216,8 +216,8 @@ local function step(e)
    end
 end
 
-function snippet.eval(winId)    evaluate(evaluators[winId]) end
-function snippet.step(winId)    step(evaluators[winId]) end
+function snippet.eval(winId) evaluate(evaluators[winId]) end
+function snippet.step(winId) step(evaluators[winId]) end
 
 function snippet.create(name, content, defaults)
    snippets[name] = {

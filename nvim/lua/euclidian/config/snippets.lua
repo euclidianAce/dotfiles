@@ -16,15 +16,15 @@ end
 snippet.create("todo", function(buf)
    local fstring, trail = getCommentFstring(buf)
    return fstring:format(
-" TODO: " .. vim.fn.strftime("%b %d %H:%M %Y") .. trail,
-"       %1" .. trail)
+   " TODO: " .. vim.fn.strftime("%b %d %H:%M %Y") .. trail,
+   "       %1" .. trail)
 
 end)
 snippet.create("fix", function(buf)
    local fstring, trail = getCommentFstring(buf)
    return fstring:format(
-" FIXME: " .. vim.fn.strftime("%b %d %H:%M %Y") .. trail,
-"        %1" .. trail)
+   " FIXME: " .. vim.fn.strftime("%b %d %H:%M %Y") .. trail,
+   "        %1" .. trail)
 
 end)
 

@@ -31,8 +31,8 @@ local function runCmd(o: cmdOpts)
 		args[i-1] = o.command[i]
 	end
 
-	local stdout <const> = uv.new_pipe()
-	local stderr <const> = uv.new_pipe()
+	local stdout <const> = uv.new_pipe(false)
+	local stderr <const> = uv.new_pipe(false)
 
 	local handle: uv.Handle
 	local timeoutTimer <const> = uv.new_timer()

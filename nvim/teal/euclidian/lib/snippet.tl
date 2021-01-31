@@ -48,7 +48,7 @@ local ftSnippets: {string:{string:Snippet}} = setmetatable({}, {
 local evaluators: {number:Evaluator} = {}
 
 local function createEvaluator(kind: Evaluator.Kind): Evaluator
-	-- TODO: fiddle with window positions when the cursor is near screen edges
+	-- TODO: use my window/dialog libraries
 	local origWin <const> = a.nvim_get_current_win()
 	local origBuf <const> = a.nvim_get_current_buf()
 	local cursorRow <const> = a.nvim_win_get_cursor(origWin)[1]

@@ -54,7 +54,7 @@ for s = 1, screen.count() do
 	gears.wallpaper.maximized(beautiful.wallpaper, s, true)
 end
 
-local terminal = "st"
+local terminal = "konsole"
 
 -- Set modkey to Win
 local modkey = "Mod4"
@@ -185,19 +185,19 @@ local globalkeys = gears.table.join(
 		partial(awful.spawn, terminal),
 		{ description="open a terminal", group="launcher" }
 	),
-	-- awful.key(
-		-- {m,shft}, "Return",
-		-- function()
-			-- awful.spawn(terminal, {
-				-- floating = true,
-				-- height = 400,
-				-- width = 600,
-				-- tag = mouse.screen.selected_tag,
-				-- placement = awful.placement.under_mouse,
-			-- })
-		-- end,
-		-- { description="open a floating terminal", group="launcher" }
-	-- ),
+	awful.key(
+		{m,shft}, "Return",
+		function()
+			awful.spawn(terminal, {
+				floating = true,
+				height = 400,
+				width = 600,
+				tag = mouse.screen.selected_tag,
+				placement = awful.placement.under_mouse,
+			})
+		end,
+		{ description="open a floating terminal", group="launcher" }
+	),
 	awful.key(
 		{m,crtl}, "r",
 		awesome.restart,

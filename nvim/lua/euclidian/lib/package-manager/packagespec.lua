@@ -1,6 +1,7 @@
 
 
 local tree = require("euclidian.lib.package-manager.tree")
+local uv = vim.loop
 
 local Kind = {}
 
@@ -32,8 +33,10 @@ local packagespec = {
    },
 }
 
+local SpecMt = { __index = Spec }
 function packagespec.new(p)
-   return setmetatable(p, { __index = Spec })
+
+   return (setmetatable)(p, SpecMt)
 end
 
 function Spec:location()
@@ -56,34 +59,22 @@ function Spec:title()
    end
 end
 
-math.randomseed(os.time())
 function Spec:installCmd()
    if self.kind == "git" then
-
-      local cmd = {}
-      for i = 1, math.random(3, 10) do
-         if math.random() < .5 then
-            table.insert(cmd, "sleep " .. tostring(math.random(.01, .5)) .. ";")
-         else
-            table.insert(cmd, "echo step " .. tostring(i) .. ";")
-         end
-      end
-      table.insert(cmd, "echo git clone https://github.com/" .. self.repo .. " " .. self:location())
-      return { "sh", "-c", table.concat(cmd, " ") }
+      return { "git", "clone", "https://github.com/" .. self.repo, self:location() }
    end
 end
 
-local glob = vim.fn.glob
+local function fileExists(fname)
+   return uv.fs_stat(fname) ~= nil
+end
+
 function Spec:isInstalled()
    if self.kind == "git" then
-      local loc = self:location()
-      if glob(loc) then
-         return true
-      end
+      return fileExists(self:location())
    else
       return true
    end
-   return false
 end
 
 return packagespec

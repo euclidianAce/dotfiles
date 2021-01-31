@@ -7,6 +7,7 @@ local interface = require("euclidian.lib.package-manager.interface")
 local commands = {
    ["Install"] = interface.installSet,
    ["Update"] = interface.updateSet,
+   ["Add"] = interface.addPackage,
 }
 
 function manager.command(cmdName)
@@ -19,9 +20,11 @@ end
 
 for name in pairs(commands) do
    cmdf(
-[[command -nargs=0 PackageManager%s lua require'euclidian.lib.package-manager'.command(%q)]],
-name, name)
+   [[command -nargs=0 PackageManager%s lua require'euclidian.lib.package-manager'.command(%q)]],
+   name, name)
 
 end
+
+require("euclidian.lib.package-manager.tree")
 
 return manager

@@ -82,8 +82,8 @@ function Dialog:setPrompt(prompt, cb, int)
    a.nvim_buf_set_option(self.buf, "buftype", "prompt")
 
    vim.fn.prompt_setprompt(self.buf, prompt or "> ")
-   if cb then       vim.fn.prompt_setcallback(self.buf, cb) end
-   if int then       vim.fn.prompt_setinterrupt(self.buf, int) end
+   if cb then vim.fn.prompt_setcallback(self.buf, cb) end
+   if int then vim.fn.prompt_setinterrupt(self.buf, int) end
    a.nvim_command("startinsert")
    return self
 end

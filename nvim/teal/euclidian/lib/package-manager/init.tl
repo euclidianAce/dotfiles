@@ -7,6 +7,7 @@ local interface <const> = require("euclidian.lib.package-manager.interface")
 local commands <const>: {string:function} = {
 	["Install"] = interface.installSet,
 	["Update"] = interface.updateSet,
+	["Add"] = interface.addPackage,
 }
 
 function manager.command(cmdName: string)
@@ -23,5 +24,7 @@ for name in pairs(commands) do
 		name, name
 	)
 end
+
+require("euclidian.lib.package-manager.tree") -- loading this ensures the directories exist
 
 return manager

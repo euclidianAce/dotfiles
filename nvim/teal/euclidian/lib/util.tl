@@ -24,6 +24,21 @@ function util.cmdf(fmt: string, ...: any)
 	a.nvim_command(fmt:format(...))
 end
 
+local concat = table.concat
+-- super simple autocmd wrapper
+-- TODO: allow functions in expr
+function util.autocmd(events: {string}, patts: {string}, expr: string)
+	assert(#events > 0, "no events")
+	assert(#patts > 0, "no patterns")
+	assert(expr, "no expr")
+	util.cmdf(
+		"autocmd %s %s %s",
+		concat(events, ","),
+		concat(patts, ","),
+		expr
+	)
+end
+
 function util.trim(s: string): string
 	return (s:gsub("^%s*(.*)%s*$", "%1"))
 end

@@ -6,14 +6,6 @@ local a = vim.api
 local statusline = {
    higroup = "StatuslineModeText",
    _funcs = {},
-
-
-
-
-
-
-
-
 }
 
 local cmd = vim.api.nvim_command
@@ -63,6 +55,8 @@ local Component = {}
 
 
 
+
+
 local lineComponents = {}
 local currentTags = {}
 
@@ -71,60 +65,42 @@ function statusline.add(tags, invertedTags, text, hiGroup)
       tags = set(tags),
       invertedTags = set(invertedTags),
    }
+   comp.hiGroup = hiGroup
    if type(text) == "string" then
-      comp.text = {
-         ("%%#%s#"):format(hiGroup),
-         text,
-         "%#Normal#",
-      }
+      comp.text = text
    elseif type(text) == "function" then
       statusline._funcs[#lineComponents + 1] = text
       comp.isFunc = true
-      comp.text = {
-         ("%%#%s#"):format(hiGroup), ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](]]):format(#lineComponents + 1),
-         [[)")}]],
-         "%#Normal#",
-      }
+      comp.funcId = #lineComponents + 1
    end
    table.insert(lineComponents, comp)
-end
-
-local function components()
-   local i = 0
-   return function()
-      i = i + 1
-      if lineComponents[i] then
-         return lineComponents[i].tags, lineComponents[i].invertedTags, lineComponents[i].text, lineComponents[i].isFunc
-      end
-   end
 end
 
 local function makeLine(tags, winId)
    local tagSet = set(tags)
    local buf = {}
-   for compTags, compInvTags, text, isFunc in components() do
+   for _, component in ipairs(lineComponents) do
       local include = false
-      for t in pairs(compTags) do
+      for t in pairs(component.tags) do
          if tagSet[t] or currentTags[t] then
             include = true
             break
          end
       end
-      for t in pairs(compInvTags) do
+      for t in pairs(component.invertedTags) do
          if tagSet[t] or currentTags[t] then
             include = false
             break
          end
       end
       if include then
-         if isFunc then
-            table.insert(buf, text[1])
-            table.insert(buf, text[2])
-            table.insert(buf, tostring(winId))
-            table.insert(buf, text[3])
+         table.insert(buf, ("%%#%s#"):format(component.hiGroup))
+         if component.isFunc then
+            table.insert(buf, ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):format(component.funcId, winId))
          else
-            table.insert(buf, table.concat(text))
+            table.insert(buf, component.text)
          end
+         table.insert(buf, "%#Normal#")
       end
    end
    return table.concat(buf)
@@ -143,18 +119,18 @@ local function setLine(winId)
 end
 
 function statusline.updateWindows()
-   for _, win_id in ipairs(vim.api.nvim_list_wins()) do
-      setLine(win_id)
+   for _, winId in ipairs(vim.api.nvim_list_wins()) do
+      setLine(winId)
    end
 end
 
-function statusline.setInactive(win_id)
-   vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 0)
+function statusline.setInactive(winId)
+   vim.api.nvim_win_set_var(winId or 0, "statusline_active", 0)
    statusline.updateWindows()
 end
 
-function statusline.setActive(win_id)
-   vim.api.nvim_win_set_var(win_id or 0, "statusline_active", 1)
+function statusline.setActive(winId)
+   vim.api.nvim_win_set_var(winId or 0, "statusline_active", 1)
    statusline.updateWindows()
 end
 
@@ -169,8 +145,8 @@ function statusline.toggleTag(name)
    statusline.updateWindows()
 end
 
-function statusline.isActive(winid)
-   return a.nvim_win_get_var(winid or 0, "statusline_active") == 1
+function statusline.isActive(winId)
+   return a.nvim_win_get_var(winId or 0, "statusline_active") == 1
 end
 
 cmd("augroup customstatus")

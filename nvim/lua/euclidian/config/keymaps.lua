@@ -19,7 +19,7 @@ local OperatorfuncMode = {}
 
 
 M._exports.commentMotion = function(kind)
-   if kind ~= "line" then       return end
+   if kind ~= "line" then return end
    local l1 = a.nvim_buf_get_mark(0, '[')[1]
    local l2 = a.nvim_buf_get_mark(0, ']')[1]
    require("euclidian.lib.commenter").commentRange(0, l1 - 1, l2)
@@ -79,11 +79,6 @@ M._exports.setupTermMapping = function()
 end
 
 map("n", "<leader>t", setupTerm)
-map("n", "<leader>lp", require("euclidian.lib.luaprinter").attach)
-map("n", "<leader>ll", function()
-   require("euclidian.lib.luaprinter").getLine(a.nvim_win_get_cursor(0)[1])
-end)
-
 map("n", "<leader>k", vim.lsp.diagnostic.show_line_diagnostics)
 
 local r = require

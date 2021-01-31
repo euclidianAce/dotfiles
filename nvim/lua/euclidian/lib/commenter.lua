@@ -6,9 +6,7 @@ local a = vim.api
 
 local commenter = {}
 
-local function escapeStr(str)
-   return (str:gsub("[-+.*()%[%]%%]", "%%%1"))
-end
+local escapeStr = vim.pesc
 
 local function trim(str)
    return str:match("%s*(.*)%s*")
@@ -37,7 +35,7 @@ local function isCommented(csPre, csPost, str)
 end
 
 local function commentStr(pre, post, str)
-   if trim(str) == "" then       return str end
+   if trim(str) == "" then return str end
    local ws, m = str:match("^(%s*)" .. escapeStr(pre) .. " ?(.-)%s*" .. escapeStr(post) .. "$")
 
 

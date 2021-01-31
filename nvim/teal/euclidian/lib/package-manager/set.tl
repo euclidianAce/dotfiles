@@ -1,8 +1,11 @@
 
+local tree <const> = require("euclidian.lib.package-manager.tree")
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
 local Spec <const> = packagespec.Spec
+local uv <const> = vim.loop
 
 local set <const> = {}
+local setPath = tree.set
 
 local ti <const>, sf <const> = table.insert, string.format
 local function tiFmt(t: {string}, s: string, ...: any)
@@ -82,19 +85,25 @@ function set.serialize(ps: {Spec}): string
 		gen(p)
 	end
 
+	table.insert(out, "\n\n-- vim: ft=lua")
+
 	return table.concat(out)
 end
 
 function set.deserialize(str: string): {Spec}
 	local packages <const>: {number:Spec} = {}
 
+	local largestId = -1
 	local function Package(p: Spec)
 		assert(p.id, "Package has no id!")
 		packages[p.id] = packagespec.new(p)
+		if p.id > largestId then
+			largestId = p.id
+		end
 	end
 
 	local chunk <const> = assert(loadstring(str))
-	setfenv(chunk, { Package = Package })
+	setfenv(chunk, { Package = Package } as table)
 	-- Should I be pcalling this? Yes. Am I? No.
 	chunk()
 
@@ -107,19 +116,26 @@ function set.deserialize(str: string): {Spec}
 		end
 	end
 
+	-- Guarantee that packages has no holes
+	for i = largestId, 1, -1 do
+		if packages[i] == nil then
+			table.remove(packages, i)
+		end
+	end
+
 	return packages
 end
 
-local loadedSets <const>: {string:{Spec}} = {}
-local setPath <const> = vim.fn.stdpath("config") as string .. "/sets"
+-- TODO: use luv to do the file reads/writes
+
 local function loadSet(name: string): {Spec}
-	-- TODO: use luv to do the file read
 	local fh <const> = assert(io.open(setPath .. "/" .. name, "r"))
 	local content <const> = fh:read("*a")
 	fh:close()
 	return set.deserialize(content)
 end
 
+local loadedSets <const>: {string:{Spec}} = {}
 function set.load(name: string): {Spec}
 	if not loadedSets[name] then
 		loadedSets[name] = loadSet(name)
@@ -128,19 +144,20 @@ function set.load(name: string): {Spec}
 end
 
 function set.save(name: string, s: {Spec})
-	assert(name) assert(s)
+	assert(name, "Can't save a set without a name") assert(s, "No set to save")
 	local fh <const> = assert(io.open(setPath .. "/" .. name, "w"))
 	fh:write(set.serialize(s), "\n")
 	fh:close()
+	loadedSets[name] = nil
 end
 
-local map <const> = vim.tbl_map
-local glob <const> = vim.fn.glob as function(string, boolean, boolean): {string}
-
 function set.list(): {string}
-	return map(function(s: string): string
-		return s:sub(#setPath + 2, -1)
-	end, glob(setPath .. "/*", true, true))
+	local list: {string} = {}
+	local dir = uv.fs_scandir(setPath)
+	for name in uv.fs_scandir_next, dir do
+		table.insert(list, name)
+	end
+	return list
 end
 
 return set

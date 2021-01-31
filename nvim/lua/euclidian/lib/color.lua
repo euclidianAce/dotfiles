@@ -17,12 +17,12 @@ local function tiFmt(t, fmt, ...)
 end
 local function updateHiGroup(group, fg, bg, ex)
    local out = { "hi", group }
-   if fg then       tiFmt(out, "guifg=#%06x", fg)
-   else       tiFmt(out, "guifg=none") end
-   if bg then       tiFmt(out, "guibg=#%06x", bg)
-   else       tiFmt(out, "guibg=none") end
-   if ex then       tiFmt(out, "gui=%s", ex)
-   else       tiFmt(out, "gui=none") end
+   if fg then tiFmt(out, "guifg=#%06x", fg)
+   else tiFmt(out, "guifg=none") end
+   if bg then tiFmt(out, "guibg=#%06x", bg)
+   else tiFmt(out, "guibg=none") end
+   if ex then tiFmt(out, "gui=%s", ex)
+   else tiFmt(out, "gui=none") end
    util.cmdf(table.concat(out, " "))
 end
 
@@ -68,9 +68,9 @@ end
 
 function color.rgbToHex(r, g, b)
    return bit.bor(
-bit.lshift(r, 16),
-bit.lshift(g, 8),
-b)
+   bit.lshift(r, 16),
+   bit.lshift(g, 8),
+   b)
 
 end
 

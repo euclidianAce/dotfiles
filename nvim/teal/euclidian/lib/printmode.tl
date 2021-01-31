@@ -5,24 +5,24 @@ local window <const> = require("euclidian.lib.window")
 
 local enum Mode
 	"buffer" "inspect"
-	"default"
+	"default" "custom"
 end
 
 local record printmode
 end
 
+local printBuf, printWin: window.BufId, window.WinId
 local inspectOpts <const> = { newline = " ", indent = "" }
-local printBuf <const> = a.nvim_create_buf(false, true) as window.BufId
-a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
-local printWin: window.WinId
+
 local modes <const>: {Mode:function(...:any)} = {
 	default = oldPrint,
+	custom = oldPrint,
 	inspect = function(...: any)
-		local text = {}
+		local text: {string} = {}
 		for i = 1, select("#", ...) do
 			local obj <const> = select(i, ...)
-			if obj is string then
-				table.insert(text, obj)
+			if type(obj) == "string" then
+				table.insert(text, obj as string)
 			else
 				table.insert(text, vim.inspect(obj, inspectOpts))
 			end
@@ -30,15 +30,19 @@ local modes <const>: {Mode:function(...:any)} = {
 		oldPrint(table.concat(text, " "))
 	end,
 	buffer = function(...: any)
-		if not printWin or not a.nvim_win_is_valid(printWin) then
+		if not printBuf then
+			printBuf = a.nvim_create_buf(false, true) as window.BufId
+			a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
+		end
+		if not (printWin and a.nvim_win_is_valid(printWin)) then
 			printWin = window.floating(-75, 2, 64, 45, printBuf)
 		end
 
 		local text <const> = {}
 		for i = 1, select("#", ...) do
 			local thing = select(i, ...)
-			if thing is string then
-				thing = thing:gsub("\n", "\\n")
+			if type(thing) == "string" then
+				thing = (thing as string):gsub("\n", "\\n")
 			else
 				thing = vim.inspect(thing, inspectOpts)
 			end
@@ -53,17 +57,22 @@ local modes <const>: {Mode:function(...:any)} = {
 
 local currentMode: Mode = "default"
 
-function printmode.set(newMode: Mode): printmode
-	currentMode = newMode
-	return printmode
-end
-
 function printmode.print(...: any)
 	modes[currentMode](...)
 end
 
 function printmode.printfn(mode: Mode): function(...: any)
 	return modes[mode or currentMode]
+end
+
+function printmode.set(newMode: Mode): printmode
+	currentMode = newMode
+	return printmode
+end
+
+function printmode.custom(fn: function(...: any)): printmode
+	modes.custom = fn
+	return printmode
 end
 
 function printmode.override(): printmode

@@ -1,0 +1,6 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =4
+let g:netrw_dirhist_4='/home/corey/dotfiles/nvim/teal'
+let g:netrw_dirhist_3='/home/corey/dev/tl/spec'
+let g:netrw_dirhist_2='/home/corey/dotfiles/nvim/teal/euclidian/lib'
+let g:netrw_dirhist_1='/home/corey/dev/tree-sitter-teal/corpus'

@@ -1,0 +1,16 @@
+Package { kind = "git",
+          id = 1,
+          repo = "nvim-lua/popup.nvim" }
+Package { kind = "git",
+          id = 2,
+          repo = "nvim-lua/telescope.nvim" }
+Package { kind = "git",
+          id = 3,
+          repo = "nvim-lua/plenary.nvim",
+          dependents = { 1, 2 } }
+Package { kind = "git",
+          id = 4,
+          repo = "arst/arst",
+          dependents = { 1 } }
+
+-- vim: ft=teal

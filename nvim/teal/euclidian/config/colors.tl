@@ -4,29 +4,29 @@ local color <const> = require("euclidian.lib.color")
 vim.g.colors_name = "euclidian"
 
 local p <const>: {string:number} = {
-	darkFg   = 0x817998,
-	fg       = 0xD8CEE4,
-	brightFg = 0xEFEFEF,
+	darkFg       = 0x817998,
+	fg           = 0xD8CEE4,
+	brightFg     = 0xEFEFEF,
 
-	darkBg   = 0x16131F,
-	bg       = 0x181520,
-	brightBg = 0x2B2735,
+	darkBg       = 0x16131F,
+	bg           = 0x181520,
+	brightBg     = 0x2B2735,
 
-	darkGray   = 0x332F3C,
-	gray       = 0x464252,
-	brightGray = 0x817998,
+	darkGray     = 0x332F3C,
+	gray         = 0x464252,
+	brightGray   = 0x817998,
 
-	darkRed   = 0x77405F,
-	red       = 0xD16161,
-	brightRed = 0xE69090,
+	darkRed      = 0x77405F,
+	red          = 0xD16161,
+	brightRed    = 0xE69090,
 
-	darkGreen   = 0x50D480,
-	green       = 0x62F5A2,
-	brightGreen = 0xA8EBC5,
+	darkGreen    = 0x50D480,
+	green        = 0x62F5A2,
+	brightGreen  = 0xA8EBC5,
 
-	darkBlue   = 0x395081,
-	blue       = 0x799AE0,
-	brightBlue = 0xAAC3FD,
+	darkBlue     = 0x395081,
+	blue         = 0x799AE0,
+	brightBlue   = 0xAAC3FD,
 
 	darkYellow   = 0xA59844,
 	yellow       = 0xD5C876,
@@ -128,8 +128,8 @@ hi.Include   = hi.PreProc
 hi.Define    = hi.PreProc
 hi.Macro     = hi.PreProc
 
-hi.Directory = { p.blue }
-hi.WarningMsg = { nil, p.red }
-hi.WildMenu = { p.bg, p.yellow }
+hi.Directory   = { p.blue }
+hi.WarningMsg  = { nil, p.red }
+hi.WildMenu    = { p.bg, p.yellow }
 
 return p

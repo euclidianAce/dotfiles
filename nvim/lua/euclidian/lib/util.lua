@@ -24,6 +24,21 @@ function util.cmdf(fmt, ...)
    a.nvim_command(fmt:format(...))
 end
 
+local concat = table.concat
+
+
+function util.autocmd(events, patts, expr)
+   assert(#events > 0, "no events")
+   assert(#patts > 0, "no patterns")
+   assert(expr, "no expr")
+   util.cmdf(
+   "autocmd %s %s %s",
+   concat(events, ","),
+   concat(patts, ","),
+   expr)
+
+end
+
 function util.trim(s)
    return (s:gsub("^%s*(.*)%s*$", "%1"))
 end
@@ -39,11 +54,11 @@ end
 function util.proxy(t, index, newindex)
    return setmetatable({}, {
       __index = function(_, key)
-         if index then             index(t, key) end
+         if index then index(t, key) end
          return t[key]
       end,
       __newindex = function(_, key, val)
-         if newindex then             newindex(t, key, val) end
+         if newindex then newindex(t, key, val) end
          t[key] = val
       end,
    })

@@ -101,3 +101,4 @@ return {
 	new = new,
 	Dialog = Dialog,
 }
+

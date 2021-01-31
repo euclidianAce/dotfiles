@@ -11,12 +11,12 @@ local Mode = {}
 local printmode = {}
 
 
+local printBuf, printWin
 local inspectOpts = { newline = " ", indent = "" }
-local printBuf = a.nvim_create_buf(false, true)
-a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
-local printWin
+
 local modes = {
    default = oldPrint,
+   custom = oldPrint,
    inspect = function(...)
       local text = {}
       for i = 1, select("#", ...) do
@@ -30,7 +30,11 @@ local modes = {
       oldPrint(table.concat(text, " "))
    end,
    buffer = function(...)
-      if not printWin or not a.nvim_win_is_valid(printWin) then
+      if not printBuf then
+         printBuf = a.nvim_create_buf(false, true)
+         a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
+      end
+      if not (printWin and a.nvim_win_is_valid(printWin)) then
          printWin = window.floating(-75, 2, 64, 45, printBuf)
       end
 
@@ -38,7 +42,7 @@ local modes = {
       for i = 1, select("#", ...) do
          local thing = select(i, ...)
          if type(thing) == "string" then
-            thing = thing:gsub("\n", "\\n")
+            thing = (thing):gsub("\n", "\\n")
          else
             thing = vim.inspect(thing, inspectOpts)
          end
@@ -53,17 +57,22 @@ local modes = {
 
 local currentMode = "default"
 
-function printmode.set(newMode)
-   currentMode = newMode
-   return printmode
-end
-
 function printmode.print(...)
    modes[currentMode](...)
 end
 
 function printmode.printfn(mode)
    return modes[mode or currentMode]
+end
+
+function printmode.set(newMode)
+   currentMode = newMode
+   return printmode
+end
+
+function printmode.custom(fn)
+   modes.custom = fn
+   return printmode
 end
 
 function printmode.override()

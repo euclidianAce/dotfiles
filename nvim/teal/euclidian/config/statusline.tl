@@ -128,3 +128,4 @@ stl.add(alwaysActive, empty, function(winid: number): string
 	-- | vs │ ?
 	return "  " .. table.concat(out, " | ") .. "  "
 end, "STLBufferInfo")
+

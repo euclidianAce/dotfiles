@@ -6,9 +6,7 @@ local a = vim.api
 
 local commenter = {}
 
-local function escapeStr(str: string): string
-	return (str:gsub("[-+.*()%[%]%%]", "%%%1"))
-end
+local escapeStr <const> = vim.pesc
 
 local function trim(str: string): string
 	return str:match("%s*(.*)%s*")
@@ -87,3 +85,4 @@ function commenter.commentRange(buf: number, start: number, finish: number)
 end
 
 return commenter
+

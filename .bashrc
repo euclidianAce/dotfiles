@@ -34,14 +34,12 @@ export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 
 # Additions to PATH
-alias luarocks="luarocks --lua-version 5.4"
-eval $(luarocks path --bin)
 export LUA_PATH+=";$HOME/dev/teal-cli/build/?.lua;$HOME/dev/tl/?.lua;$HOME/dev/luastuffs/ltreesitter/?.lua"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
-export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build:$HOME/Applications/firefox-nightly:$HOME/Applications/zig:$HOME/Applications/GNAT/2020/bin"
+export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build"
 
 # xterm-kitty doesn't work over ssh
-export TERM=xterm-256color
+# export TERM=xterm-256color
 
 #################
 #### ALIASES ####
@@ -67,7 +65,7 @@ function update_ps1 {
 		return 0
 	fi
 	# using utf8 needs a utf8 lib, which luajit doesn't come with
-	PS1=$(/usr/bin/lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
+	PS1=$(/nix/store/qp7s8wsq919p03alrchf5i9lpa2h3fn2-lua-5.4.2/bin/lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$DEFAULT_PS1
 	fi

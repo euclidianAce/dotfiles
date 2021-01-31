@@ -3,7 +3,7 @@
 local resume, yield, running, create, status =
 coroutine.resume, coroutine.yield, coroutine.running, coroutine.create, coroutine.status
 
-local isyieldable = coroutine.isyieldable or function()    return false end
+local isyieldable = coroutine.isyieldable or function() return false end
 
 local function safeYield(...)
    if isyieldable() then
@@ -152,15 +152,15 @@ function ev.poll(...)
          kinds[select(i, ...)] = true
       end
    else
-      setmetatable(kinds, { __index = function()             return true end })
+      setmetatable(kinds, { __index = function() return true end })
    end
 
    local loop = getRunningEventLoop("Unable to poll")
 
    return function()
-      repeat          doWork(loop)
+      repeat doWork(loop)
       until not hasWorkers(loop.pools) or
-         findEvent(loop.events, kinds)
+findEvent(loop.events, kinds)
 
       do
          local idx = findEvent(loop.events, kinds)
@@ -169,9 +169,9 @@ function ev.poll(...)
          end
       end
 
-      repeat          yield(); doWork(loop)
+      repeat yield(); doWork(loop)
       until not isAnchored(loop.anchors) or
-         findEvent(loop.events, kinds)
+findEvent(loop.events, kinds)
 
       local idx = findEvent(loop.events, kinds)
       if idx then

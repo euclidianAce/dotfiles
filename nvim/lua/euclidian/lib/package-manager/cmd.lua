@@ -31,14 +31,14 @@ local function runCmd(o)
       args[i - 1] = o.command[i]
    end
 
-   local stdout = uv.new_pipe()
-   local stderr = uv.new_pipe()
+   local stdout = uv.new_pipe(false)
+   local stderr = uv.new_pipe(false)
 
    local handle
    local timeoutTimer = uv.new_timer()
    local closed = false
    local function closer()
-      if closed then          return end
+      if closed then return end
       closed = true
 
       handle:close()

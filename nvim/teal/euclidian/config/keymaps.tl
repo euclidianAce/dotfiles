@@ -59,7 +59,7 @@ local function setupTerm() -- TODO: make this a floating terminal for funsies
 	local currentWin <const> = a.nvim_get_current_win()
 	cmdf [[sp +term]]
 
-	local ok, job: boolean, number = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
+	local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id") as (boolean, number)
 	if not ok then
 		print("Unable to get terminal job id\n")
 		return
@@ -79,11 +79,6 @@ M._exports.setupTermMapping = function()
 end
 
 map("n", "<leader>t", setupTerm)
-map("n", "<leader>lp", require("euclidian.lib.luaprinter").attach)
-map("n", "<leader>ll", function()
-	require("euclidian.lib.luaprinter").getLine(a.nvim_win_get_cursor(0)[1])
-end)
-
 map("n", "<leader>k", vim.lsp.diagnostic.show_line_diagnostics)
 
 local r <const> = require
@@ -101,3 +96,4 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 map("t", "<Esc>", "<C-\\><C-n>")
 
 return M
+

@@ -39,8 +39,8 @@ function util.autocmd(events, patts, expr)
 
 end
 
-function util.trim(s)
-   return (s:gsub("^%s*(.*)%s*$", "%1"))
+function util.trim(str)
+   return str:match("^%s*(.-)%s*$")
 end
 
 function util.unpacker(arr)

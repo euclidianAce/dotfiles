@@ -34,7 +34,16 @@ export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 
 # Additions to PATH
-export LUA_PATH+=";$HOME/dev/teal-cli/build/?.lua;$HOME/dev/tl/?.lua;$HOME/dev/luastuffs/ltreesitter/?.lua"
+function lua-path-prepend-dir {
+	export LUA_PATH="$1/?.lua;$1/?/init.lua;$LUA_PATH"
+}
+function lua-path-append-dir {
+	export LUA_PATH="$LUA_PATH;$1/?.lua;$1/?/init.lua"
+}
+lua-path-prepend-dir "$HOME/dev/teal-language-server/build"
+lua-path-prepend-dir "$HOME/dev/ltresitter"
+lua-path-prepend-dir "$HOME/dev/teal-cli/build"
+lua-path-prepend-dir "$HOME/dev/tl"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
 export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build"
 

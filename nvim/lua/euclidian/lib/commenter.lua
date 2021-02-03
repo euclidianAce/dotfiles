@@ -3,14 +3,11 @@
 
 local util = require("euclidian.lib.util")
 local a = vim.api
+local trim = util.trim
 
 local commenter = {}
 
 local escapeStr = vim.pesc
-
-local function trim(str)
-   return str:match("%s*(.*)%s*")
-end
 
 local function split(str, delimiter)
    local found = str:find(delimiter, 1, true)
@@ -22,11 +19,12 @@ end
 
 local function getCommentString(buf)
    local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
-   if not ok then
+   if not (ok and c) then
       print("[commenter] Couldn't get commentstring")
       return
    end
-   return c
+   local pre, post = split(c, "%s")
+   return trim(pre), trim(post)
 end
 
 local function isCommented(csPre, csPost, str)
@@ -52,11 +50,11 @@ local function commentStr(pre, post, str)
 end
 
 function commenter.commentLine(buf, lineNum)
-   local cs = getCommentString(buf)
-   if not cs then
+   local pre, post = getCommentString(buf)
+
+   if not pre then
       return
    end
-   local pre, post = split(cs, "%s")
    a.nvim_buf_set_lines(buf, lineNum - 1, lineNum, false, {
       commentStr(pre, post, a.nvim_buf_get_lines(buf, lineNum - 1, lineNum, false)[1]),
    })
@@ -70,8 +68,7 @@ function commenter.commentRange(buf, start, finish)
    if not lines[1] then
       return
    end
-   local cs = getCommentString(buf)
-   local pre, post = split(cs, "%s")
+   local pre, post = getCommentString(buf)
    local shouldBeCommented = not isCommented(pre, post, lines[1])
 
    lines[1] = commentStr(pre, post, lines[1])

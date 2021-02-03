@@ -6,7 +6,6 @@ function libreq(lib)
 	return require("euclidian.lib." .. lib)
 end
 
-
 local util = libreq("util")
 local cmdf, autocmd = util.cmdf, util.autocmd
 
@@ -17,7 +16,7 @@ cmdf [[syntax enable]]
 require("euclidian.lib.package-manager")
 require("euclidian.lib.package-manager.loader").enableSet("World")
 
-local tsLangs = { "teal", "lua", "nix", "javascript" }
+local tsLangs = { "teal", "lua", "nix", "javascript", "c" }
 require("nvim-treesitter.configs").setup{
 	ensure_installed = tsLangs,
 	highlight = { enable = tsLangs },
@@ -42,8 +41,10 @@ set(vim.g, {
 	netrw_banner = 0,
 })
 
+-- TODO: wat
+cmdf [[set undofile]]
+
 set(vim.o, {
-	undofile = true,
 	mouse = "a",
 	guicursor = "",
 	belloff = "all",
@@ -96,7 +97,6 @@ function req(lib)
 	return loaded
 end
 
-
 confreq("snippets")
 confreq("statusline")
 confreq("keymaps")
@@ -107,4 +107,19 @@ libreq("printmode")
 
 hi = libreq("color").scheme.hi
 palette = confreq("colors")
+
+euclidian = {
+	config = setmetatable({}, {
+		__index = function(self, key)
+			rawset(self, key, require("euclidian.config." .. key))
+			return rawget(self, key)
+		end,
+	}),
+	lib = setmetatable({}, {
+		__index = function(self, key)
+			rawset(self, key, require("euclidian.lib." .. key))
+			return rawget(self, key)
+		end,
+	})
+}
 

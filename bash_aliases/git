@@ -10,6 +10,7 @@ function ga {
 	git status --short
 }
 alias gaa="git add -A; git status --short"
+alias gap="git add -p"
 alias gc="git commit"
 alias gcm="git commit -m"
 

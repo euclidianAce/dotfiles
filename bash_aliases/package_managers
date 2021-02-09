@@ -27,4 +27,9 @@ case "$distro" in
 		alias xbpsr="sudo xbps-remove"
 		alias xbpsq="xbps-query -Rs"
 		;;
+	"nixos")
+		function nixsh {
+			nix-shell "$HOME/shells/$1.nix"
+		}
+		;;
 esac

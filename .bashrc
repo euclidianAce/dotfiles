@@ -42,10 +42,10 @@ function lua-path-append-dir {
 }
 lua-path-prepend-dir "$HOME/dev/teal-language-server/build"
 lua-path-prepend-dir "$HOME/dev/ltresitter"
-lua-path-prepend-dir "$HOME/dev/teal-cli/build"
+lua-path-prepend-dir "$HOME/dev/new-tl-cli/build"
 lua-path-prepend-dir "$HOME/dev/tl"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
-export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/tl:$HOME/dev/teal-cli/build"
+export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/new-tl-cli/bin"
 
 # xterm-kitty doesn't work over ssh
 # export TERM=xterm-256color

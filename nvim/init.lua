@@ -46,7 +46,7 @@ cmdf [[set undofile]]
 
 set(vim.o, {
 	mouse = "a",
-	guicursor = "",
+	-- guicursor = "",
 	belloff = "all",
 	swapfile = false,
 	switchbuf = "useopen",

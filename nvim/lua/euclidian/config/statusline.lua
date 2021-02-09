@@ -78,8 +78,6 @@ stl.add(active, inactive, function()
 end, "STLGit")
 local maxFileNameLen = 20
 stl.add(alwaysActive, empty, function(winid)
-
-
    local buf = a.nvim_win_get_buf(winid)
    local fname = a.nvim_buf_get_name(buf) or ""
    if fname:match("/bin/bash$") or #fname == 0 then

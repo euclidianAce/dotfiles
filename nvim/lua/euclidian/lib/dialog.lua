@@ -14,16 +14,28 @@ local Dialog = {Opts = {}, }
 
 
 
-local function new(x, y, wid, hei)
-   local win, buf = window.floating(x or 10, y or 10, wid or 50, hei or 5)
+local function setOpts(win, buf)
    a.nvim_buf_set_option(buf, "buftype", "nofile")
    a.nvim_buf_set_option(buf, "modifiable", false)
    a.nvim_win_set_option(win, "winblend", 5)
+end
+
+local function toDialog(win, buf)
+   setOpts(win, buf)
    return setmetatable({
       win = win,
       buf = buf,
    }, { __index = Dialog })
 end
+
+local function new(x, y, wid, hei)
+   return toDialog(window.floating(x or 10, y or 10, wid or 50, hei or 5))
+end
+
+local function centered(wid, hei)
+   return toDialog(window.centeredFloat(wid or 50, hei or 5))
+end
+
 function Dialog:setLines(txt)
    a.nvim_buf_set_option(self.buf, "modifiable", true)
    a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
@@ -99,5 +111,7 @@ end
 
 return {
    new = new,
+   centered = centered,
+
    Dialog = Dialog,
 }

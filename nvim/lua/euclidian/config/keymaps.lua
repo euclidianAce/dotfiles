@@ -34,11 +34,7 @@ local getchar = vim.fn.getchar
 map("n", "<leader>a", function()
    require("euclidian.lib.append").toCurrentLine(string.char(getchar()))
 end)
-map("v", "<leader>a", function()
-   local start = a.nvim_buf_get_mark(0, "<")[1] - 1
-   local finish = a.nvim_buf_get_mark(0, ">")[1]
-   require("euclidian.lib.append").toRange(start, finish, string.char(getchar()))
-end)
+
 for mvkey, szkey in util.unpacker({
       { "h", "<" },
       { "j", "+" },
@@ -94,5 +90,25 @@ map("i", "{<CR>", "{}<Esc>i<CR><CR><Esc>kS")
 map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
+
+
+map("n", "<leader>lua", function()
+   local d = require("euclidian.lib.dialog").centered()
+   d:setBufOpt("ft", "teal")
+   d:setBufOpt("tabstop", 3)
+   d:setBufOpt("modifiable", true)
+   cmdf("startinsert")
+   d:addKeymap("n", "<CR>", "<cmd>lua require'euclidian.config.keymaps'._exports.luaPrompt()<cr>", { silent = true, noremap = true })
+   M._exports.luaPrompt = function()
+      local txt = table.concat(d:getLines(), "\n")
+      local chunk = loadstring(txt)
+      local ok, err = pcall(chunk)
+      if not ok then
+         a.nvim_err_writeln(err)
+      end
+      d:close()
+      M._exports.luaPrompt = nil
+   end
+end)
 
 return M

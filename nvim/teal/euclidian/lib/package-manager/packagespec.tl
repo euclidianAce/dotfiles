@@ -13,6 +13,8 @@ local record Spec
 	id: number
 	dependents: {number|Spec}
 
+	post: string -- post-install/update vimscript actions
+
 	kind: Kind
 
 	-- git

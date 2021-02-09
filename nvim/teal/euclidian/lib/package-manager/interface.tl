@@ -6,6 +6,8 @@ local window <const> = require("euclidian.lib.window")
 local dialog <const> = require("euclidian.lib.dialog")
 local ev <const> = require("euclidian.lib.ev")
 
+local a <const> = vim.api
+
 local Spec <const> = packagespec.Spec
 local Dialog <const> = dialog.Dialog
 
@@ -162,7 +164,18 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 							end,
 							close = function()
 								runningCmds = runningCmds - 1
-								updateStatus("finished")
+								if p.post then
+									updateStatus("post...")
+									updateText("Running post install hooks...")
+									table.insert(jobs, function()
+										vim.schedule(function()
+											a.nvim_exec(p.post)
+											updateStatus("finished")
+										end)
+									end)
+								else
+									updateStatus("finished")
+								end
 							end,
 							stdout = updateText,
 							stderr = updateText,
@@ -364,12 +377,27 @@ function interface.addPackage()
 			newPackage.dependents = setChecklist(d, selectedSet)
 		end
 
+		if ask(d, "Does this package have any post-install actions?") then
+			d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
+			d:setLines{}
+			d:setBufOpt("syntax", "vim")
+			d:setBufOpt("modifiable", true)
+			a.nvim_command "startinsert"
+			yield()
+			a.nvim_command "stopinsert"
+			d:setBufOpt("syntax", "")
+			d:setBufOpt("modifiable", false)
+
+			newPackage.post = table.concat(d:getLines(), "\n")
+		end
+
 		table.insert(selectedSet, newPackage)
 		set.save(setName, selectedSet)
 
 		d:setLines{ ("Saved set %s"):format(setName) }
 		accommodateText(d)
 
+		d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
 		yield()
 		d:close()
 	end)

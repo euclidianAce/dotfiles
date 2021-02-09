@@ -85,8 +85,12 @@ stl.add(alwaysActive, empty, function(winid)
    if fname:match("/bin/bash$") or #fname == 0 then
       return ""
    end
+   local cwd = vim.fn.getcwd()
+   if fname:match("^" .. vim.pesc(cwd)) then
+      fname = fname:sub(#cwd + 2, -1)
+   end
    if #fname > maxFileNameLen then
-      fname = " <" .. fname:sub(-maxFileNameLen, -1)
+      fname = " < " .. fname:sub(-maxFileNameLen, -1)
    end
    return "  " .. fname .. " "
 end, "STLFname")
@@ -125,6 +129,9 @@ stl.add(alwaysActive, empty, function(winid)
    else
       tiFmt(out, "Ln: %3d", cursorPos[1])
    end
-
-   return "  " .. table.concat(out, " | ") .. "  "
+   if #out > 1 then
+      return "│ " .. table.concat(out, " │ ") .. "  "
+   else
+      return "  " .. out[1] .. "  "
+   end
 end, "STLBufferInfo")

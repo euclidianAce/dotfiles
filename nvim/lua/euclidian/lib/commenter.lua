@@ -73,7 +73,6 @@ function commenter.commentRange(buf, start, finish)
 
    lines[1] = commentStr(pre, post, lines[1])
    for i = 2, #lines do
-      print(i)
       if util.xor(shouldBeCommented, isCommented(pre, post, lines[i])) then
          lines[i] = commentStr(pre, post, lines[i])
       end

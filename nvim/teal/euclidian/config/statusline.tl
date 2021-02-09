@@ -78,15 +78,17 @@ stl.add(active, inactive, function(): string
 end, "STLGit")
 local maxFileNameLen <const> = 20
 stl.add(alwaysActive, empty, function(winid: number): string
-	-- TODO: Nov 27 00:08 2020
-	--       Use window width + some other stuff to calc max len
 	local buf <const> = a.nvim_win_get_buf(winid)
 	local fname = a.nvim_buf_get_name(buf) or ""
 	if fname:match("/bin/bash$") or #fname == 0 then
 		return ""
 	end
+	local cwd <const> = vim.fn.getcwd() as string
+	if fname:match("^" .. vim.pesc(cwd)) then
+		fname = fname:sub(#cwd + 2, -1)
+	end
 	if #fname > maxFileNameLen then
-		fname = " <" .. fname:sub(-maxFileNameLen, -1)
+		fname = " < " .. fname:sub(-maxFileNameLen, -1)
 	end
 	return "  " .. fname .. " "
 end, "STLFname")
@@ -125,7 +127,10 @@ stl.add(alwaysActive, empty, function(winid: number): string
 	else
 		tiFmt(out, "Ln: %3d", cursorPos[1])
 	end
-	-- | vs │ ?
-	return "  " .. table.concat(out, " | ") .. "  "
+	if #out > 1 then
+		return "│ " .. table.concat(out, " │ ") .. "  "
+	else
+		return "  " .. out[1] .. "  "
+	end
 end, "STLBufferInfo")
 

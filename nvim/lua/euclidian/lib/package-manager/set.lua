@@ -18,27 +18,23 @@ local function generateDef(out, p)
 
    local function ins(s, ...)
       tiFmt(out, leadingSpaces .. s, ...)
-   end
-   local function commaNewline()
       tiFmt(out, ",\n")
    end
 
-   tiFmt(out, "Package { kind = %q", p.kind); commaNewline()
-   ins("id = %d", p.id); commaNewline()
+   tiFmt(out, "Package { kind = %q,\n", p.kind)
+   ins("id = %d", p.id)
 
    if p.alias then
-      ins("alias = %q", p.alias); commaNewline()
+      ins("alias = %q", p.alias)
    end
    if p.kind == "git" then
       ins("repo = %q", p.repo)
       if p.branch then
-         commaNewline()
          ins("branch = %q", p.branch)
       end
    elseif p.kind == "local" then
       ins("path = %q", p.path)
    end
-   commaNewline()
 
    if p.dependents then
       local d = {}
@@ -50,13 +46,14 @@ local function generateDef(out, p)
 
       if #d > 0 then
          ins("dependents = { %s }", table.concat(d, ", "))
-      else
-         table.remove(out)
       end
-   else
-      table.remove(out)
    end
 
+   if p.post then
+      ins("post = %q", p.post)
+   end
+
+   table.remove(out)
    tiFmt(out, " }\n")
 end
 
@@ -85,7 +82,7 @@ function set.serialize(ps)
       gen(p)
    end
 
-   table.insert(out, "\n\n-- vim: ft=lua")
+   table.insert(out, "\n\n-- vim: ft=teal")
 
    return table.concat(out)
 end

@@ -1,16 +1,13 @@
 Package { kind = "git",
           id = 1,
-          repo = "nvim-lua/popup.nvim" }
+          repo = "arst" }
 Package { kind = "git",
           id = 2,
-          repo = "nvim-lua/telescope.nvim" }
+          repo = "nvim-lua/popup.nvim" }
 Package { kind = "git",
           id = 3,
-          repo = "nvim-lua/plenary.nvim",
-          dependents = { 1, 2 } }
-Package { kind = "git",
-          id = 4,
           repo = "arst/arst",
-          dependents = { 1 } }
+          post = "call firenvim#install(0)" }
+
 
 -- vim: ft=teal

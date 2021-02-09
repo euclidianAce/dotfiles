@@ -29,5 +29,7 @@ Package { kind = "git",
           repo = "nvim-treesitter/nvim-treesitter" }
 Package { kind = "git",
           id = 10,
-          repo = "glacambre/firenvim" }
+          repo = "glacambre/firenvim",
+          post = "call firenvim#install(0)" }
 
+-- vim: ft=teal

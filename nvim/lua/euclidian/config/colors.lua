@@ -32,8 +32,8 @@ local p = {
    yellow = 0xD5C876,
    brightYellow = 0xF0E7AC,
 
-   darkPurple = 0x826BB7,
-   purple = 0x9674D8,
+   darkPurple = 0x6554A0,
+   purple = 0x9876D9,
    brightPurple = 0xC7B1F2,
 
    darkOrange = 0xB47B46,
@@ -80,7 +80,7 @@ hi.Identifier = { p.purple }
 hi.Function = { p.brightBlue, nil, "bold" }
 
 hi.Statement = { p.blue }
-hi.Operator = { p.purple }
+hi.Operator = { p.darkPurple }
 
 hi.Type = { p.purple }
 hi.Structure = { p.darkPurple }

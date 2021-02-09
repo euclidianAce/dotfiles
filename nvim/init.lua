@@ -76,18 +76,16 @@ set(vim.o, {
 set(vim.wo, {
 	list = true,
 	signcolumn = "yes:1",
-	foldcolumn = "3",
+	-- foldcolumn = "3",
 	numberwidth = 4,
 	number = true,
 	relativenumber = true,
 })
 
 local lsp = require("lspconfig")
-local lspSettings = {
+for server, settings in pairs{
 	clangd = {},
-}
-
-for server, settings in pairs(lspSettings) do
+} do
 	lsp[server].setup(settings)
 end
 

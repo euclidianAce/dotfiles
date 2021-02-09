@@ -32,8 +32,8 @@ local p <const>: {string:number} = {
 	yellow       = 0xD5C876,
 	brightYellow = 0xF0E7AC,
 
-	darkPurple   = 0x826BB7,
-	purple       = 0x9674D8,
+	darkPurple   = 0x6554A0,
+	purple       = 0x9876D9,
 	brightPurple = 0xC7B1F2,
 
 	darkOrange   = 0xB47B46,
@@ -44,57 +44,57 @@ local p <const>: {string:number} = {
 local hi <const> = color.scheme.hi
 
 -- ui stuffs
-hi.Normal   = { p.fg, p.bg }
-hi.Visual   = { p.fg, p.darkGray }
-hi.ErrorMsg = { nil, p.red }
-hi.Search   = { p.bg, p.green }
-hi.Question = { p.darkGreen }
+hi.Normal                  = { p.fg, p.bg }
+hi.Visual                  = { p.fg, p.darkGray }
+hi.ErrorMsg                = { nil, p.red }
+hi.Search                  = { p.bg, p.green }
+hi.Question                = { p.darkGreen }
 
-hi.VertSplit   = { nil, p.gray }
-hi.StatusLine  = { nil, p.brightGray }
-hi.TabLine     = { nil, p.gray }
-hi.TabLineSel  = { nil, p.brightGray, "bold" }
-hi.TabLineFill = { nil, p.gray }
-hi.Title       = { p.green, nil, "bold" }
+hi.VertSplit               = { nil, p.gray }
+hi.StatusLine              = { nil, p.brightGray }
+hi.TabLine                 = { nil, p.gray }
+hi.TabLineSel              = { nil, p.brightGray, "bold" }
+hi.TabLineFill             = { nil, p.gray }
+hi.Title                   = { p.green, nil, "bold" }
 
-hi.Pmenu        = { p.fg, p.brightBg }
-hi.PmenuSel     = { nil,  p.gray }
-hi.PmenuSbar    = { nil,  p.brightGray }
-hi.PmenuThumb   = { nil,  p.gray }
+hi.Pmenu                   = { p.fg, p.brightBg }
+hi.PmenuSel                = { nil,  p.gray }
+hi.PmenuSbar               = { nil,  p.brightGray }
+hi.PmenuThumb              = { nil,  p.gray }
 
-hi.LineNr       = { p.gray, p.darkBg }
-hi.CursorLine   = { nil, p.brightBg }
-hi.CursorLineNr = { nil, p.darkBg }
+hi.LineNr                  = { p.gray, p.darkBg }
+hi.CursorLine              = { nil, p.brightBg }
+hi.CursorLineNr            = { nil, p.darkBg }
 
-hi.Folded       = { p.darkRed, nil, "bold" }
-hi.FoldColumn   = { p.darkRed, p.darkBg, "bold" }
-hi.SignColumn   = { p.brightBg, p.darkBg }
-hi.NonText      = { p.brightBg }
-hi.MatchParen   = { p.red, p.darkRed, "bold" }
+hi.Folded                  = { p.darkRed, nil, "bold" }
+hi.FoldColumn              = { p.darkRed, p.darkBg, "bold" }
+hi.SignColumn              = { p.brightBg, p.darkBg }
+hi.NonText                 = { p.brightBg }
+hi.MatchParen              = { p.red, p.darkRed, "bold" }
 
 -- syntax
-hi.Comment    = { p.darkRed }
-hi.Constant   = { p.red }
+hi.Comment                 = { p.darkRed }
+hi.Constant                = { p.red }
 
-hi.Identifier = { p.purple }
-hi.Function   = { p.brightBlue, nil, "bold" }
+hi.Identifier              = { p.purple }
+hi.Function                = { p.brightBlue, nil, "bold" }
 
-hi.Statement  = { p.blue }
-hi.Operator   = { p.purple }
+hi.Statement               = { p.blue }
+hi.Operator                = { p.darkPurple }
 
-hi.Type         = { p.purple }
-hi.Structure    = { p.darkPurple }
-hi.StorageClass = { p.brightPurple, nil, "bold" }
+hi.Type                    = { p.purple }
+hi.Structure               = { p.darkPurple }
+hi.StorageClass            = { p.brightPurple, nil, "bold" }
 
-hi.Special   = { p.brightBlue }
-hi.Delimiter = { p.brightGray }
+hi.Special                 = { p.brightBlue }
+hi.Delimiter               = { p.brightGray }
 
-hi.PreProc = { p.brightRed }
+hi.PreProc                 = { p.brightRed }
 
-hi.Todo    = { p.brightRed, nil, "bold" }
-hi.Error   = { nil, p.red, "bold" }
+hi.Todo                    = { p.brightRed, nil, "bold" }
+hi.Error                   = { nil, p.red, "bold" }
 
-hi.Underlined = { nil, nil, "underline" }
+hi.Underlined              = { nil, nil, "underline" }
 
 -- Treesitter
 hi.TSConstructor           = {  }
@@ -103,33 +103,33 @@ hi.TSParameterReference    = { p.orange }
 hi.TSAttribute             = { p.brightPurple }
 hi.TSConstBuiltin          = { p.red }
 
-hi.String    = hi.Constant
-hi.Character = hi.Constant
-hi.Number    = hi.Constant
-hi.Boolean   = hi.Constant
-hi.Float     = hi.Constant
+hi.String                  = hi.Constant
+hi.Character               = hi.Constant
+hi.Number                  = hi.Constant
+hi.Boolean                 = hi.Constant
+hi.Float                   = hi.Constant
 
-hi.Conditional = hi.Statement
-hi.Repeat      = hi.Statement
-hi.Label       = hi.Statement
-hi.Keyword     = hi.Statement
-hi.Exception   = hi.Statement
+hi.Conditional             = hi.Statement
+hi.Repeat                  = hi.Statement
+hi.Label                   = hi.Statement
+hi.Keyword                 = hi.Statement
+hi.Exception               = hi.Statement
 
-hi.Typedef     = hi.Type
+hi.Typedef                 = hi.Type
 
-hi.SpecialComment = hi.Special
-hi.SpecialChar    = hi.Special
-hi.SpecialKey     = hi.Special
-hi.Tag            = hi.Special
-hi.Debug          = hi.Special
+hi.SpecialComment          = hi.Special
+hi.SpecialChar             = hi.Special
+hi.SpecialKey              = hi.Special
+hi.Tag                     = hi.Special
+hi.Debug                   = hi.Special
 
-hi.PreCondit = hi.PreProc
-hi.Include   = hi.PreProc
-hi.Define    = hi.PreProc
-hi.Macro     = hi.PreProc
+hi.PreCondit               = hi.PreProc
+hi.Include                 = hi.PreProc
+hi.Define                  = hi.PreProc
+hi.Macro                   = hi.PreProc
 
-hi.Directory   = { p.blue }
-hi.WarningMsg  = { nil, p.red }
-hi.WildMenu    = { p.bg, p.yellow }
+hi.Directory               = { p.blue }
+hi.WarningMsg              = { nil, p.red }
+hi.WildMenu                = { p.bg, p.yellow }
 
 return p

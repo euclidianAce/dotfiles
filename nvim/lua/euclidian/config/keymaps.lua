@@ -1,13 +1,25 @@
 
 local M = { _exports = {} }
 
-local util = require("euclidian.lib.util")
 local keymapper = require("euclidian.lib.keymapper")
+local window = require("euclidian.lib.window")
 local a = vim.api
-local cmdf, trim = util.cmdf, util.trim
+
+local util = require("euclidian.lib.util")
+local cmdf, unpacker =
+util.nvim.cmdf, util.tab.unpacker
 
 local map = function(m, lhs, rhs)
    keymapper.map(m, lhs, rhs, { noremap = true, silent = true })
+end
+local bufMap = function(buf, m, lhs, rhs)
+   if type(m) == "string" then
+      keymapper.bufMap(buf, m, lhs, rhs, { noremap = true, silent = true })
+   else
+      for _, v in ipairs(m) do
+         keymapper.bufMap(buf, v, lhs, rhs, { noremap = true, silent = true })
+      end
+   end
 end
 local unmap = keymapper.unmap
 
@@ -35,7 +47,7 @@ map("n", "<leader>a", function()
    require("euclidian.lib.append").toCurrentLine(string.char(getchar()))
 end)
 
-for mvkey, szkey in util.unpacker({
+for mvkey, szkey in unpacker({
       { "h", "<" },
       { "j", "+" },
       { "k", "-" },
@@ -44,71 +56,98 @@ for mvkey, szkey in util.unpacker({
    unmap("n", "<C-W>" .. mvkey)
    map("n", "<C-" .. mvkey .. ">", ":wincmd " .. mvkey .. "<CR>")
    map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
-   map("n", "<C-w>" .. mvkey, ":echoerr 'stop that'<CR>")
 end
 
-local function setupTerm()
-   local termCmd = vim.fn.input("Command to execute in terminal: ")
-   if trim(termCmd) == "" then
-      return
-   end
-   local currentWin = a.nvim_get_current_win()
-   cmdf([[sp +term]])
-
-   local ok, job = pcall(a.nvim_buf_get_var, 0, "terminal_job_id")
-   if not ok then
-      print("Unable to get terminal job id\n")
-      return
-   end
-   map("n", "<leader>t", function()
-      ok = pcall(vim.fn.chansend, job, termCmd .. "\n")
-      if not ok then
-         print("Unable to send command to terminal, (" .. termCmd .. ")")
-      end
-   end)
-   cmdf([[autocmd BufDelete <buffer> lua require'euclidian.config.keymaps'._exports.setupTermMapping()]])
-   a.nvim_set_current_win(currentWin)
-end
-M._exports.setupTermMapping = function()
-   unmap("n", "<leader>t")
-   map("n", "<leader>t", setupTerm)
-end
-
-map("n", "<leader>t", setupTerm)
 map("n", "<leader>k", vim.lsp.diagnostic.show_line_diagnostics)
+map("n", "K", vim.lsp.buf.hover)
+map("n", "<leader>N", vim.lsp.diagnostic.goto_next)
+map("n", "<leader>P", vim.lsp.diagnostic.goto_prev)
 
-local r = require
-local teleBuiltin = r("telescope.builtin")
-map("n", "<leader>fz", teleBuiltin.find_files)
-map("n", "<leader>g", teleBuiltin.live_grep)
+map("n", "<leader>fz", require("telescope.builtin").find_files)
+map("n", "<leader>g", require("telescope.builtin").live_grep)
 
 map("n", "<leader>s", require("euclidian.lib.snippet").start)
-
-map("n", "<leader>n", ":noh<CR>")
 
 map("i", "{<CR>", "{}<Esc>i<CR><CR><Esc>kS")
 map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
+do
+   local lastText = { "-- Enter lua code here:", "-- Press <CR> in normal mode to run it and close this window", "" }
 
-map("n", "<leader>lua", function()
-   local d = require("euclidian.lib.dialog").centered()
-   d:setBufOpt("ft", "teal")
-   d:setBufOpt("tabstop", 3)
-   d:setBufOpt("modifiable", true)
-   cmdf("startinsert")
-   d:addKeymap("n", "<CR>", "<cmd>lua require'euclidian.config.keymaps'._exports.luaPrompt()<cr>", { silent = true, noremap = true })
-   M._exports.luaPrompt = function()
-      local txt = table.concat(d:getLines(), "\n")
-      local chunk = loadstring(txt)
-      local ok, err = pcall(chunk)
-      if not ok then
-         a.nvim_err_writeln(err)
+   map("n", "<leader>lua", function()
+      local d = require("euclidian.lib.dialog").centered()
+      d:setBufOpt("ft", "teal")
+      d:setBufOpt("tabstop", 3)
+      d:setModifiable(true)
+      cmdf("startinsert")
+      d:addKeymap("n", "<CR>", "<cmd>lua require'euclidian.config.keymaps'._exports.luaPrompt()<cr>", { silent = true, noremap = true })
+      if lastText[#lastText] ~= "" then
+         table.insert(lastText, "")
       end
-      d:close()
-      M._exports.luaPrompt = nil
+      d:setLines(lastText)
+      d:setCursor(#lastText, 0)
+      M._exports.luaPrompt = function()
+         local lines = d:getLines()
+         lastText = lines
+         local txt = table.concat(lines, "\n")
+
+         local chunk = loadstring(txt)
+         local ok, err = pcall(chunk)
+         if not ok then
+            a.nvim_err_writeln(err)
+         end
+         d:close()
+         M._exports.luaPrompt = nil
+      end
+   end)
+end
+
+do
+   local floatyBuf, floatyWin
+   local openTerm
+   local hideTerm
+   local function incBlend()
+      local blend = a.nvim_win_get_option(floatyWin, "winblend")
+      a.nvim_win_set_option(floatyWin, "winblend", blend - 8)
    end
-end)
+   local function decBlend()
+      local blend = a.nvim_win_get_option(floatyWin, "winblend")
+      a.nvim_win_set_option(floatyWin, "winblend", blend + 8)
+   end
+
+   openTerm = function()
+      if floatyWin and a.nvim_win_is_valid(floatyWin) then
+         a.nvim_set_current_win(floatyWin)
+      elseif not (floatyBuf and a.nvim_buf_is_valid(floatyBuf)) then
+         floatyWin, floatyBuf = window.centeredFloat(math.huge, math.huge)
+         a.nvim_win_set_option(floatyWin, "winblend", 16)
+         a.nvim_buf_set_option(floatyBuf, "modified", false)
+         cmdf([[term]])
+         bufMap(floatyBuf, { "t", "n" }, "", hideTerm)
+         bufMap(floatyBuf, { "t", "n" }, "", decBlend)
+         bufMap(floatyBuf, { "t", "n" }, "", incBlend)
+      else
+         floatyWin = window.centeredFloat(math.huge, math.huge, floatyBuf)
+      end
+      vim.schedule(function()
+         cmdf("startinsert")
+      end)
+   end
+   hideTerm = function()
+      if a.nvim_win_is_valid(floatyWin) then
+         a.nvim_set_current_win(floatyWin)
+         vim.schedule(function()
+
+            cmdf("hide")
+         end)
+      end
+      floatyWin = nil
+      map("n", "", openTerm)
+   end
+   map("n", "", openTerm)
+   map("n", "<leader>n", "<cmd>noh<cr>")
+end
 
 return M

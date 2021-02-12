@@ -1,5 +1,9 @@
 
 
+
+
+
+
 local resume, yield, running, create, status =
 coroutine.resume, coroutine.yield, coroutine.running, coroutine.create, coroutine.status
 
@@ -159,9 +163,9 @@ function ev.poll(...)
 
    return function()
       repeat doWork(loop)
+
       until not hasWorkers(loop.pools) or
 findEvent(loop.events, kinds)
-
       do
          local idx = findEvent(loop.events, kinds)
          if idx then
@@ -170,9 +174,9 @@ findEvent(loop.events, kinds)
       end
 
       repeat yield(); doWork(loop)
+
       until not isAnchored(loop.anchors) or
 findEvent(loop.events, kinds)
-
       local idx = findEvent(loop.events, kinds)
       if idx then
          return table.remove(loop.events, idx)

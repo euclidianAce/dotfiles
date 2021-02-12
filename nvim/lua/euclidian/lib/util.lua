@@ -1,14 +1,17 @@
 
 local a = vim.api
-local util = {}
+local tab = {}
+local fn = {}
+local str = {}
+local nvim = {}
 
-function util.partial(f, a)
+function fn.partial(f, a)
    return function(...)
       return f(a, ...)
    end
 end
 
-function util.set(t)
+function tab.set(t)
    local s = {}
    for _, v in ipairs(t) do
       s[v] = true
@@ -16,22 +19,22 @@ function util.set(t)
    return s
 end
 
-function util.xor(a, b)
+local function xor(a, b)
    return ((not a) and b) or (a and (not b))
 end
 
-function util.cmdf(fmt, ...)
+function nvim.cmdf(fmt, ...)
    a.nvim_command(fmt:format(...))
 end
 
 local concat = table.concat
 
 
-function util.autocmd(events, patts, expr)
+function nvim.autocmd(events, patts, expr)
    assert(#events > 0, "no events")
    assert(#patts > 0, "no patterns")
    assert(expr, "no expr")
-   util.cmdf(
+   nvim.cmdf(
    "autocmd %s %s %s",
    concat(events, ","),
    concat(patts, ","),
@@ -39,11 +42,11 @@ function util.autocmd(events, patts, expr)
 
 end
 
-function util.trim(str)
-   return str:match("^%s*(.-)%s*$")
+function str.trim(s)
+   return s:match("^%s*(.-)%s*$")
 end
 
-function util.unpacker(arr)
+function tab.unpacker(arr)
    local i = 0
    return function()
       i = i + 1
@@ -51,7 +54,7 @@ function util.unpacker(arr)
    end
 end
 
-function util.proxy(t, index, newindex)
+function tab.proxy(t, index, newindex)
    return setmetatable({}, {
       __index = function(_, key)
          if index then index(t, key) end
@@ -64,4 +67,11 @@ function util.proxy(t, index, newindex)
    })
 end
 
-return util
+return {
+   tab = tab,
+   str = str,
+   fn = fn,
+   nvim = nvim,
+
+   xor = xor,
+}

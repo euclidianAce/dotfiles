@@ -169,7 +169,7 @@ local function runForEachPkg(getCmd)
                            updateText("Running post install hooks...")
                            table.insert(jobs, function()
                               vim.schedule(function()
-                                 a.nvim_exec(p.post)
+                                 a.nvim_exec(p.post, false)
                                  updateStatus("finished")
                               end)
                            end)
@@ -262,6 +262,7 @@ function interface.updateSet()
 end
 
 local function ask(d, question, confirm, deny)
+   d:setCursor(0, 1)
    d:setLines({
       question,
       confirm or "Yes",
@@ -285,6 +286,7 @@ local function ask(d, question, confirm, deny)
 
    return ln == 2
 end
+
 
 local checkKeymap = "a"
 local function setChecklist(d, s)
@@ -373,11 +375,18 @@ function interface.addPackage()
          d:unsetPrompt()
       end
 
-      if ask(d, "Do any other packages depend on this package?") then
+      if ask(d, "Do any other installed packages depend on this package?") then
          newPackage.dependents = setChecklist(d, selectedSet)
       end
 
-      if ask(d, "Does this package have any post-install actions?") then
+      if ask(d, "Does this package depend on any other installed packages?") then
+         local dependencies = setChecklist(d, selectedSet)
+         for _, p in ipairs(dependencies) do
+            table.insert(p.dependents, newPackage)
+         end
+      end
+
+      if ask(d, "Does this package have any post-install (vimscript) actions?") then
          d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
          d:setLines({})
          d:setBufOpt("syntax", "vim")

@@ -2,8 +2,10 @@
 local color <const> = require("euclidian.lib.color")
 local p <const> = require("euclidian.config.colors")
 local stl <const> = require("euclidian.lib.statusline")
-local unpacker <const> = require("euclidian.lib.util").unpacker
+local util <const> = require("euclidian.lib.util")
 local a <const> = vim.api
+
+local unpacker <const> = util.tab.unpacker
 
 local hi <const>  = color.scheme.hi
 local min <const>, max <const> = math.min, math.max

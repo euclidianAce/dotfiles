@@ -40,10 +40,20 @@ function lua-path-prepend-dir {
 function lua-path-append-dir {
 	export LUA_PATH="$LUA_PATH;$1/?.lua;$1/?/init.lua"
 }
+function lua-cpath-prepend-dir {
+	export LUA_CPATH="$1/?.so;$LUA_CPATH"
+}
+function lua-cpath-append-dir {
+	export LUA_CPATH="$LUA_CPATH;$1/?.so"
+}
 lua-path-prepend-dir "$HOME/dev/teal-language-server/build"
+lua-cpath-prepend-dir "$HOME/dev/ltreesitter"
 lua-path-prepend-dir "$HOME/dev/ltresitter"
 lua-path-prepend-dir "$HOME/dev/new-tl-cli/build"
 lua-path-prepend-dir "$HOME/dev/tl"
+lua-path-prepend-dir "."
+lua-cpath-prepend-dir "."
+lua-path-append-dir "$HOME/dev/new-tl-cli"
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
 export PATH="./:./lua_modules/bin:$PATH:/usr/local/openresty/bin:$HOME/ngrok:$HOME/Applications:$HOME/bin:$HOME/dev/new-tl-cli/bin"
 

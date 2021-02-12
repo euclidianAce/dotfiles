@@ -1,14 +1,17 @@
 
-local a = vim.api
-local util = {}
+local a <const> = vim.api
+local tab <const> = {}
+local fn <const> = {}
+local str <const> = {}
+local nvim <const> = {}
 
-function util.partial<T, K>(f: function(...: T): K..., a: T): function(...: T): K...
+function fn.partial<T, K>(f: function(...: T): K..., a: T): function(...: T): K...
 	return function(...: T): K...
 		return f(a, ...)
 	end
 end
 
-function util.set<T>(t: {T}): {T:boolean}
+function tab.set<T>(t: {T}): {T:boolean}
 	local s = {}
 	for _, v in ipairs(t) do
 		s[v] = true
@@ -16,22 +19,22 @@ function util.set<T>(t: {T}): {T:boolean}
 	return s
 end
 
-function util.xor(a: any, b: any): boolean
+local function xor(a: any, b: any): boolean
 	return ((not a) and b as boolean) or (a as boolean and (not b))
 end
 
-function util.cmdf(fmt: string, ...: any)
+function nvim.cmdf(fmt: string, ...: any)
 	a.nvim_command(fmt:format(...))
 end
 
 local concat = table.concat
 -- super simple autocmd wrapper
 -- TODO: allow functions in expr
-function util.autocmd(events: {string}, patts: {string}, expr: string)
+function nvim.autocmd(events: {string}, patts: {string}, expr: string)
 	assert(#events > 0, "no events")
 	assert(#patts > 0, "no patterns")
 	assert(expr, "no expr")
-	util.cmdf(
+	nvim.cmdf(
 		"autocmd %s %s %s",
 		concat(events, ","),
 		concat(patts, ","),
@@ -39,11 +42,11 @@ function util.autocmd(events: {string}, patts: {string}, expr: string)
 	)
 end
 
-function util.trim(str: string): string
-	return str:match("^%s*(.-)%s*$")
+function str.trim(s: string): string
+	return s:match("^%s*(.-)%s*$")
 end
 
-function util.unpacker<T>(arr: {{T}}): function(): T...
+function tab.unpacker<T>(arr: {{T}}): function(): T...
 	local i = 0
 	return function(): T...
 		i = i + 1
@@ -51,7 +54,7 @@ function util.unpacker<T>(arr: {{T}}): function(): T...
 	end
 end
 
-function util.proxy<K, V>(t: {K:V}, index: function({K:V}, K), newindex: function({K:V}, K, V)): {K:V}
+function tab.proxy<K, V>(t: {K:V}, index: function({K:V}, K), newindex: function({K:V}, K, V)): {K:V}
 	return setmetatable({} as {K:V}, {
 		__index = function(_: {K:V}, key: K): V
 			if index then index(t, key) end
@@ -64,5 +67,12 @@ function util.proxy<K, V>(t: {K:V}, index: function({K:V}, K), newindex: functio
 	})
 end
 
-return util
+return {
+	tab = tab,
+	str = str,
+	fn = fn,
+	nvim = nvim,
+	
+	xor = xor,
+}
 

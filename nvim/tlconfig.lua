@@ -1,6 +1,6 @@
 
 return {
-	include_dir = { "teal" },
+	include_dir = { "teal", "teal/types" },
 	preload_modules = { "51compat", "vim" },
 
 	gen_compat = "off",

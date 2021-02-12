@@ -1,11 +1,11 @@
 
-local a = vim.api
-local cmdf = require("euclidian.lib.util").cmdf
+local a <const> = vim.api
+local cmdf <const> = require("euclidian.lib.util").nvim.cmdf
 
 local snippet <const> = {}
 
 local record Snippet
-	content: string|function(buf: number): string
+	content: string | function(buf: number): string
 	defaults: {string}
 end
 local record ResolvedSnippet

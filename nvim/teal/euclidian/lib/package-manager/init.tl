@@ -1,5 +1,5 @@
 
-local cmdf <const> = require("euclidian.lib.util").cmdf
+local cmdf <const> = require("euclidian.lib.util").nvim.cmdf
 local manager <const> = {}
 
 local interface <const> = require("euclidian.lib.package-manager.interface")

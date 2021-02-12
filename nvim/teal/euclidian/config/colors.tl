@@ -86,7 +86,7 @@ hi.Type                    = { p.purple }
 hi.Structure               = { p.darkPurple }
 hi.StorageClass            = { p.brightPurple, nil, "bold" }
 
-hi.Special                 = { p.brightBlue }
+hi.Special                 = { p.brightRed }
 hi.Delimiter               = { p.brightGray }
 
 hi.PreProc                 = { p.brightRed }

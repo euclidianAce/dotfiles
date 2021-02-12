@@ -1,6 +1,6 @@
 
 local util <const> = require("euclidian.lib.util")
-local set <const> = util.set
+local set <const> = util.tab.set
 local a <const> = vim.api
 
 local statusline = {
@@ -109,10 +109,10 @@ end
 local function setLine(winId: number)
 	local ok, active = pcall(vim.api.nvim_win_get_var, winId or 0, "statusline_active")
 	if not ok then
-		pcall(vim.api.nvim_win_set_var, winId or 0, "statusline_active", 0)
+		pcall(vim.api.nvim_win_set_var, winId or 0, "statusline_active", false)
 		active = 0
 	end
-	local tags = active == 1
+	local tags = active
 		and {"Active"}
 		or {"Inactive"}
 	vim.api.nvim_win_set_option(winId or 0, "statusline", makeLine(tags, winId))
@@ -125,12 +125,12 @@ function statusline.updateWindows()
 end
 
 function statusline.setInactive(winId: number)
-	vim.api.nvim_win_set_var(winId or 0, "statusline_active", 0)
+	vim.api.nvim_win_set_var(winId or 0, "statusline_active", false)
 	statusline.updateWindows()
 end
 
 function statusline.setActive(winId: number)
-	vim.api.nvim_win_set_var(winId or 0, "statusline_active", 1)
+	vim.api.nvim_win_set_var(winId or 0, "statusline_active", true)
 	statusline.updateWindows()
 end
 
@@ -146,13 +146,13 @@ function statusline.toggleTag(name: string | {string})
 end
 
 function statusline.isActive(winId: number): boolean
-	return a.nvim_win_get_var(winId or 0, "statusline_active") == 1
+	return a.nvim_win_get_var(winId or 0, "statusline_active") as boolean
 end
 
 cmd "augroup customstatus"
 cmd    "autocmd!"
-cmd    "autocmd WinEnter,BufWinEnter * let w:statusline_active = 1 | lua require'euclidian.lib.statusline'.updateWindows()"
-cmd    "autocmd WinLeave *             let w:statusline_active = 0"
+cmd    "autocmd WinEnter,BufWinEnter * let w:statusline_active = v:true | lua require'euclidian.lib.statusline'.updateWindows()"
+cmd    "autocmd WinLeave *             let w:statusline_active = v:false"
 cmd "augroup END"
 
 statusline.setActive()

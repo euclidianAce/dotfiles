@@ -1,6 +1,7 @@
 
 local bit = require("bit")
 local util = require("euclidian.lib.util")
+local cmdf = util.nvim.cmdf
 
 local color = {scheme = {}, }
 
@@ -23,7 +24,7 @@ local function updateHiGroup(group, fg, bg, ex)
    else tiFmt(out, "guibg=none") end
    if ex then tiFmt(out, "gui=%s", ex)
    else tiFmt(out, "gui=none") end
-   util.cmdf(table.concat(out, " "))
+   cmdf(table.concat(out, " "))
 end
 
 local groups = {}
@@ -35,12 +36,12 @@ setmetatable(color.scheme.hi, {
    end,
    __newindex = function(_self, key, val)
       if not val then
-         util.cmdf("hi link %s NONE", key)
+         cmdf("hi link %s NONE", key)
          actualHi[key] = nil
       elseif groups[val] then
 
-         util.cmdf("hi clear %s", key)
-         util.cmdf("hi link %s %s", key, groups[val])
+         cmdf("hi clear %s", key)
+         cmdf("hi link %s %s", key, groups[val])
          actualHi[key] = setmetatable({}, { __index = val })
       else
 

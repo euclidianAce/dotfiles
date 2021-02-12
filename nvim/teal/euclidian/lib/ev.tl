@@ -1,4 +1,8 @@
 
+-- A very simple event loop/coroutine scheduler
+--   - very simple in that it provides no non-blocking io facilities and
+--     completely relies on the worker threads being well behaved
+--     and yielding during their down time
 
 local resume <const>, yield <const>, running <const>, create <const>, status <const>
 	= coroutine.resume, coroutine.yield, coroutine.running, coroutine.create, coroutine.status
@@ -227,8 +231,8 @@ end
 function Worker:kill()
 	local internalHandle <const> = workers[self]
 	local loop <const> = internalHandle.loop
-	loop.pools[true][self as Worker] = nil
-	loop.pools[false][self as Worker] = nil
+	loop.pools[true][self] = nil
+	loop.pools[false][self] = nil
 	safeYield()
 end
 

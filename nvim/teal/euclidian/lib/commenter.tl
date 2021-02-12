@@ -3,7 +3,7 @@
 
 local util <const> = require("euclidian.lib.util")
 local a <const> = vim.api
-local trim <const> = util.trim
+local trim <const> = util.str.trim
 
 local commenter <const> = {}
 

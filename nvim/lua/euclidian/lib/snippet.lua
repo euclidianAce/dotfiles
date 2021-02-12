@@ -1,6 +1,6 @@
 
 local a = vim.api
-local cmdf = require("euclidian.lib.util").cmdf
+local cmdf = require("euclidian.lib.util").nvim.cmdf
 
 local snippet = {}
 

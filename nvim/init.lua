@@ -6,8 +6,12 @@ function libreq(lib)
 	return require("euclidian.lib." .. lib)
 end
 
-local util = libreq("util")
-local cmdf, autocmd = util.cmdf, util.autocmd
+libreq "printmode"
+	.set "inspect"
+	.override()
+
+local util = libreq "util"
+local cmdf, autocmd = util.nvim.cmdf, util.nvim.autocmd
 
 cmdf [[set termguicolors]]
 cmdf [[filetype indent on]]
@@ -16,7 +20,7 @@ cmdf [[syntax enable]]
 require("euclidian.lib.package-manager")
 require("euclidian.lib.package-manager.loader").enableSet("World")
 
-local tsLangs = { "teal", "lua", "nix", "javascript", "c" }
+local tsLangs = { "teal", "lua", "nix", "javascript", "c", "query" }
 require("nvim-treesitter.configs").setup{
 	ensure_installed = tsLangs,
 	highlight = { enable = tsLangs },
@@ -46,7 +50,7 @@ cmdf [[set undofile]]
 
 set(vim.o, {
 	mouse = "a",
-	-- guicursor = "",
+	guicursor = "",
 	belloff = "all",
 	swapfile = false,
 	switchbuf = "useopen",
@@ -63,7 +67,7 @@ set(vim.o, {
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
-	listchars = "tab:   ,trail:✗,space:·,precedes:<,extends:>,nbsp:+",
+	listchars = "tab:   ,trail:-,space:·,precedes:<,extends:>,nbsp:+",
 	fillchars = "fold: ,vert: ",
 	inccommand = "split",
 	laststatus = 2,
@@ -82,12 +86,19 @@ set(vim.wo, {
 	relativenumber = true,
 })
 
-local lsp = require("lspconfig")
-for server, settings in pairs{
-	clangd = {},
-} do
-	lsp[server].setup(settings)
+local lspconfig = require("lspconfig")
+local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH
+if not lspconfig.teal then
+	configs.teal = {
+		default_config = {
+			cmd = { "/home/corey/dev/teal-language-server/bin/teal-language-server" },
+			filetypes = { "teal" };
+			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
+			settings = {};
+		},
+	}
 end
+lspconfig.teal.setup{}
 
 function req(lib)
 	package.loaded[lib] = nil
@@ -95,29 +106,35 @@ function req(lib)
 	return loaded
 end
 
-confreq("snippets")
-confreq("statusline")
-confreq("keymaps")
+confreq "snippets"
+confreq "statusline"
+confreq "keymaps"
 
-libreq("printmode")
-	.set("inspect")
-	.override()
+hi = libreq "color" .scheme.hi
+palette = confreq "colors"
 
-hi = libreq("color").scheme.hi
-palette = confreq("colors")
-
-euclidian = {
-	config = setmetatable({}, {
+local function requirer(str)
+	return setmetatable({}, {
 		__index = function(self, key)
-			rawset(self, key, require("euclidian.config." .. key))
-			return rawget(self, key)
-		end,
-	}),
-	lib = setmetatable({}, {
-		__index = function(self, key)
-			rawset(self, key, require("euclidian.lib." .. key))
+			rawset(self, key, require(str .. "." .. key))
 			return rawget(self, key)
 		end,
 	})
+end
+
+euclidian = {
+	config = requirer("euclidian.config"),
+	lib = requirer("euclidian.lib")
 }
+
+-- function attach_teal_language_server(buf)
+-- 	local client_id = vim.lsp.start_client{
+-- 		cmd = { "/home/corey/dev/teal-language-server/bin/teal-language-server" },
+-- 		root_dir = require("lspconfig").util.root_pattern("tlconfig.lua", ".git")(vim.fn.getcwd()),
+-- 		handlers = vim.lsp.handlers,
+-- 	}
+-- 
+-- 	print("started client with id: ", client_id)
+-- 	vim.lsp.buf_attach_client(buf or 0, client_id)
+-- end
 

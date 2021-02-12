@@ -39,7 +39,7 @@ local function generateDef(out, p)
    if p.dependents then
       local d = {}
       for _, dep in ipairs(p.dependents) do
-         if type(dep) == "table" then
+         if type(dep) == "table" and dep.id then
             table.insert(d, tostring(dep.id))
          end
       end
@@ -82,7 +82,7 @@ function set.serialize(ps)
       gen(p)
    end
 
-   table.insert(out, "\n\n-- vim: ft=teal")
+   table.insert(out, "\n-- vim: ft=teal")
 
    return table.concat(out)
 end

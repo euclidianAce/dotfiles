@@ -36,20 +36,31 @@ local function centered(wid, hei)
    return toDialog(window.centeredFloat(wid or 50, hei or 5))
 end
 
-function Dialog:setLines(txt)
-   a.nvim_buf_set_option(self.buf, "modifiable", true)
-   a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
-   a.nvim_buf_set_option(self.buf, "modifiable", false)
+function Dialog:isModifiable()
+   return a.nvim_buf_get_option(self.buf, "modifiable")
+end
+function Dialog:setModifiable(to)
+   a.nvim_buf_set_option(self.buf, "modifiable", to)
+end
+function Dialog:modify(fn)
+   local orig = self:isModifiable()
+   self:setModifiable(true)
+   fn(self)
+   self:setModifiable(orig)
    return self
+end
+function Dialog:setLines(txt)
+   return self:modify(function()
+      a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
+   end)
 end
 function Dialog:setText(edits)
 
-   a.nvim_buf_set_option(self.buf, "modifiable", true)
-   for _, edit in ipairs(edits) do
-      a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], { edit[1] })
-   end
-   a.nvim_buf_set_option(self.buf, "modifiable", false)
-   return self
+   return self:modify(function()
+      for _, edit in ipairs(edits) do
+         a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], { edit[1] })
+      end
+   end)
 end
 function Dialog:setCursor(row, col)
    a.nvim_win_set_cursor(self.win, { row, col })

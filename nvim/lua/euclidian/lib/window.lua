@@ -56,7 +56,7 @@ local function getWinSize(wid, hei)
    wid = min(max(minWid, wid), maxWid)
    hei = min(max(minHei, hei), maxHei)
 
-   return floor((ui.width - wid) / 2), floor((ui.height - hei) / 2), wid, hei
+   return math.floor((ui.width - wid) / 2), math.floor((ui.height - hei) / 2), wid, hei
 end
 
 function window.centeredFloat(wid, hei, buf)

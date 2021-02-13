@@ -79,7 +79,7 @@ end
 local function makeLine(tags, winId)
    local tagSet = set(tags)
    local buf = {}
-   for _, component in ipairs(lineComponents) do
+   for i, component in ipairs(lineComponents) do
       local include = false
       for t in pairs(component.tags) do
          if tagSet[t] or currentTags[t] then
@@ -100,7 +100,9 @@ local function makeLine(tags, winId)
          else
             table.insert(buf, component.text)
          end
-         table.insert(buf, "%#Normal#")
+         if i < #lineComponents then
+            table.insert(buf, "%#Normal#")
+         end
       end
    end
    return table.concat(buf)

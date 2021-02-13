@@ -153,30 +153,31 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 				local function updateText(txt: string)
 					segment[3] = getLastLine(txt)
 				end
+				local function start()
+					runningCmds = runningCmds + 1
+					updateStatus("started")
+				end
+				local function close()
+					runningCmds = runningCmds - 1
+					if not p.post then
+						updateStatus("finished")
+					end
+					updateStatus("post...")
+					updateText("Running post install hooks...")
+					table.insert(jobs, function()
+						vim.schedule(function()
+							a.nvim_exec(p.post, false)
+							updateStatus("finished")
+						end)
+					end)
+				end
 				table.insert(jobs, function(t: thread)
 					cmd.runEvented{
 						command = command,
 						cwd = command.cwd,
 						on = {
-							start = function()
-								runningCmds = runningCmds + 1
-								updateStatus("started")
-							end,
-							close = function()
-								runningCmds = runningCmds - 1
-								if p.post then
-									updateStatus("post...")
-									updateText("Running post install hooks...")
-									table.insert(jobs, function()
-										vim.schedule(function()
-											a.nvim_exec(p.post, false)
-											updateStatus("finished")
-										end)
-									end)
-								else
-									updateStatus("finished")
-								end
-							end,
+							start = start,
+							close = close,
 							stdout = updateText,
 							stderr = updateText,
 						},
@@ -390,10 +391,11 @@ function interface.addPackage()
 			d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
 			d:setLines{}
 			d:setBufOpt("syntax", "vim")
-			d:setBufOpt("modifiable", true)
-			a.nvim_command "startinsert"
-			yield()
-			a.nvim_command "stopinsert"
+			d:modify(function()
+				a.nvim_command "startinsert"
+				yield()
+				a.nvim_command "stopinsert"
+			end)
 			d:setBufOpt("syntax", "")
 			d:setBufOpt("modifiable", false)
 

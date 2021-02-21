@@ -1,6 +1,5 @@
 
-local window = require("euclidian.lib.window")
-local a = vim.api
+local nvim = require("euclidian.lib.nvim")
 
 local Dialog = {Opts = {}, }
 
@@ -14,33 +13,77 @@ local Dialog = {Opts = {}, }
 
 
 
-local function setOpts(win, buf)
-   a.nvim_buf_set_option(buf, "buftype", "nofile")
-   a.nvim_buf_set_option(buf, "modifiable", false)
-   a.nvim_win_set_option(win, "winblend", 5)
+local dialog = {
+   Dialog = Dialog,
+}
+
+function dialog.new(col, row, wid, hei)
+   local buf = nvim.createBuf(false, true)
+   buf:setOption("buftype", "nofile")
+   buf:setOption("modifiable", false)
+
+   local win = nvim.openWin(buf, true, {
+      relative = "editor",
+      row = row, col = col,
+      width = wid, height = hei,
+   })
+   win:setOption("winblend", 5)
+
+   local ui = nvim.ui()
+
+   if col < 0 then
+      col = ui.width + col
+   end
+   if row < 0 then
+      row = ui.height + row
+   end
+
+   win:setConfig({
+      relative = "editor", style = "minimal", anchor = "NW",
+      width = wid, height = hei,
+      row = row, col = col,
+   })
+
+   return setmetatable({ buf = buf, win = win }, { __index = Dialog })
 end
 
-local function toDialog(win, buf)
-   setOpts(win, buf)
-   return setmetatable({
-      win = win,
-      buf = buf,
-   }, { __index = Dialog })
+local floor, max, min =
+math.floor, math.max, math.min
+
+local function clamp(n, lower, upper)
+   return min(max(lower, n), upper)
 end
 
-local function new(x, y, wid, hei)
-   return toDialog(window.floating(x or 10, y or 10, wid or 50, hei or 5))
+function dialog.centeredSize(wid, hei)
+   local ui = nvim.ui()
+
+   local actualWid = clamp(
+   wid,
+   floor(ui.width * .25),
+   floor(ui.width * .90))
+
+   local actualHei = clamp(
+   hei,
+   floor(ui.height * .25),
+   floor(ui.height * .90))
+
+
+   return
+math.floor((ui.width - actualWid) / 2),
+   math.floor((ui.height - actualHei) / 2),
+   actualWid,
+   actualHei
 end
 
-local function centered(wid, hei)
-   return toDialog(window.centeredFloat(wid or 50, hei or 5))
+function dialog.centered(wid, hei)
+   return dialog.new(dialog.centeredSize(wid, hei))
 end
 
 function Dialog:isModifiable()
-   return a.nvim_buf_get_option(self.buf, "modifiable")
+   return self.buf:getOption("modifiable")
 end
 function Dialog:setModifiable(to)
-   a.nvim_buf_set_option(self.buf, "modifiable", to)
+   self.buf:setOption("modifiable", to)
 end
 function Dialog:modify(fn)
    local orig = self:isModifiable()
@@ -51,78 +94,70 @@ function Dialog:modify(fn)
 end
 function Dialog:setLines(txt)
    return self:modify(function()
-      a.nvim_buf_set_lines(self.buf, 0, -1, false, txt)
+      self.buf:setLines(0, -1, false, txt)
    end)
 end
 function Dialog:setText(edits)
 
    return self:modify(function()
       for _, edit in ipairs(edits) do
-         a.nvim_buf_set_text(self.buf, edit[2], edit[3], edit[4], edit[5], { edit[1] })
+         self.buf:setText(edit[2], edit[3], edit[4], edit[5], { edit[1] })
       end
    end)
 end
 function Dialog:setCursor(row, col)
-   a.nvim_win_set_cursor(self.win, { row, col })
+   self.win:setCursor({ row, col })
    return self
 end
 function Dialog:getCursor()
-   local pos = a.nvim_win_get_cursor(self.win)
+   local pos = self.win:getCursor()
    return pos[1], pos[2]
 end
 function Dialog:getLine(n)
-   return a.nvim_buf_get_lines(self.buf, n - 1, n, false)[1]
+   return self.buf:getLines(n - 1, n, false)[1]
 end
 function Dialog:getLines(min, max)
-   return a.nvim_buf_get_lines(self.buf, min or 0, max or -1, false)
+   return self.buf:getLines(min or 0, max or -1, false)
 end
 function Dialog:setWin(o)
-   a.nvim_win_set_config(self.win, {
+   self.win:setConfig({
       relative = "editor",
       row = assert(o.row, "no row"), col = assert(o.col, "no col"),
       width = assert(o.wid, "no wid"), height = assert(o.hei, "no hei"),
    })
    return self
 end
+function Dialog:center(width, height)
+   local col, row, wid, hei = dialog.centeredSize(width, height)
+   self:setWin({ col = col, row = row, wid = wid, hei = hei })
+   return self
+end
 function Dialog:addKeymap(mode, lhs, rhs, opts)
-   a.nvim_buf_set_keymap(self.buf, mode, lhs, rhs, opts)
+   self.buf:setKeymap(mode, lhs, rhs, opts)
    return self
 end
 function Dialog:delKeymap(mode, lhs)
-   a.nvim_buf_del_keymap(self.buf, mode, lhs)
-   return self
-end
-function Dialog:setWinOpt(optName, val)
-   a.nvim_win_set_option(self.win, optName, val)
-   return self
-end
-function Dialog:setBufOpt(optName, val)
-   a.nvim_buf_set_option(self.buf, optName, val)
+   self.buf:delKeymap(mode, lhs)
    return self
 end
 function Dialog:setPrompt(prompt, cb, int)
-   a.nvim_buf_set_option(self.buf, "modifiable", true)
-   a.nvim_buf_set_option(self.buf, "buftype", "prompt")
+   self.buf:setOption("modifiable", true)
+   self.buf:setOption("buftype", "prompt")
 
-   vim.fn.prompt_setprompt(self.buf, prompt or "> ")
-   if cb then vim.fn.prompt_setcallback(self.buf, cb) end
-   if int then vim.fn.prompt_setinterrupt(self.buf, int) end
-   a.nvim_command("startinsert")
+   vim.fn.prompt_setprompt(self.buf.id, prompt or "> ")
+   if cb then vim.fn.prompt_setcallback(self.buf.id, cb) end
+   if int then vim.fn.prompt_setinterrupt(self.buf.id, int) end
+   nvim.command("startinsert")
    return self
 end
 function Dialog:unsetPrompt()
-   a.nvim_buf_set_option(self.buf, "modifiable", false)
-   a.nvim_buf_set_option(self.buf, "buftype", "nofile")
-   a.nvim_command("stopinsert")
+   self.buf:setOption("modifiable", false)
+   self.buf:setOption("buftype", "nofile")
+   nvim.command("stopinsert")
    return self
 end
 function Dialog:close()
-   a.nvim_win_close(self.win, true)
+   self.win:close(true)
 end
 
-return {
-   new = new,
-   centered = centered,
-
-   Dialog = Dialog,
-}
+return dialog

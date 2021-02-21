@@ -1,5 +1,4 @@
 
--- local cmd <const> = require("euclidian.lib.package-manager.cmd")
 local tree <const> = require("euclidian.lib.package-manager.tree")
 local uv <const> = vim.loop
 
@@ -37,17 +36,22 @@ local packagespec <const> = {
 
 local SpecMt <const> = { __index = Spec } as metatable<Spec>
 function packagespec.new(p: Spec): Spec
-	-- TODO: fix this, I think its a problem in my own cli
-	return (setmetatable as function(any, any): Spec)(p, SpecMt)
+	return setmetatable(p, SpecMt)
+end
+
+function Spec:locationInTree(): string
+	if self.kind == "git" then
+		if self.alias then
+			return self.alias
+		else
+			return self.repo:match("[^/]+$")
+		end
+	end
 end
 
 function Spec:location(): string
 	if self.kind == "git" then
-		if self.alias then
-			return tree.neovim .. "/" .. self.alias
-		else
-			return tree.neovim .. "/" .. self.repo:match("[^/]+$")
-		end
+		return tree.neovim .. "/" .. self:locationInTree()
 	elseif self.kind == "local" then
 		return self.path
 	end

@@ -1,16 +1,22 @@
 
-local util <const> = require("euclidian.lib.util")
-local set <const> = util.tab.set
-local a <const> = vim.api
+local nvim <const> = require("euclidian.lib.nvim")
 
-local statusline = {
+local function set<T>(t: {T}): {T:boolean}
+	local s = {}
+	for _, v in ipairs(t) do
+		s[v] = true
+	end
+	return s
+end
+
+local statusline <const> = { 
 	higroup = "StatuslineModeText",
 	_funcs: {function(number): string} = {},
 }
 
-local cmd = vim.api.nvim_command
+local active <const>: {nvim.Window.Id:boolean} = {}
 
-local modeMap: {vim.Mode:{string}} = setmetatable({
+local modeMap <const>: {vim.Mode:{string}} = setmetatable({
 	["n"] = {"Normal", "Constant"},
 	["i"] = {"Insert", "Function"},
 	["r"] = {"Confirm", "Special"},
@@ -31,7 +37,7 @@ local modeMap: {vim.Mode:{string}} = setmetatable({
 	end
 })
 
-local userModes: {string:{string}} = setmetatable({}, {
+local userModes <const>: {string:{string}} = setmetatable({}, {
 	__index = function(self: {string:{string}}, key: string): {string}
 		return rawget(self, string.sub(key, 1, 1)) or modeMap[key as vim.Mode]
 	end
@@ -44,7 +50,8 @@ end
 function statusline.getModeText(): string
 	local m = vim.fn.mode(true) as vim.Mode
 	local map <const> = userModes[m]
-	cmd("hi! clear StatuslineModeText | hi! link StatuslineModeText " .. map[2])
+	nvim.command("hi! clear StatuslineModeText")
+	nvim.command("hi! link StatuslineModeText %s", map[2])
 	return map[1]
 end
 
@@ -57,8 +64,8 @@ local record Component
 	invertedTags: {string:boolean}
 end
 
-local lineComponents: {Component} = {}
-local currentTags: {string:boolean} = {}
+local lineComponents <const>: {Component} = {}
+local currentTags <const>: {string:boolean} = {}
 
 function statusline.add(tags: {string}, invertedTags: {string}, text: (string | function(number): (string)), hiGroup: string)
 	local comp: Component = {
@@ -87,10 +94,12 @@ local function makeLine(tags: {string}, winId: number): string
 				break
 			end
 		end
-		for t in pairs(component.invertedTags) do
-			if tagSet[t] or currentTags[t] then
-				include = false
-				break
+		if include then
+			for t in pairs(component.invertedTags) do
+				if tagSet[t] or currentTags[t] then
+					include = false
+					break
+				end
 			end
 		end
 		if include then
@@ -109,15 +118,11 @@ local function makeLine(tags: {string}, winId: number): string
 end
 
 local function setLine(winId: number)
-	local ok, active = pcall(vim.api.nvim_win_get_var, winId or 0, "statusline_active")
-	if not ok then
-		pcall(vim.api.nvim_win_set_var, winId or 0, "statusline_active", false)
-		active = 0
-	end
-	local tags = active
+	local win <const> = nvim.Window(winId)
+	local tags <const> = active[win.id]
 		and {"Active"}
 		or {"Inactive"}
-	vim.api.nvim_win_set_option(winId or 0, "statusline", makeLine(tags, winId))
+	win:setOption("statusline", makeLine(tags, win.id))
 end
 
 function statusline.updateWindows()
@@ -127,12 +132,14 @@ function statusline.updateWindows()
 end
 
 function statusline.setInactive(winId: number)
-	vim.api.nvim_win_set_var(winId or 0, "statusline_active", false)
+	winId = winId or nvim.Window().id
+	active[winId] = false
 	statusline.updateWindows()
 end
 
 function statusline.setActive(winId: number)
-	vim.api.nvim_win_set_var(winId or 0, "statusline_active", true)
+	winId = winId or nvim.Window().id
+	active[winId] = true
 	statusline.updateWindows()
 end
 
@@ -148,14 +155,14 @@ function statusline.toggleTag(name: string | {string})
 end
 
 function statusline.isActive(winId: number): boolean
-	return a.nvim_win_get_var(winId or 0, "statusline_active") as boolean
+	winId = winId or nvim.Window().id
+	return active[winId]
 end
 
-cmd "augroup customstatus"
-cmd    "autocmd!"
-cmd    "autocmd WinEnter,BufWinEnter * let w:statusline_active = v:true | lua require'euclidian.lib.statusline'.updateWindows()"
-cmd    "autocmd WinLeave *             let w:statusline_active = v:false"
-cmd "augroup END"
+nvim.augroup("Statusline", {
+	{ { "WinEnter", "BufWinEnter" }, "*", "lua require'euclidian.lib.statusline'.setActive()" },
+	{ "WinLeave", "*", "lua require'euclidian.lib.statusline'.setInactive()" },
+})
 
 statusline.setActive()
 statusline.updateWindows()

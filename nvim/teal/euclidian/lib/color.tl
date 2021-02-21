@@ -1,7 +1,6 @@
 
 local bit <const> = require("bit")
-local util <const> = require("euclidian.lib.util")
-local cmdf <const> = util.nvim.cmdf
+local nvim <const> = require("euclidian.lib.nvim")
 
 local record color
 	type Color = {number, number, string}
@@ -18,13 +17,22 @@ local function tiFmt(t: {string}, fmt: string, ...: any)
 end
 local function updateHiGroup(group: string, fg: number, bg: number, ex: string)
 	local out = { "hi", group }
-	if fg then tiFmt(out, "guifg=#%06x", fg)
-	else       tiFmt(out, "guifg=none") end
-	if bg then tiFmt(out, "guibg=#%06x", bg)
-	else       tiFmt(out, "guibg=none") end
-	if ex then tiFmt(out, "gui=%s", ex)
-	else       tiFmt(out, "gui=none")   end
-	cmdf(table.concat(out, " "))
+	if fg then
+		tiFmt(out, "guifg=#%06x", fg)
+	elseif fg ~= -1 then
+		tiFmt(out, "guifg=none")
+	end
+	if bg then
+		tiFmt(out, "guibg=#%06x", bg)
+	elseif bg ~= -1 then
+		tiFmt(out, "guibg=none")
+	end
+	if ex then
+		tiFmt(out, "gui=%s", ex)
+	elseif ex ~= "" then
+		tiFmt(out, "gui=none")
+	end
+	nvim.command(table.concat(out, " "))
 end
 
 local groups: {Color:string} = {}
@@ -36,12 +44,12 @@ setmetatable(color.scheme.hi, {
 	end,
 	__newindex = function(_self: {string:Color}, key: string, val: Color)
 		if not val then
-			cmdf("hi link %s NONE", key)
+			nvim.command("hi link %s NONE", key)
 			actualHi[key] = nil
 		elseif groups[val] then
 			-- just link the group
-			cmdf("hi clear %s", key)
-			cmdf("hi link %s %s", key, groups[val])
+			nvim.command("hi clear %s", key)
+			nvim.command("hi link %s %s", key, groups[val])
 			actualHi[key] = setmetatable({}, { __index = val })
 		else
 			-- new group

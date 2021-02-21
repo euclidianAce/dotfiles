@@ -1,14 +1,22 @@
 
-local cmdf = require("euclidian.lib.util").nvim.cmdf
-local manager = {}
-
+local nvim = require("euclidian.lib.nvim")
 local interface = require("euclidian.lib.package-manager.interface")
+local loader = require("euclidian.lib.package-manager.loader")
+local tree = require("euclidian.lib.package-manager.tree")
 
 local commands = {
    ["Install"] = interface.installSet,
    ["Update"] = interface.updateSet,
    ["Add"] = interface.addPackage,
 }
+
+local manager = {SetupOpts = {}, }
+
+
+
+
+
+
 
 function manager.command(cmdName)
    local cmd = commands[cmdName]
@@ -19,12 +27,23 @@ function manager.command(cmdName)
 end
 
 for name in pairs(commands) do
-   cmdf(
+   nvim.command(
    [[command -nargs=0 PackageManager%s lua require'euclidian.lib.package-manager'.command(%q)]],
    name, name)
 
 end
 
-require("euclidian.lib.package-manager.tree")
+package.path = tree.luarocks .. "/share/lua/5.1/?.lua;" ..
+tree.luarocks .. "/share/lua/5.1/?/init.lua;" ..
+package.path
 
-return manager
+package.cpath = tree.luarocks .. "/lib/lua/5.1/?.so;" ..
+package.cpath
+
+return setmetatable(manager, {
+   __call = function(_, opts)
+      for _, setname in ipairs(opts.enable) do
+         loader.enableSet(setname)
+      end
+   end,
+})

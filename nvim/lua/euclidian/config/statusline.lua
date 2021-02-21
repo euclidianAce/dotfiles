@@ -2,10 +2,7 @@
 local color = require("euclidian.lib.color")
 local p = require("euclidian.config.colors")
 local stl = require("euclidian.lib.statusline")
-local util = require("euclidian.lib.util")
-local a = vim.api
-
-local unpacker = util.tab.unpacker
+local nvim = require("euclidian.lib.nvim")
 
 local hi = color.scheme.hi
 local min, max = math.min, math.max
@@ -25,6 +22,7 @@ local function invert(fgColor)
       fgColor,
    }
 end
+
 hi.STLBufferInfo = invert(hi.Comment[1])
 hi.STLGit = invert(p.darkGreen)
 hi.STLFname = invert(p.brightGray)
@@ -38,18 +36,15 @@ hi.STLTerminal = invert(p.orange)
 hi.StatusLine = hi.STLBufferInfo
 hi.StatusLineNC = invert(p.gray)
 
-for m, txt, hl in unpacker({
-      { "n", "Normal", "STLNormal" },
-      { "i", "Insert", "STLInsert" },
-      { "c", "Command", "STLCommand" },
-      { "R", "Replace", "STLReplace" },
-      { "t", "Terminal", "STLTerminal" },
-      { "v", "Visual", "STLVisual" },
-      { "V", "Visual Line", "STLVisual" },
-      { "", "Visual Block", "STLVisual" },
-   }) do
-   stl.mode(m, txt, hl)
-end
+stl.mode("n", "Normal", "STLNormal")
+stl.mode("i", "Insert", "STLInsert")
+stl.mode("c", "Command", "STLCommand")
+stl.mode("r", "Confirm", "STLCommand")
+stl.mode("R", "Replace", "STLReplace")
+stl.mode("t", "Terminal", "STLTerminal")
+stl.mode("v", "Visual", "STLVisual")
+stl.mode("V", "Visual Line", "STLVisual")
+stl.mode("", "Visual Block", "STLVisual")
 
 local alwaysActive = { "Active", "Inactive" }
 local active = { "Active" }
@@ -62,10 +57,10 @@ local function tiFmt(t, fmt, ...)
    ti(t, sf(fmt, ...))
 end
 
-local winOption = a.nvim_win_get_option
 stl.add(alwaysActive, empty, function(winid)
-   local spaces = winOption(winid, "numberwidth") + winOption(winid, "foldcolumn") + 1
-   return (" "):rep(spaces) .. a.nvim_win_get_buf(winid) .. " "
+   local win = nvim.Window(winid)
+   local spaces = win:getOption("numberwidth") + 1
+   return (" "):rep(spaces) .. nvim.Window(winid):getBuf() .. " "
 end, "STLBufferInfo")
 stl.add(active, inactive, function()
    return "  " .. stl.getModeText() .. " "
@@ -80,8 +75,8 @@ stl.add(active, inactive, function()
 end, "STLGit")
 local maxFileNameLen = 20
 stl.add(alwaysActive, empty, function(winid)
-   local buf = a.nvim_win_get_buf(winid)
-   local fname = a.nvim_buf_get_name(buf) or ""
+   local buf = nvim.Buffer(nvim.Window(winid):getBuf())
+   local fname = buf:getName() or ""
    if fname:match("/bin/bash$") or #fname == 0 then
       return ""
    end
@@ -102,32 +97,37 @@ stl.add(inactive, active, " %= ", "StatusLineNC")
 
 local minWid = 100
 stl.add(alwaysActive, empty, function(winid)
-   local currentBuf = a.nvim_win_get_buf(winid)
-   local cursorPos = a.nvim_win_get_cursor(winid)
-   local wid = a.nvim_win_get_width(winid)
+   local win = nvim.Window(winid)
+   local buf = nvim.Buffer(nvim.Window(winid):getBuf())
+
+   local wid = win:getWidth()
+   local pos = win:getCursor()
+
    local out = {}
    if stl.isActive(winid) then
 
       if wid > minWid then
-         local expandtab = a.nvim_buf_get_option(currentBuf, "expandtab")
+         local expandtab = buf:getOption("expandtab")
          local num
-         if expandtab then num = a.nvim_buf_get_option(currentBuf, "shiftwidth")
-         else num = a.nvim_buf_get_option(currentBuf, "tabstop")
+         if expandtab then
+            num = buf:getOption("shiftwidth")
+         else
+            num = buf:getOption("tabstop")
          end
          tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
       end
 
 
-      local totalLines = #a.nvim_buf_get_lines(currentBuf, 0, -1, false)
+      local totalLines = #buf:getLines(0, -1, false)
       if wid > minWid then
-         tiFmt(out, "Ln: %3d of %3d", cursorPos[1], totalLines)
-         tiFmt(out, "Col: %3d", cursorPos[2] + 1)
-         tiFmt(out, "%3d%%", math.floor(cursorPos[1] / totalLines * 100))
+         tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
+         tiFmt(out, "Col: %3d", pos[2] + 1)
+         tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines * 100))
       else
-         tiFmt(out, "Ln:%d C:%d", cursorPos[1], cursorPos[2])
+         tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
       end
    else
-      tiFmt(out, "Ln: %3d", cursorPos[1])
+      tiFmt(out, "Ln: %3d", pos[1])
    end
    if #out > 1 then
       return "│ " .. table.concat(out, " │ ") .. "  "

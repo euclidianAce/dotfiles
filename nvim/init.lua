@@ -10,15 +10,17 @@ libreq "printmode"
 	.set "inspect"
 	.override()
 
-local util = libreq "util"
-local cmdf, autocmd = util.nvim.cmdf, util.nvim.autocmd
+local nvim = libreq "nvim"
 
-cmdf [[set termguicolors]]
-cmdf [[filetype indent on]]
-cmdf [[syntax enable]]
+nvim.command[[filetype indent on]]
+nvim.command[[syntax enable]]
 
-require("euclidian.lib.package-manager")
-require("euclidian.lib.package-manager.loader").enableSet("World")
+libreq "package-manager" {
+	enable = {
+		"World",
+		"TSPlayground",
+	}
+}
 
 local tsLangs = { "teal", "lua", "nix", "javascript", "c", "query" }
 require("nvim-treesitter.configs").setup{
@@ -26,12 +28,21 @@ require("nvim-treesitter.configs").setup{
 	highlight = { enable = tsLangs },
 }
 
-autocmd({"BufReadPost"}, {"*.tl", "*.lua"}, [[setlocal syntax= | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]])
-autocmd({"BufReadPost"}, {"*.c", "*.h", "*.cpp"}, [[setlocal sw=4 ts=4]])
-autocmd({"TextYankPost"}, {"*"}, [[lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]])
-autocmd({"TermOpen"}, {"*"}, [[setlocal nonumber norelativenumber foldcolumn=0 signcolumn=no]])
-autocmd({"Filetype"}, {"lua"}, [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
-autocmd({"Filetype"}, {"*.c", "*.cpp", "*.h", "*.hpp"}, [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
+nvim.augroup("Custom", {
+	{ "BufReadPost", {"*.tl", "*.lua"},
+		[[setlocal syntax= | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]] },
+
+	{ "BufReadPost", {"*.c", "*.h", "*.cpp"}, [[setlocal sw=4 ts=4]] },
+
+	{ "TextYankPost", "*",
+		[[lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]] },
+
+	{ "TermOpen", "*", [[setlocal nonumber norelativenumber foldcolumn=0 signcolumn=no]] },
+
+	{ "Filetype", "lua", [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]] },
+
+	{ "Filetype", {"*.tl", "*.c", "*.cpp", "*.h", "*.hpp"}, [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]] },
+})
 
 local function set(t, options)
 	for opt, val in pairs(options) do
@@ -46,11 +57,13 @@ set(vim.g, {
 })
 
 -- TODO: wat
-cmdf [[set undofile]]
+nvim.command [[set undofile]]
 
 set(vim.o, {
+	termguicolors = true,
 	mouse = "a",
-	guicursor = "",
+	-- guicursor = "",
+	guicursor = "n:hor10,i:ver10",
 	belloff = "all",
 	swapfile = false,
 	switchbuf = "useopen",
@@ -80,7 +93,6 @@ set(vim.o, {
 set(vim.wo, {
 	list = true,
 	signcolumn = "yes:1",
-	-- foldcolumn = "3",
 	numberwidth = 4,
 	number = true,
 	relativenumber = true,
@@ -91,7 +103,10 @@ local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH
 if not lspconfig.teal then
 	configs.teal = {
 		default_config = {
-			cmd = { "/home/corey/dev/teal-language-server/bin/teal-language-server" },
+			cmd = {
+				"teal-language-server",
+				"logging=on",
+			},
 			filetypes = { "teal" };
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
 			settings = {};
@@ -106,12 +121,8 @@ function req(lib)
 	return loaded
 end
 
-confreq "snippets"
 confreq "statusline"
 confreq "keymaps"
-
-hi = libreq "color" .scheme.hi
-palette = confreq "colors"
 
 local function requirer(str)
 	return setmetatable({}, {
@@ -122,19 +133,11 @@ local function requirer(str)
 	})
 end
 
+hi = libreq "color" .scheme.hi
+palette = confreq "colors"
+
 euclidian = {
 	config = requirer("euclidian.config"),
 	lib = requirer("euclidian.lib")
 }
-
--- function attach_teal_language_server(buf)
--- 	local client_id = vim.lsp.start_client{
--- 		cmd = { "/home/corey/dev/teal-language-server/bin/teal-language-server" },
--- 		root_dir = require("lspconfig").util.root_pattern("tlconfig.lua", ".git")(vim.fn.getcwd()),
--- 		handlers = vim.lsp.handlers,
--- 	}
--- 
--- 	print("started client with id: ", client_id)
--- 	vim.lsp.buf_attach_client(buf or 0, client_id)
--- end
 

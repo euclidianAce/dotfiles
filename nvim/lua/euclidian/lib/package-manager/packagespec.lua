@@ -1,5 +1,4 @@
 
-
 local tree = require("euclidian.lib.package-manager.tree")
 local uv = vim.loop
 
@@ -37,17 +36,22 @@ local packagespec = {
 
 local SpecMt = { __index = Spec }
 function packagespec.new(p)
+   return setmetatable(p, SpecMt)
+end
 
-   return (setmetatable)(p, SpecMt)
+function Spec:locationInTree()
+   if self.kind == "git" then
+      if self.alias then
+         return self.alias
+      else
+         return self.repo:match("[^/]+$")
+      end
+   end
 end
 
 function Spec:location()
    if self.kind == "git" then
-      if self.alias then
-         return tree.neovim .. "/" .. self.alias
-      else
-         return tree.neovim .. "/" .. self.repo:match("[^/]+$")
-      end
+      return tree.neovim .. "/" .. self:locationInTree()
    elseif self.kind == "local" then
       return self.path
    end

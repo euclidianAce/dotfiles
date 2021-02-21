@@ -4,6 +4,7 @@
 
 
 
+
 local resume, yield, running, create, status =
 coroutine.resume, coroutine.yield, coroutine.running, coroutine.create, coroutine.status
 
@@ -39,6 +40,7 @@ local Internal = {Worker = {}, EventLoop = {}, }
 
 
 
+
 local EventLoop = {}
 
 
@@ -52,8 +54,8 @@ local ev = {
    EventLoop = EventLoop,
 }
 
-local function stepThread(t)
-   if not resume(t) then
+local function stepThread(t, ...)
+   if not resume(t, ...) then
       error("error in coroutine: " .. debug.traceback(t), 2)
    end
 end
@@ -124,7 +126,7 @@ local function doWork(loop)
       src[handle] = nil
       if status(worker) ~= "dead" then
          dest[handle] = worker
-         stepThread(worker)
+         stepThread(worker, loop.thread)
       end
       yield()
    end
@@ -159,9 +161,8 @@ function ev.poll(...)
       setmetatable(kinds, { __index = function() return true end })
    end
 
-   local loop = getRunningEventLoop("Unable to poll")
-
    return function()
+      local loop = getRunningEventLoop("Unable to poll")
       repeat doWork(loop)
 
       until not hasWorkers(loop.pools) or

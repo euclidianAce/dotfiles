@@ -1,7 +1,7 @@
 
-local a = vim.api
 local oldPrint = print
-local window = require("euclidian.lib.window")
+local nvim = require("euclidian.lib.nvim")
+local dialog = require("euclidian.lib.dialog")
 
 local Mode = {}
 
@@ -31,11 +31,16 @@ local modes = {
    end,
    buffer = function(...)
       if not printBuf then
-         printBuf = a.nvim_create_buf(false, true)
-         a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
+         printBuf = nvim.createBuf(false, true)
+         printBuf:setLines(0, -1, false, { "=== print buffer ===" })
       end
-      if not (printWin and a.nvim_win_is_valid(printWin)) then
-         printWin = window.floating(-75, 2, 64, 45, printBuf)
+      if not (printWin and printWin:isValid()) then
+         local col, row, wid, hei = dialog.centeredSize(55, nvim.ui().height - 20)
+         printWin = nvim.openWin(printBuf, false, {
+            relative = "editor",
+            style = "minimal",
+            col = col + math.floor(nvim.ui().width / 3), row = row, height = hei, width = wid,
+         })
       end
 
       local text = {}
@@ -50,7 +55,7 @@ local modes = {
       end
 
       vim.schedule(function()
-         a.nvim_buf_set_lines(printBuf, -1, -1, false, vim.split(table.concat(text, " "), "\n", true))
+         printBuf:setLines(-1, -1, false, vim.split(table.concat(text, " "), "\n", true))
       end)
    end,
 }

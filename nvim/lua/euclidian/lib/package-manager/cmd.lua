@@ -70,7 +70,7 @@ local function runCmd(o)
       end
    end)
 
-   timeoutTimer:start(o.timeout or 30000, 0, closer)
+   timeoutTimer:start(o.timeout or 30e3, 0, closer)
 
    if cbs.start then
       cbs.start()
@@ -136,19 +136,26 @@ function git.pull(p)
    assert(p.kind == "git", "Attempt to git.pull a non git package")
    eventedCmd({
       command = { "git", "pull" },
-      cwd = tree.neovim .. "/" .. p.repo:match("[^/]+$"),
+      cwd = p:location(),
    })
 end
 
 
 local luarocks = {}
+
 function luarocks.list()
 end
 
-function luarocks.install()
+function luarocks.install(rock)
+   eventedCmd({
+      command = { "luarocks", "--lua-version=5.1", "--tree", tree.luarocks, "install", rock },
+   })
 end
 
-function luarocks.remove()
+function luarocks.remove(rock)
+   eventedCmd({
+      command = { "luarocks", "--lua-version=5.1", "--tree", tree.luarocks, "remove", rock },
+   })
 end
 
 return {

@@ -2,12 +2,9 @@
 local color <const> = require("euclidian.lib.color")
 local p <const> = require("euclidian.config.colors")
 local stl <const> = require("euclidian.lib.statusline")
-local util <const> = require("euclidian.lib.util")
-local a <const> = vim.api
+local nvim <const> = require("euclidian.lib.nvim")
 
-local unpacker <const> = util.tab.unpacker
-
-local hi <const>  = color.scheme.hi
+local hi <const> = color.scheme.hi
 local min <const>, max <const> = math.min, math.max
 local function clamp(n: number, a: number, b: number): number
 	return min(max(n, a), b)
@@ -25,6 +22,7 @@ local function invert(fgColor: number): color.Color
 		fgColor
 	}
 end
+
 hi.STLBufferInfo  = invert(hi.Comment[1])
 hi.STLGit         = invert(p.darkGreen)
 hi.STLFname       = invert(p.brightGray)
@@ -38,18 +36,15 @@ hi.STLTerminal    = invert(p.orange)
 hi.StatusLine     = hi.STLBufferInfo
 hi.StatusLineNC   = invert(p.gray)
 
-for m, txt, hl in unpacker{
-	{ "n", "Normal", "STLNormal" },
-	{ "i", "Insert", "STLInsert" },
-	{ "c", "Command", "STLCommand" },
-	{ "R", "Replace", "STLReplace" },
-	{ "t", "Terminal", "STLTerminal" },
-	{ "v", "Visual", "STLVisual" },
-	{ "V", "Visual Line", "STLVisual" },
-	{ "", "Visual Block", "STLVisual" },
-} do
-	stl.mode(m, txt, hl)
-end
+stl.mode("n", "Normal", "STLNormal")
+stl.mode("i", "Insert", "STLInsert")
+stl.mode("c", "Command", "STLCommand")
+stl.mode("r", "Confirm", "STLCommand")
+stl.mode("R", "Replace", "STLReplace")
+stl.mode("t", "Terminal", "STLTerminal")
+stl.mode("v", "Visual", "STLVisual")
+stl.mode("V", "Visual Line", "STLVisual")
+stl.mode("", "Visual Block", "STLVisual")
 
 local alwaysActive <const> = {"Active", "Inactive"}
 local active <const> = {"Active"}
@@ -62,10 +57,10 @@ local function tiFmt(t: {string}, fmt: string, ...: any)
 	ti(t, sf(fmt, ...))
 end
 
-local winOption <const> = a.nvim_win_get_option as function(number, string): number
 stl.add(alwaysActive, empty, function(winid: number): string
-	local spaces <const> = winOption(winid, "numberwidth") + winOption(winid, "foldcolumn") + 1
-	return (" "):rep(spaces) .. a.nvim_win_get_buf(winid) .. " "
+	local win <const> = nvim.Window(winid)
+	local spaces <const> = win:getOption("numberwidth") + 1
+	return (" "):rep(spaces) .. nvim.Window(winid):getBuf() .. " "
 end, "STLBufferInfo")
 stl.add(active, inactive, function(): string
 	return "  " .. stl.getModeText() .. " "
@@ -80,8 +75,8 @@ stl.add(active, inactive, function(): string
 end, "STLGit")
 local maxFileNameLen <const> = 20
 stl.add(alwaysActive, empty, function(winid: number): string
-	local buf <const> = a.nvim_win_get_buf(winid)
-	local fname = a.nvim_buf_get_name(buf) or ""
+	local buf <const> = nvim.Buffer(nvim.Window(winid):getBuf())
+	local fname = buf:getName() or ""
 	if fname:match("/bin/bash$") or #fname == 0 then
 		return ""
 	end
@@ -102,32 +97,37 @@ stl.add(inactive, active, " %= ", "StatusLineNC")
 
 local minWid <const> = 100
 stl.add(alwaysActive, empty, function(winid: number): string
-	local currentBuf <const> = a.nvim_win_get_buf(winid)
-	local cursorPos <const> = a.nvim_win_get_cursor(winid) as {number, number}
-	local wid <const> = a.nvim_win_get_width(winid) as number
+	local win <const> = nvim.Window(winid)
+	local buf <const> = nvim.Buffer(nvim.Window(winid):getBuf())
+
+	local wid <const> = win:getWidth()
+	local pos <const> = win:getCursor()
+
 	local out: {string} = {}
 	if stl.isActive(winid) then
 		-- tabs/spaces info
 		if wid > minWid then
-			local expandtab = a.nvim_buf_get_option(currentBuf, "expandtab") as boolean
+			local expandtab = buf:getOption("expandtab") as boolean
 			local num: number
-			if expandtab then num = a.nvim_buf_get_option(currentBuf, "shiftwidth") as number
-			else              num = a.nvim_buf_get_option(currentBuf, "tabstop") as number
+			if expandtab then
+				num = buf:getOption("shiftwidth") as number
+			else
+				num = buf:getOption("tabstop") as number
 			end
 			tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 		end
 
 		-- line info
-		local totalLines <const> = #a.nvim_buf_get_lines(currentBuf, 0, -1, false)
+		local totalLines <const> = #buf:getLines(0, -1, false)
 		if wid > minWid then
-			tiFmt(out, "Ln: %3d of %3d", cursorPos[1], totalLines)
-			tiFmt(out, "Col: %3d", cursorPos[2] + 1)
-			tiFmt(out, "%3d%%", math.floor(cursorPos[1] / totalLines * 100))
+			tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
+			tiFmt(out, "Col: %3d", pos[2] + 1)
+			tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines * 100))
 		else
-			tiFmt(out, "Ln:%d C:%d", cursorPos[1], cursorPos[2])
+			tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
 		end
 	else
-		tiFmt(out, "Ln: %3d", cursorPos[1])
+		tiFmt(out, "Ln: %3d", pos[1])
 	end
 	if #out > 1 then
 		return "│ " .. table.concat(out, " │ ") .. "  "

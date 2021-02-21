@@ -12,7 +12,7 @@ local tree = {
 local function mkdirp(path)
    local components = vim.split(path, "/")
    for i = 1, #components do
-      uv.fs_mkdir(table.concat(components, "/", 1, i), 0)
+      uv.fs_mkdir(table.concat(components, "/", 1, i), tonumber("755", 8))
    end
 end
 

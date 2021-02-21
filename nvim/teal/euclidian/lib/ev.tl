@@ -3,6 +3,7 @@
 --   - very simple in that it provides no non-blocking io facilities and
 --     completely relies on the worker threads being well behaved
 --     and yielding during their down time
+--   - to wait for libuv things add an anchor that gets released on the closing callback
 
 local resume <const>, yield <const>, running <const>, create <const>, status <const>
 	= coroutine.resume, coroutine.yield, coroutine.running, coroutine.create, coroutine.status
@@ -29,6 +30,7 @@ local record Internal
 	record Worker
 		loop: Internal.EventLoop
 		thread: thread
+		messageQueue: {any}
 	end
 	record EventLoop
 		activePool: boolean
@@ -52,8 +54,8 @@ local ev <const> = {
 	EventLoop = EventLoop,
 }
 
-local function stepThread(t: thread)
-	if not resume(t) then
+local function stepThread(t: thread, ...: any)
+	if not resume(t, ...) then
 		error("error in coroutine: " .. debug.traceback(t), 2)
 	end
 end
@@ -124,7 +126,7 @@ local function doWork(loop: Internal.EventLoop)
 		src[handle] = nil
 		if status(worker) ~= "dead" then
 			dest[handle] = worker
-			stepThread(worker)
+			stepThread(worker, loop.thread)
 		end
 		yield()
 	end
@@ -159,9 +161,8 @@ function ev.poll(...: string): function(): Event
 		setmetatable(kinds, { __index = function(): boolean return true end })
 	end
 
-	local loop <const> = getRunningEventLoop("Unable to poll")
-
 	return function(): Event
+		local loop <const> = getRunningEventLoop("Unable to poll")
 		repeat doWork(loop)
 		until not hasWorkers(loop.pools)
 			or findEvent(loop.events, kinds) as boolean
@@ -184,7 +185,7 @@ function ev.poll(...: string): function(): Event
 	end
 end
 
-function ev.worker(t: function | thread, f: function): Worker
+function ev.worker(t: function(thread) | thread, f: function(thread)): Worker
 	local loop: Internal.EventLoop
 
 	local func: function

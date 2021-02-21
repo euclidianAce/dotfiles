@@ -1,7 +1,7 @@
 
-local a <const> = vim.api
 local oldPrint <const> = print
-local window <const> = require("euclidian.lib.window")
+local nvim <const> = require("euclidian.lib.nvim")
+local dialog <const> = require("euclidian.lib.dialog")
 
 local enum Mode
 	"buffer" "inspect"
@@ -11,7 +11,7 @@ end
 local record printmode
 end
 
-local printBuf, printWin: window.BufId, window.WinId
+local printBuf, printWin: nvim.Buffer, nvim.Window
 local inspectOpts <const> = { newline = " ", indent = "" }
 
 local modes <const>: {Mode:function(...:any)} = {
@@ -31,11 +31,16 @@ local modes <const>: {Mode:function(...:any)} = {
 	end,
 	buffer = function(...: any)
 		if not printBuf then
-			printBuf = a.nvim_create_buf(false, true) as window.BufId
-			a.nvim_buf_set_lines(printBuf, 0, -1, false, { "=== print buffer ===" })
+			printBuf = nvim.createBuf(false, true)
+			printBuf:setLines(0, -1, false, { "=== print buffer ===" })
 		end
-		if not (printWin and a.nvim_win_is_valid(printWin)) then
-			printWin = window.floating(-75, 2, 64, 45, printBuf)
+		if not (printWin and printWin:isValid()) then
+			local col <const>, row <const>, wid <const>, hei <const> = dialog.centeredSize(55, nvim.ui().height - 20)
+			printWin = nvim.openWin(printBuf, false, {
+				relative = "editor",
+				style = "minimal",
+				col = col + nvim.ui().width // 3, row = row, height = hei, width = wid,
+			})
 		end
 
 		local text <const> = {}
@@ -50,7 +55,7 @@ local modes <const>: {Mode:function(...:any)} = {
 		end
 
 		vim.schedule(function()
-			a.nvim_buf_set_lines(printBuf, -1, -1, false, vim.split(table.concat(text, " "), "\n", true))
+			printBuf:setLines(-1, -1, false, vim.split(table.concat(text, " "), "\n", true))
 		end)
 	end,
 }

@@ -6,13 +6,13 @@ local dataPath <const> = stdpath("data")
 local tree <const> = {
 	neovim = dataPath .. "/site/pack/package-manager/opt",
 	luarocks = dataPath .. "/site/pack/package-manager/luarocks",
-	set = stdpath("config") .. "/sets"
+	set = stdpath("config") .. "/sets",
 }
 
 local function mkdirp(path: string)
 	local components <const> = vim.split(path, "/")
 	for i = 1, #components do
-		uv.fs_mkdir(table.concat(components, "/", 1, i), 0)
+		uv.fs_mkdir(table.concat(components, "/", 1, i), tonumber("755", 8))
 	end
 end
 

@@ -45,17 +45,17 @@ local hi = color.scheme.hi
 
 
 hi.Normal = { p.fg, p.bg }
-hi.Visual = { p.fg, p.darkGray }
+hi.Visual = { -1, p.darkGray }
 hi.ErrorMsg = { nil, p.red }
 hi.Question = { p.darkGreen }
-hi.Search = { p.bg, p.brightGreen }
+hi.Search = { p.bg, p.darkGreen }
 hi.IncSearch = hi.Search
 
 hi.VertSplit = { nil, p.bg }
 hi.StatusLine = { nil, p.brightGray }
-hi.TabLine = { nil, p.gray }
-hi.TabLineSel = { nil, p.brightGray, "bold" }
-hi.TabLineFill = { nil, p.gray }
+hi.TabLine = { nil, p.brightGray }
+hi.TabLineSel = { nil, p.gray, "bold" }
+hi.TabLineFill = { nil, p.darkGray }
 hi.Title = { p.green, nil, "bold" }
 
 
@@ -78,7 +78,7 @@ hi.MatchParen = { p.red, p.darkRed, "bold" }
 hi.Comment = { p.darkRed }
 hi.Constant = { p.red }
 
-hi.Identifier = { p.purple }
+hi.Identifier = { p.fg }
 hi.Function = { p.brightBlue, nil, "bold" }
 
 hi.Statement = { p.blue }

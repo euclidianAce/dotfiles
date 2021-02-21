@@ -2,7 +2,7 @@
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
 local cmd <const> = require("euclidian.lib.package-manager.cmd")
 local set <const> = require("euclidian.lib.package-manager.set")
-local window <const> = require("euclidian.lib.window")
+local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
 local ev <const> = require("euclidian.lib.ev")
 
@@ -13,7 +13,11 @@ local Dialog <const> = dialog.Dialog
 
 local yield <const> = coroutine.yield
 
-local interface <const> = {}
+local interface <const> = {
+	addPackage: function() = nil,
+	installSet: function() = nil,
+	updateSet: function() = nil,
+}
 
 local function longest(lines: {string}): number, string
 	local idx, len = 1, #lines[1]
@@ -26,42 +30,22 @@ local function longest(lines: {string}): number, string
 	return idx, lines[idx]
 end
 
-local floor <const>, ceil <const>, max <const>, min <const>
-	= math.floor, math.ceil, math.max, math.min
-local function getWinSize(wid: number, hei: number): number, number, number, number
-	local ui <const> = window.ui()
-
-	local minWid <const> = floor(ui.width * .25)
-	local minHei <const> = floor(ui.height * .25)
-
-	local maxWid <const> = floor(ui.width * .90)
-	local maxHei <const> = floor(ui.height * .90)
-
-	wid = min(max(minWid, wid), maxWid)
-	hei = min(max(minHei, hei), maxHei)
-
-	return floor((ui.width - wid) / 2), floor((ui.height - hei) / 2), wid, hei
-end
-
-local function getWinSizeTable(width: number, height: number): Dialog.Opts
-	local col <const>, row <const>, wid <const>, hei <const> = getWinSize(width, height)
-	return { col = col, row = row, wid = wid, hei = hei }
-end
+local floor <const>, ceil <const> = math.floor, math.ceil
 
 local function accommodateText(d: Dialog)
 	local lines <const> = d:getLines()
 	local twid <const> = longest(lines)
 	local thei <const> = #lines
 
-	local col <const>, row <const>, wid <const>, hei <const> = getWinSize(twid, thei)
+	local col <const>, row <const>, wid <const>, hei <const> = dialog.centeredSize(twid, thei)
 	d:setWin{ col = col, row = row, wid = wid, hei = hei }
 end
 
 function interface.displaySets(): Dialog
 	local sets <const> = set.list()
-	local _, longestSetName = longest(sets)
+	local _, longestSetName <const> = longest(sets)
 
-	local d <const> = dialog.new(getWinSize(#longestSetName + 3, #sets + 3))
+	local d <const> = dialog.centered(#longestSetName + 3, #sets + 3)
 	d:setLines(sets)
 
 	return d
@@ -91,15 +75,17 @@ local stepCmdFmt <const> = "<cmd>lua require[[euclidian.lib.package-manager.inte
 local function makeTitle(txt: string, width: number): string
 	local chars <const> = width - #txt - 2
 	return ("%s %s %s"):format(
-		("="):rep(floor(chars / 2)),
+		("="):rep(chars // 2),
 		txt,
 		("="):rep(ceil(chars / 2))
 	)
 end
 
-local function setCurrentDialog(fn: function)
-	currentDialog = coroutine.create(fn)
-	coroutine.resume(currentDialog)
+local function newDialog(fn: function): function()
+	return function()
+		currentDialog = coroutine.create(fn)
+		coroutine.resume(currentDialog)
+	end
 end
 
 local function setComparator(a: Spec, b: Spec): boolean
@@ -119,8 +105,8 @@ local record PkgInfo
 	cwd: string
 end
 
-local function runForEachPkg(getCmd: function(Spec): PkgInfo)
-	setCurrentDialog(function()
+local function runForEachPkg(getCmd: function(Spec): PkgInfo): function()
+	return newDialog(function()
 		local d <const> = interface.displaySets()
 		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		yield()
@@ -159,17 +145,18 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 				end
 				local function close()
 					runningCmds = runningCmds - 1
+					updateStatus("finished")
 					if not p.post then
-						updateStatus("finished")
+						return
 					end
-					updateStatus("post...")
-					updateText("Running post install hooks...")
-					table.insert(jobs, function()
-						vim.schedule(function()
-							a.nvim_exec(p.post, false)
-							updateStatus("finished")
-						end)
-					end)
+					-- updateStatus("post...")
+					-- updateText("Running post install hooks...")
+					-- table.insert(jobs, function()
+					-- 	vim.schedule(function()
+					-- 		a.nvim_exec(p.post, false)
+					-- 		updateStatus("finished")
+					-- 	end)
+					-- end)
 				end
 				table.insert(jobs, function(t: thread)
 					cmd.runEvented{
@@ -190,9 +177,9 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 			textSegments[i+1] = segment
 		end
 
-		local ui <const> = window.ui()
+		local ui <const> = nvim.ui()
 		local width <const> = floor(ui.width * .9)
-		d:setWin(getWinSizeTable(width, #textSegments + 1))
+		d:center(width, #textSegments + 1)
 		textSegments[1] = {
 			makeTitle("Package", longestTitle),
 			makeTitle("Status", 10),
@@ -244,26 +231,22 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo)
 	end)
 end
 
-function interface.installSet()
-	runForEachPkg(function(p: Spec): PkgInfo
-		if not p:isInstalled() then
-			return p:installCmd()
-		end
-	end)
-end
+interface.installSet = runForEachPkg(function(p: Spec): PkgInfo
+	if not p:isInstalled() then
+		return p:installCmd()
+	end
+end)
 
-function interface.updateSet()
-	runForEachPkg(function(p: Spec): PkgInfo
-		if p:isInstalled() then
-			return { "git", "pull", cwd = p:location() }
-		else
-			return p:installCmd()
-		end
-	end)
-end
+interface.updateSet = runForEachPkg(function(p: Spec): PkgInfo
+	if p:isInstalled() then
+		return { "git", "pull", cwd = p:location() }
+	else
+		return p:installCmd()
+	end
+end)
 
 local function ask(d: Dialog, question: string, confirm: string, deny: string): boolean
-	d:setCursor(0, 1)
+	d:setCursor(1, 0)
 	d:setLines{
 		question,
 		confirm or "Yes",
@@ -323,96 +306,97 @@ local function setChecklist(d: Dialog, s: {Spec}): {Spec}
 	return checked
 end
 
-function interface.addPackage()
-	setCurrentDialog(function()
-		local d <const> = interface.displaySets()
-		d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
-		yield()
+interface.addPackage = newDialog(function()
+	local d <const> = interface.displaySets()
+	d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+	yield()
 
-		local selectedSet: {Spec}
-		local setName: string
-		local newPackage: Spec = {}
+	local selectedSet: {Spec}
+	local setName: string
+	local newPackage: Spec = {}
 
-		do
-			local ln <const> = d:getCursor()
-			local selected <const> = d:getLine(ln)
-			setName = selected
-			selectedSet = set.load(selected)
-			table.sort(selectedSet, setComparator)
+	do
+		local ln <const> = d:getCursor()
+		local selected <const> = d:getLine(ln)
+		setName = selected
+		selectedSet = set.load(selected)
+		table.sort(selectedSet, setComparator)
 
-			local text <const> = {}
-			for kind in pairs(packagespec.kinds) do
-				table.insert(text, kind)
-			end
-			table.sort(text)
-
-			d:setLines(text)
-			yield()
-			d:delKeymap("n", "<cr>")
+		local text <const> = {}
+		for kind in pairs(packagespec.kinds) do
+			table.insert(text, kind)
 		end
+		table.sort(text)
 
-		do
-			local ln <const> = d:getCursor()
-			local selectedKind <const> = d:getLine(ln)
-			newPackage.kind = selectedKind as packagespec.Kind
+		d:setLines(text)
+		yield()
+		d:delKeymap("n", "<cr>")
+	end
 
-			d:setLines{}
-			local promptText: string
+	do
+		local ln <const> = d:getCursor()
+		local selectedKind <const> = d:getLine(ln)
+		newPackage.kind = selectedKind as packagespec.Kind
+
+		d:setLines{}
+		local promptText: string
+		if selectedKind == "git" then
+			promptText = "git repo: "
+		elseif selectedKind == "local" then
+			promptText = "local path: "
+		end
+		d:setPrompt(promptText, function(txt: string)
 			if selectedKind == "git" then
-				promptText = "git repo: "
+				newPackage.repo = txt
 			elseif selectedKind == "local" then
-				promptText = "local path: "
+				newPackage.path = txt
 			end
-			d:setPrompt(promptText, function(txt: string)
-				if selectedKind == "git" then
-					newPackage.repo = txt
-				elseif selectedKind == "local" then
-					newPackage.path = txt
-				end
 
-				interface._step()
-			end)
-			yield()
-			d:unsetPrompt()
-		end
-
-		if ask(d, "Do any other installed packages depend on this package?") then
-			newPackage.dependents = setChecklist(d, selectedSet)
-		end
-
-		if ask(d, "Does this package depend on any other installed packages?") then
-			local dependencies <const> = setChecklist(d, selectedSet)
-			for _, p in ipairs(dependencies) do
-				table.insert(p.dependents, newPackage)
-			end
-		end
-
-		if ask(d, "Does this package have any post-install (vimscript) actions?") then
-			d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
-			d:setLines{}
-			d:setBufOpt("syntax", "vim")
-			d:modify(function()
-				a.nvim_command "startinsert"
-				yield()
-				a.nvim_command "stopinsert"
-			end)
-			d:setBufOpt("syntax", "")
-			d:setBufOpt("modifiable", false)
-
-			newPackage.post = table.concat(d:getLines(), "\n")
-		end
-
-		table.insert(selectedSet, newPackage)
-		set.save(setName, selectedSet)
-
-		d:setLines{ ("Saved set %s"):format(setName) }
-		accommodateText(d)
-
-		d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
+			interface._step()
+		end)
 		yield()
-		d:close()
-	end)
-end
+		d:unsetPrompt()
+	end
+
+	if ask(d, "Do any other installed packages depend on this package?") then
+		newPackage.dependents = setChecklist(d, selectedSet)
+	end
+
+	if ask(d, "Does this package depend on any other installed packages?") then
+		local dependencies <const> = setChecklist(d, selectedSet)
+		for _, p in ipairs(dependencies) do
+			if not p.dependents then
+				p.dependents = {}
+			end
+			table.insert(p.dependents, newPackage)
+		end
+	end
+
+	if ask(d, "Does this package have any post-install (vimscript) actions?") then
+		d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
+		d:setLines{}
+		d.buf:setOption("syntax", "vim")
+		d:modify(function()
+			a.nvim_command "startinsert"
+			yield()
+			a.nvim_command "stopinsert"
+		end)
+		d.buf:setOption("syntax", "")
+		d.buf:setOption("modifiable", false)
+
+		newPackage.post = table.concat(d:getLines(), "\n")
+	end
+
+	table.insert(selectedSet, newPackage)
+	set.save(setName, selectedSet)
+
+	d:setLines{ ("Saved set %s"):format(setName) }
+	accommodateText(d)
+
+	d:addKeymap("n", "<CR>", stepCmd, defaultKeymapOpts)
+	yield()
+	d:close()
+end)
 
 return interface
 

@@ -1,9 +1,9 @@
 
 
 
-local util = require("euclidian.lib.util")
-local a = vim.api
-local trim = util.str.trim
+local nvim = require("euclidian.lib.nvim")
+
+local trim = vim.trim
 
 local commenter = {}
 
@@ -18,8 +18,8 @@ local function split(str, delimiter)
 end
 
 local function getCommentString(buf)
-   local ok, c = pcall(a.nvim_buf_get_option, buf, "commentstring")
-   if not (ok and c) then
+   local c = nvim.Buffer(buf):getOption("commentstring")
+   if not c then
       print("[commenter] Couldn't get commentstring")
       return
    end
@@ -55,16 +55,23 @@ function commenter.commentLine(buf, lineNum)
    if not pre then
       return
    end
-   a.nvim_buf_set_lines(buf, lineNum - 1, lineNum, false, {
-      commentStr(pre, post, a.nvim_buf_get_lines(buf, lineNum - 1, lineNum, false)[1]),
+
+   local b = nvim.Buffer(buf)
+   b:setLines(lineNum - 1, lineNum, false, {
+      commentStr(pre, post, b:getLines(lineNum - 1, lineNum, false)[1]),
    })
+end
+
+local function xor(a, b)
+   return (not a and b) or (a and not b)
 end
 
 function commenter.commentRange(buf, start, finish)
    assert(buf, "no buffer")
    assert(start, "no start")
    assert(finish, "no finish")
-   local lines = a.nvim_buf_get_lines(buf, start, finish, false)
+   local b = nvim.Buffer(buf)
+   local lines = b:getLines(start, finish, false)
    if not lines[1] then
       return
    end
@@ -73,11 +80,11 @@ function commenter.commentRange(buf, start, finish)
 
    lines[1] = commentStr(pre, post, lines[1])
    for i = 2, #lines do
-      if util.xor(shouldBeCommented, isCommented(pre, post, lines[i])) then
+      if xor(shouldBeCommented, isCommented(pre, post, lines[i])) then
          lines[i] = commentStr(pre, post, lines[i])
       end
    end
-   a.nvim_buf_set_lines(buf, start, finish, false, lines)
+   b:setLines(start, finish, false, lines)
 end
 
 return commenter

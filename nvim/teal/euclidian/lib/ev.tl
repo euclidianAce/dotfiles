@@ -118,7 +118,7 @@ function ev.anchor(t: thread | Anchor, ...: Anchor)
 end
 
 local function doWork(loop: Internal.EventLoop)
-	local active = loop.activePool
+	local active <const> = loop.activePool
 	local src <const>, dest <const> = loop.pools[active], loop.pools[not active]
 	loop.activePool = not active
 
@@ -286,20 +286,20 @@ function EventLoop:run()
 	end
 end
 
---- Spawns a uv.new_timer to tick the eventloop every msInterval
 local uv <const> = vim.loop
-function EventLoop:asyncRun(msInterval: number, delay: number): uv.Timer
+--- Spawns a uv.Timer to tick the event loop every `interval`
+function EventLoop:asyncRun(interval: number): uv.Timer
 	local t <const> = rawget(externalThreads, self)
-	local timer = uv.new_timer()
+	local timer <const> = uv.new_timer()
 	local function step()
 		if status(t) ~= "dead" then
 			local ok, err = resume(t)
 			if not ok then
-				error("error in event loop: " .. tostring(err) .. "\n" .. debug.traceback(t))
+				error("Error in event loop: " .. tostring(err) .. "\n" .. debug.traceback(t))
 			end
 		end
 	end
-	timer:start(delay or 0, msInterval or 500, vim.schedule_wrap(function()
+	timer:start(interval or 500, 0, vim.schedule_wrap(function()
 		if status(t) ~= "dead" then
 			step()
 		elseif not timer:is_closing() then

@@ -1,5 +1,4 @@
-
-local bit = require("bit")
+local bit32 = bit32; if not bit32 then local p, m = pcall(require, 'bit32'); if p then bit32 = m end end; local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local nvim = require("euclidian.lib.nvim")
 
 local color = {scheme = {}, }
@@ -72,15 +71,11 @@ function color.scheme.groups()
 end
 
 function color.hexToRgb(hex)
-   return bit.rshift(hex, 16), bit.band(bit.rshift(hex, 8), 0x0000ff), bit.band(hex, 0x0000ff)
+   return bit32.rshift(hex, 16), bit32.band((bit32.rshift(hex, 8)), 0xff), bit32.band(hex, 0xff)
 end
 
 function color.rgbToHex(r, g, b)
-   return bit.bor(
-   bit.lshift(r, 16),
-   bit.lshift(g, 8),
-   b)
-
+   return bit32.bor(bit32.bor((bit32.lshift(r, 16)), (bit32.lshift(g, 8))), b)
 end
 
 return color

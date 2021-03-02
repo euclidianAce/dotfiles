@@ -80,7 +80,7 @@ function dialog.centered(wid: number, hei: number): Dialog
 end
 
 function Dialog:isModifiable(): boolean
-	return self.buf:getOption("modifiable") as boolean
+	return self.buf:getOption("modifiable")
 end
 function Dialog:setModifiable(to: boolean)
 	self.buf:setOption("modifiable", to)

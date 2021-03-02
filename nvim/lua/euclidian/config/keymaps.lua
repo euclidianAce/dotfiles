@@ -1,4 +1,4 @@
-
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local M = { _exports = {} }
 
 local nvim = require("euclidian.lib.nvim")
@@ -37,9 +37,12 @@ local OperatorfuncMode = {}
 
 M._exports.commentMotion = function(kind)
    if kind ~= "line" then return end
-   local l1 = a.nvim_buf_get_mark(0, '[')[1]
-   local l2 = a.nvim_buf_get_mark(0, ']')[1]
-   require("euclidian.lib.commenter").commentRange(0, l1 - 1, l2)
+   local b = nvim.Buffer()
+   require("euclidian.lib.commenter").commentRange(
+   0,
+   b:getMark('[')[1] - 1,
+   b:getMark(']')[1])
+
 end
 
 map(
@@ -56,8 +59,8 @@ for _, v in ipairs({
       { "h", "<" },
       { "j", "+" },
       { "k", "-" },
-      { "l", ">" }, }) do
-
+      { "l", ">" },
+   }) do
    local mvkey, szkey = v[1], v[2]
    unmap("n", "<C-W>" .. mvkey)
    map("n", "<C-" .. mvkey .. ">", "<cmd>wincmd " .. mvkey .. "<CR>")

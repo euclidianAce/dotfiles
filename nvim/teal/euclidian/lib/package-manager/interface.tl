@@ -221,7 +221,7 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo): function()
 				updateText()
 
 				d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
-			end):asyncRun(150)
+			end):asyncRun()
 		else
 			d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
 		end

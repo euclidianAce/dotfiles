@@ -1,5 +1,4 @@
 
-local bit <const> = require("bit")
 local nvim <const> = require("euclidian.lib.nvim")
 
 local record color
@@ -72,15 +71,11 @@ function color.scheme.groups(): function(): (string, number, number, string)
 end
 
 function color.hexToRgb(hex: number): number, number, number
-	return bit.rshift(hex, 16), bit.band(bit.rshift(hex, 8), 0x0000ff), bit.band(hex, 0x0000ff)
+	return hex >> 16, (hex >> 8) & 0xff, hex & 0xff
 end
 
 function color.rgbToHex(r: number, g: number, b: number): number
-	return bit.bor(
-		bit.lshift(r, 16),
-		bit.lshift(g, 8),
-		b
-	)
+	return (r << 16) | (g << 8) | b
 end
 
 return color

@@ -1,4 +1,4 @@
-
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -286,20 +286,20 @@ function EventLoop:run()
    end
 end
 
-
 local uv = vim.loop
-function EventLoop:asyncRun(msInterval, delay)
+
+function EventLoop:asyncRun(interval)
    local t = rawget(externalThreads, self)
    local timer = uv.new_timer()
    local function step()
       if status(t) ~= "dead" then
          local ok, err = resume(t)
          if not ok then
-            error("error in event loop: " .. tostring(err) .. "\n" .. debug.traceback(t))
+            error("Error in event loop: " .. tostring(err) .. "\n" .. debug.traceback(t))
          end
       end
    end
-   timer:start(delay or 0, msInterval or 500, vim.schedule_wrap(function()
+   timer:start(interval or 500, 0, vim.schedule_wrap(function()
       if status(t) ~= "dead" then
          step()
       elseif not timer:is_closing() then

@@ -45,7 +45,7 @@ local function unCamel(s: string): string
 	end))
 end
 local function genMetatable<T>(t: T, prefix: string): metatable<T>
-	local cache <const>: {number:T} = {}
+	local cache <const>: {number:T} = setmetatable({}, { __mode = "kv" })
 	return {
 		__call = function(_: T, n: number): T
 			if not n or n == 0 then
@@ -309,7 +309,7 @@ do
 			print("\t" .. func)
 		end
 		print()
-		print("\tmetamethod __call: function(" .. ns .. ", number): " .. ns)
+		print(("\tmetamethod __call: function(%s, number): %s"):format(ns, ns))
 		print("end")
 		print(("setmetatable(%s, genMetatable(%s, %q))"):format(ns, ns, nsToSnek[ns]))
 		print()

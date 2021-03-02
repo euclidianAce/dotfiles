@@ -1,4 +1,7 @@
 
+-- trick the teal compat code
+bit32 = require("bit")
+
 function confreq(lib)
 	return require("euclidian.config." .. lib)
 end
@@ -22,7 +25,7 @@ libreq "package-manager" {
 	}
 }
 
-local tsLangs = { "teal", "lua", "nix", "javascript", "c", "query" }
+local tsLangs = { "teal", "lua", "nix", "javascript", "c", "query", "cpp" }
 require("nvim-treesitter.configs").setup{
 	ensure_installed = tsLangs,
 	highlight = { enable = tsLangs },
@@ -32,16 +35,23 @@ nvim.augroup("Custom", {
 	{ "BufReadPost", {"*.tl", "*.lua"},
 		[[setlocal syntax= | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]] },
 
-	{ "BufReadPost", {"*.c", "*.h", "*.cpp"}, [[setlocal sw=4 ts=4]] },
+	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
+		local buf = nvim.Buffer()
+		buf:setOption("shiftwidth", 4)
+		buf:setOption("tabstop", 4)
+	end },
 
 	{ "TextYankPost", "*",
-		[[lua vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }]] },
+		function() vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true } end },
 
-	{ "TermOpen", "*", [[setlocal nonumber norelativenumber foldcolumn=0 signcolumn=no]] },
-
-	{ "Filetype", "lua", [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]] },
-
-	{ "Filetype", {"*.tl", "*.c", "*.cpp", "*.h", "*.hpp"}, [[setlocal omnifunc=v:lua.vim.lsp.omnifunc]] },
+	{ "TermOpen", "*", function()
+		local win = nvim.Window()
+		win:setOption("number", false)
+		win:setOption("relativenumber", false)
+		win:setOption("foldcolumn", "0")
+		win:setOption("signcolumn", "no")
+		win:setOption("cursorline", false)
+	end },
 })
 
 local function set(t, options)
@@ -60,10 +70,12 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	termguicolors = true,
+	guicursor = "",
+	-- guicursor = "n:hor10",
+	-- guicursor = "n:hor10,i:ver10",
+
 	mouse = "a",
-	-- guicursor = "",
-	guicursor = "n:hor10,i:ver10",
+	termguicolors = true,
 	belloff = "all",
 	swapfile = false,
 	switchbuf = "useopen",
@@ -85,9 +97,12 @@ set(vim.o, {
 	inccommand = "split",
 	laststatus = 2,
 	scrolloff = 2,
-	formatoptions = "lroj",
 	virtualedit = "block",
 	foldmethod = "marker",
+})
+
+set(vim.bo, {
+	formatoptions = "lroj",
 })
 
 set(vim.wo, {
@@ -96,6 +111,7 @@ set(vim.wo, {
 	numberwidth = 4,
 	number = true,
 	relativenumber = true,
+	cursorline = true,
 })
 
 local lspconfig = require("lspconfig")
@@ -114,6 +130,7 @@ if not lspconfig.teal then
 	}
 end
 lspconfig.teal.setup{}
+lspconfig.clangd.setup{}
 
 function req(lib)
 	package.loaded[lib] = nil

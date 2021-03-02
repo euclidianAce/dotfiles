@@ -37,9 +37,12 @@ local enum OperatorfuncMode -- TODO: put this in the .d.tl
 end
 M._exports.commentMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
-	local l1 <const> = a.nvim_buf_get_mark(0, '[')[1]
-	local l2 <const> = a.nvim_buf_get_mark(0, ']')[1]
-	require("euclidian.lib.commenter").commentRange(0, l1-1, l2)
+	local b <const> = nvim.Buffer()
+	require("euclidian.lib.commenter").commentRange(
+		0,
+		b:getMark('[')[1] - 1,
+		b:getMark(']')[1]
+	)
 end
 
 map(
@@ -56,8 +59,8 @@ for _, v in ipairs{
 	{"h", "<"},
 	{"j", "+"},
 	{"k", "-"},
-	{"l", ">"}}
-do
+	{"l", ">"},
+} do
 	local mvkey <const>, szkey <const> = v[1], v[2]
 	unmap("n", "<C-W>" .. mvkey)
 	map("n", "<C-" .. mvkey .. ">", "<cmd>wincmd " .. mvkey .. "<CR>")

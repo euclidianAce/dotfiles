@@ -1,9 +1,7 @@
 
 -- Colorscheme
-local color <const> = require("euclidian.lib.color")
 vim.g.colors_name = "euclidian"
-
-local p <const>: {string:number} = {
+local p <const> = {
 	darkFg       = 0x817998,
 	fg           = 0xD8CEE4,
 	brightFg     = 0xEFEFEF,
@@ -41,7 +39,7 @@ local p <const>: {string:number} = {
 	brightOrange = 0xC3AA93,
 }
 
-local hi <const> = color.scheme.hi
+local hi <const> = require("euclidian.lib.color").scheme.hi
 
 -- ui stuffs
 hi.Normal                  = { p.fg, p.bg }
@@ -58,14 +56,14 @@ hi.TabLineSel              = { nil, p.gray, "bold" }
 hi.TabLineFill             = { nil, p.darkGray }
 hi.Title                   = { p.green, nil, "bold" }
 
--- popup menu
 hi.Pmenu                   = { p.fg, p.brightBg }
 hi.PmenuSel                = { nil,  p.gray }
 hi.PmenuSbar               = { nil,  p.brightGray }
 hi.PmenuThumb              = { nil,  p.gray }
 
-hi.LineNr                  = { p.gray, p.darkBg }
 hi.CursorLine              = { nil, p.brightBg }
+hi.CursorColumn            = { nil, p.brightBg }
+hi.LineNr                  = { p.gray, p.darkBg }
 hi.CursorLineNr            = { nil, p.darkBg }
 
 hi.Folded                  = { p.darkRed, nil, "bold" }
@@ -89,7 +87,7 @@ hi.Structure               = { p.darkPurple }
 hi.StorageClass            = { p.brightPurple, nil, "bold" }
 
 hi.Special                 = { p.brightRed }
-hi.Delimiter               = { p.brightGray }
+hi.Delimiter               = { p.brightGray, -1 }
 
 hi.PreProc                 = { p.brightRed }
 

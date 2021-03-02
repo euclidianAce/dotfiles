@@ -1,4 +1,4 @@
-
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local a = vim.api
 
 local function failsafe(f, err_prefix)
@@ -9,7 +9,7 @@ local function failsafe(f, err_prefix)
          ok, err = pcall(f)
       end
       if not ok then
-         a.nvim_err_writeln(err_prefix .. err)
+         a.nvim_err_writeln((err_prefix or "") .. err)
       end
    end
 end
@@ -48,14 +48,11 @@ function nvim.ui(n)
 end
 
 function nvim.openWin(b, enter, c)
-   local bufId = b.id or 0
-   local id = a.nvim_open_win(bufId, enter, c)
-   return nvim.Window(id)
+   return nvim.Window(a.nvim_open_win(b and b.id or 0, enter, c))
 end
 
 function nvim.createBuf(listed, scratch)
-   local id = a.nvim_create_buf(listed, scratch)
-   return nvim.Buffer(id)
+   return nvim.Buffer(a.nvim_create_buf(listed, scratch))
 end
 
 function nvim.command(fmt, ...)
@@ -71,19 +68,19 @@ local function to_str_arr(s)
 end
 
 function nvim.autocmd(s_events, s_patts, expr)
+   assert(s_events, "no events")
+   assert(s_patts, "no patterns")
+   assert(expr, "no expr")
+
    local events = table.concat(to_str_arr(s_events), ",")
    local patts = table.concat(to_str_arr(s_patts), ",")
-
-   assert(#events > 0, "no events")
-   assert(#patts > 0, "no patterns")
-   assert(expr, "no expr")
 
    local actual_expr
    if type(expr) == "string" then
       actual_expr = expr
    else
       local key = "autocmd" .. events .. patts
-      nvim._exports[key] = failsafe(expr, "Error in autocmd: ")
+      nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
       actual_expr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
    end
 
@@ -101,22 +98,11 @@ function nvim.augroup(name, lst, clear)
    nvim.command("augroup END")
 end
 
-local function subLhs(lhs)
-   return (lhs:gsub("<.->", function(m)
-      local inner = m:sub(2, -2):lower()
-      if inner == "leader" then
-         return a.nvim_get_var("mapleader")
-      elseif inner == "esc" then
-         return ""
-      end
-   end))
-end
-
 function nvim.setKeymap(mode, lhs, rhs, userSettings)
    if type(rhs) == "string" then
       a.nvim_set_keymap(mode, lhs, rhs, userSettings)
    else
-      local key = "keymap" .. mode .. subLhs(lhs)
+      local key = "keymap" .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
       nvim._exports[key] = failsafe(rhs, "Error in keymap: ")
       a.nvim_set_keymap(
       mode,
@@ -135,7 +121,7 @@ nvim.Buffer.setKeymap = function(self, mode, lhs, rhs, userSettings)
    if type(rhs) == "string" then
       a.nvim_buf_set_keymap(self.id, mode, lhs, rhs, userSettings)
    else
-      local key = "bufkeymap" .. tostring(self.id) .. mode .. subLhs(lhs)
+      local key = "bufkeymap" .. tostring(self.id) .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
       nvim._exports[key] = failsafe(rhs, "Error in keymap: ")
       a.nvim_buf_set_keymap(
       self.id,

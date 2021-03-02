@@ -105,7 +105,10 @@ local function makeLine(tags: {string}, winId: number): string
 		if include then
 			table.insert(buf, ("%%#%s#"):format(component.hiGroup))
 			if component.isFunc then
-				table.insert(buf, ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):format(component.funcId, winId))
+				table.insert(
+					buf,
+					([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]])
+						:format(component.funcId, winId))
 			else
 				table.insert(buf, component.text)
 			end
@@ -160,8 +163,8 @@ function statusline.isActive(winId: number): boolean
 end
 
 nvim.augroup("Statusline", {
-	{ { "WinEnter", "BufWinEnter" }, "*", "lua require'euclidian.lib.statusline'.setActive()" },
-	{ "WinLeave", "*", "lua require'euclidian.lib.statusline'.setInactive()" },
+	{ { "WinEnter", "BufWinEnter" }, "*", statusline.setActive },
+	{ "WinLeave", "*", statusline.setInactive },
 })
 
 statusline.setActive()

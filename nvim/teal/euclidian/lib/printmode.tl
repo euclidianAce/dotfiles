@@ -39,7 +39,8 @@ local modes <const>: {Mode:function(...:any)} = {
 			printWin = nvim.openWin(printBuf, false, {
 				relative = "editor",
 				style = "minimal",
-				col = col + nvim.ui().width // 3, row = row, height = hei, width = wid,
+				col = col + nvim.ui().width // 3, row = row,
+				height = hei, width = wid,
 			})
 		end
 
@@ -88,6 +89,10 @@ end
 function printmode.restore(): printmode
 	_G["print"] = oldPrint
 	return printmode
+end
+
+function printmode.default(): function(...: any)
+	return oldPrint
 end
 
 return printmode

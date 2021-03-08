@@ -75,7 +75,7 @@ function statusline.add(tags, invertedTags, text, hiGroup)
    comp.hiGroup = hiGroup
    if type(text) == "string" then
       comp.text = text
-   elseif type(text) == "function" then
+   elseif text then
       statusline._funcs[#lineComponents + 1] = text
       comp.isFunc = true
       comp.funcId = #lineComponents + 1

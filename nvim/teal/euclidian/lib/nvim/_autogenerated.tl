@@ -1,30 +1,3 @@
-local a <const> = vim.api as {string:function}
-local function unCamel(s: string): string
-	return (s:gsub("[A-Z]", function(m: string): string
-		return "_" .. m:lower()
-	end))
-end
-local function genMetatable<T>(t: T, prefix: string): metatable<T>
-	local cache <const>: {number:T} = {}
-	return {
-		__call = function(_: T, n: number): T
-			if not n or n == 0 then
-				n = a["nvim_get_current_" .. prefix]() as number
-			end
-			if not cache[n] then
-				cache[n] = setmetatable({ id = n } as T, { __index = t })
-			end
-			return cache[n]
-		end,
-		__index = function(_: {string:function}, key: string): function
-			local fn <const> = a["nvim_" .. prefix .. "_" .. unCamel(key)]
-			return fn and function(self: {string:number}, ...: any): any
-				return fn(self.id, ...)
-			end
-		end,
-	}
-end
-
 local record MapOpts
 	nowait: boolean
 	silent: boolean
@@ -33,11 +6,9 @@ local record MapOpts
 	unique: boolean
 	noremap: boolean
 end
-
 local record Buffer
-	type Id = number
+	type Id = integer
 	id: Id
-
 	call: function<T>(Buffer, function(): T): T
 	getOption: function(Buffer, StringOpt): string
 	getOption: function(Buffer, BooleanOpt): boolean
@@ -48,15 +19,15 @@ local record Buffer
 	setOption: function(Buffer, NumberOpt, number)
 	setOption: function(Buffer, string, number | boolean | string)
 	setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)
-	lineCount: function(Buffer): number
+	lineCount: function(Buffer): integer
 	attach: function(Buffer, boolean, {string:any}): boolean
 	detach: function(Buffer): boolean
-	getLines: function(Buffer, number, number, boolean): {string}
-	setLines: function(Buffer, number, number, boolean, {string})
-	setText: function(Buffer, number, number, number, number, {string})
-	getOffset: function(Buffer, number): number
+	getLines: function(Buffer, integer, integer, boolean): {string}
+	setLines: function(Buffer, integer, integer, boolean, {string})
+	setText: function(Buffer, integer, integer, integer, integer, {string})
+	getOffset: function(Buffer, integer): integer
 	getVar: function(Buffer, string): any
-	getChangedtick: function(Buffer): number
+	getChangedtick: function(Buffer): integer
 	getKeymap: function(Buffer, string): {{string:any}}
 	delKeymap: function(Buffer, string, string)
 	getCommands: function(Buffer, {string:any}): {string:any}
@@ -67,130 +38,127 @@ local record Buffer
 	isLoaded: function(Buffer): boolean
 	delete: function(Buffer, {string:any})
 	isValid: function(Buffer): boolean
-	getMark: function(Buffer, string): {number,number}
-	getExtmarkById: function(Buffer, number, number, {string:any}): {number}
-	getExtmarks: function(Buffer, number, any, any, {string:any}): {any}
-	setExtmark: function(Buffer, number, number, number, {string:any}): number
-	delExtmark: function(Buffer, number, number): boolean
-	addHighlight: function(Buffer, number, string, number, number, number): number
-	clearNamespace: function(Buffer, number, number, number)
-	setVirtualText: function(Buffer, number, number, {any}, {string:any}): number
+	getMark: function(Buffer, string): {integer,integer}
+	getExtmarkById: function(Buffer, integer, integer, {string:any}): {integer}
+	getExtmarks: function(Buffer, integer, any, any, {string:any}): {any}
+	setExtmark: function(Buffer, integer, integer, integer, {string:any}): integer
+	delExtmark: function(Buffer, integer, integer): boolean
+	addHighlight: function(Buffer, integer, string, integer, integer, integer): integer
+	clearNamespace: function(Buffer, integer, integer, integer)
+	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
+	enum BooleanOpt
+		"autoindent"
+		"autoread"
+		"binary"
+		"bomb"
+		"buflisted"
+		"cindent"
+		"copyindent"
+		"endofline"
+		"expandtab"
+		"fixendofline"
+		"readonly"
+		"infercase"
+		"lisp"
+		"modeline"
+		"smartindent"
+		"modifiable"
+		"modified"
+		"preserveindent"
+		"undofile"
+		"swapfile"
+	end
+	enum NumberOpt
+		"tabstop"
+		"undolevels"
+		"wrapmargin"
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"softtabstop"
+		"textwidth"
+		"shiftwidth"
+		"synmaxcol"
+	end
 	enum StringOpt
-		"buftype"
-		"dictionary"
+		"tagcase"
+		"tags"
 		"path"
+		"backupcopy"
 		"bufhidden"
+		"buftype"
+		"cinkeys"
+		"cinoptions"
+		"cinwords"
+		"comments"
+		"commentstring"
+		"complete"
+		"completefunc"
+		"define"
+		"equalprg"
+		"errorformat"
+		"fileencoding"
+		"fileformat"
+		"filetype"
 		"formatexpr"
 		"formatoptions"
 		"formatlistpat"
 		"formatprg"
 		"grepprg"
+		"dictionary"
+		"quoteescape"
+		"include"
 		"includeexpr"
 		"indentexpr"
 		"indentkeys"
-		"spellfile"
 		"iskeyword"
-		"spelllang"
-		"spelloptions"
-		"filetype"
+		"keymap"
 		"keywordprg"
 		"lispwords"
 		"makeencoding"
 		"makeprg"
 		"matchpairs"
-		"omnifunc"
+		"spelloptions"
 		"nrformats"
-		"backupcopy"
-		"cinkeys"
-		"include"
-		"cinoptions"
-		"cinwords"
-		"comments"
-		"commentstring"
-		"completefunc"
-		"tags"
-		"quoteescape"
-		"define"
-		"syntax"
+		"omnifunc"
 		"suffixesadd"
-		"spellcapcheck"
-		"equalprg"
-		"errorformat"
-		"fileencoding"
-		"fileformat"
-		"tagfunc"
-		"tagcase"
+		"spellfile"
 		"thesaurus"
-		"keymap"
-		"complete"
+		"spelllang"
+		"spellcapcheck"
+		"syntax"
+		"tagfunc"
 	end
-	enum BooleanOpt
-		"infercase"
-		"autoindent"
-		"autoread"
-		"binary"
-		"bomb"
-		"cindent"
-		"readonly"
-		"lisp"
-		"modeline"
-		"modifiable"
-		"modified"
-		"copyindent"
-		"endofline"
-		"smartindent"
-		"buflisted"
-		"swapfile"
-		"fixendofline"
-		"preserveindent"
-		"undofile"
-		"expandtab"
-	end
-	enum NumberOpt
-		"iminsert"
-		"imsearch"
-		"wrapmargin"
-		"channel"
-		"undolevels"
-		"tabstop"
-		"synmaxcol"
-		"softtabstop"
-		"shiftwidth"
-		"scrollback"
-		"textwidth"
-	end
-
-	metamethod __call: function(Buffer, number): Buffer
+	metamethod __call: function(Buffer, integer): Buffer
+	metamethod __eq: function(any, any): boolean
 end
-setmetatable(Buffer, genMetatable(Buffer, "buf"))
-
 local record Window
-	type Id = number
+	type Id = integer
 	id: Id
-
 	record Config
-		enum Anchor
-			"NW" "NE" "SW" "SE"
-		end
-		enum Style
-			"minimal"
-		end
-		enum Relativity
-			"editor" "win" "cursor"
-		end
-
-		win: Id
-		relative: Relativity
-		anchor: Anchor
-		row: number
-		col: number
-		width: number
-		height: number
-		bufpos: number
-		focusable: boolean
-		external: boolean
-		style: Style
+	enum Anchor
+		"NW" "NE" "SW" "SE"
 	end
+	enum Style
+		"minimal"
+	end
+	enum Relativity
+		"editor" "win" "cursor"
+	end
+
+	win: Id
+	relative: Relativity
+	anchor: Anchor
+	row: integer
+	col: integer
+	width: integer
+	height: integer
+	bufpos: integer
+	focusable: boolean
+	external: boolean
+	style: Style
+end
 	getConfig: function(Window): Config
 	setConfig: function(Window, Config)
 	getOption: function(Window, StringOpt): string
@@ -201,96 +169,89 @@ local record Window
 	setOption: function(Window, BooleanOpt, boolean)
 	setOption: function(Window, NumberOpt, number)
 	setOption: function(Window, string, number | boolean | string)
-	getBuf: function(Window): number
-	setBuf: function(Window, number)
-	getCursor: function(Window): {number,number}
-	setCursor: function(Window, {number,number})
-	getHeight: function(Window): number
-	setHeight: function(Window, number)
-	getWidth: function(Window): number
-	setWidth: function(Window, number)
+	getBuf: function(Window): integer
+	setBuf: function(Window, integer)
+	getCursor: function(Window): {integer,integer}
+	setCursor: function(Window, {integer,integer})
+	getHeight: function(Window): integer
+	setHeight: function(Window, integer)
+	getWidth: function(Window): integer
+	setWidth: function(Window, integer)
 	getVar: function(Window, string): any
 	setVar: function(Window, string, any)
 	delVar: function(Window, string)
-	getPosition: function(Window): {number,number}
-	getTabpage: function(Window): number
-	getNumber: function(Window): number
+	getPosition: function(Window): {integer,integer}
+	getTabpage: function(Window): integer
+	getNumber: function(Window): integer
 	isValid: function(Window): boolean
 	close: function(Window, boolean)
-	enum StringOpt
-		"fillchars"
-		"foldcolumn"
-		"foldexpr"
-		"foldignore"
-		"foldmarker"
-		"foldmethod"
-		"foldtext"
-		"listchars"
-		"rightleftcmd"
-		"signcolumn"
-		"statusline"
-		"winhighlight"
-		"breakindentopt"
-		"colorcolumn"
-		"concealcursor"
-	end
 	enum BooleanOpt
-		"cursorcolumn"
-		"cursorline"
-		"diff"
-		"foldenable"
-		"linebreak"
-		"list"
-		"previewwindow"
-		"relativenumber"
-		"rightleft"
-		"scrollbind"
-		"spell"
-		"winfixheight"
-		"winfixwidth"
-		"wrap"
 		"number"
 		"arabic"
 		"breakindent"
 		"cursorbind"
+		"cursorcolumn"
+		"diff"
+		"foldenable"
+		"list"
+		"relativenumber"
+		"winfixheight"
+		"wrap"
+		"winfixwidth"
+		"cursorline"
+		"spell"
+		"scrollbind"
+		"rightleft"
+		"previewwindow"
+		"linebreak"
 	end
 	enum NumberOpt
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"winblend"
+		"conceallevel"
 		"foldlevel"
+		"foldminlines"
+		"scroll"
 		"scrolloff"
 		"sidescrolloff"
-		"conceallevel"
+		"winblend"
+		"foldnestmax"
+		"numberwidth"
 	end
-
-	metamethod __call: function(Window, number): Window
+	enum StringOpt
+		"breakindentopt"
+		"colorcolumn"
+		"concealcursor"
+		"fillchars"
+		"foldexpr"
+		"foldmethod"
+		"foldtext"
+		"rightleftcmd"
+		"signcolumn"
+		"statusline"
+		"winhighlight"
+		"foldignore"
+		"listchars"
+		"foldmarker"
+		"foldcolumn"
+	end
+	metamethod __call: function(Window, integer): Window
+	metamethod __eq: function(any, any): boolean
 end
-setmetatable(Window, genMetatable(Window, "win"))
-
 local record Tab
-	type Id = number
+	type Id = integer
 	id: Id
-
-	listWins: function(Tab): {number}
+	listWins: function(Tab): {integer}
 	getVar: function(Tab, string): any
 	setVar: function(Tab, string, any)
 	delVar: function(Tab, string)
-	getWin: function(Tab): number
-	getNumber: function(Tab): number
+	getWin: function(Tab): integer
+	getNumber: function(Tab): integer
 	isValid: function(Tab): boolean
-
-	metamethod __call: function(Tab, number): Tab
+	metamethod __call: function(Tab, integer): Tab
+	metamethod __eq: function(any, any): boolean
 end
-setmetatable(Tab, genMetatable(Tab, "tabpage"))
-
-
 return {
 	Buffer = Buffer,
 	Window = Window,
 	Tab = Tab,
 	MapOpts = MapOpts,
 }
-

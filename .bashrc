@@ -71,6 +71,11 @@ function update_ps1 {
 update_ps1
 PROMPT_COMMAND=update_ps1
 
+if [[ -z $TMUX_STARTED ]]; then
+	export TMUX_STARTED=1
+	exec tmux
+fi
+
 # This is silly
 # if [[ -z $NVIM_STARTED ]]; then
 # 	export NVIM_STARTED=1

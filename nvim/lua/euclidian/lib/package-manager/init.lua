@@ -8,6 +8,7 @@ local commands = {
    ["Install"] = interface.installSet,
    ["Update"] = interface.updateSet,
    ["Add"] = interface.addPackage,
+   ["View"] = interface.showSets,
 }
 
 local manager = {SetupOpts = {}, }

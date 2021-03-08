@@ -32,8 +32,17 @@ require("nvim-treesitter.configs").setup{
 }
 
 nvim.augroup("Custom", {
-	{ "BufReadPost", {"*.tl", "*.lua"},
-		[[setlocal syntax= | setlocal foldmethod=expr | setlocal foldexpr=nvim_treesitter#foldexpr() | setlocal sw=3 ts=3]] },
+	{ "BufReadPost", {"*.tl", "*.lua"}, function()
+		local buf = nvim.Buffer()
+		local win = nvim.Window()
+		win:setOption("foldmethod", "expr")
+		win:setOption("foldexpr", "nvim_treesitter#foldexpr()")
+
+		buf:setOption("syntax", "")
+		buf:setOption("shiftwidth", 3)
+		buf:setOption("tabstop", 3)
+	end },
+
 
 	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
 		local buf = nvim.Buffer()
@@ -41,8 +50,9 @@ nvim.augroup("Custom", {
 		buf:setOption("tabstop", 4)
 	end },
 
-	{ "TextYankPost", "*",
-		function() vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true } end },
+	{ "TextYankPost", "*", function()
+		vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }
+	end },
 
 	{ "TermOpen", "*", function()
 		local win = nvim.Window()
@@ -70,7 +80,7 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	guicursor = "",
+	-- guicursor = "",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
 
@@ -111,7 +121,7 @@ set(vim.wo, {
 	numberwidth = 4,
 	number = true,
 	relativenumber = true,
-	cursorline = true,
+	-- cursorline = true,
 })
 
 local lspconfig = require("lspconfig")

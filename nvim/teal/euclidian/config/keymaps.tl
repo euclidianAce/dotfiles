@@ -17,7 +17,7 @@ local function unmap(m: vim.Mode, lhs: string)
 	nvim.delKeymap(m, lhs)
 end
 
-local function bufMap(bufid: number, m: string | {string}, lhs: string, rhs: string|function)
+local function bufMap(bufid: integer, m: string | {string}, lhs: string, rhs: string|function)
 	local buf <const> = nvim.Buffer(bufid)
 	if m is vim.Mode then
 		buf:setKeymap(m, lhs, rhs, {noremap = true, silent = true})
@@ -29,7 +29,7 @@ local function bufMap(bufid: number, m: string | {string}, lhs: string, rhs: str
 end
 
 map("n", "<leader>cc", function()
-	local cursorPos: {number} = a.nvim_win_get_cursor(0)
+	local cursorPos = a.nvim_win_get_cursor(0)
 	require("euclidian.lib.commenter").commentLine(0, cursorPos[1])
 end)
 local enum OperatorfuncMode -- TODO: put this in the .d.tl
@@ -131,7 +131,7 @@ do
 		elseif not (fBuf and fBuf:isValid()) then
 			fBuf = nvim.createBuf(true, false)
 			local col, row, wid, hei =
-				require("euclidian.lib.dialog").centeredSize(math.huge, math.huge)
+				require("euclidian.lib.dialog").centeredSize(math.huge as integer, math.huge as integer)
 
 			fWin = nvim.openWin(fBuf, true, {
 				relative = "editor",
@@ -150,7 +150,7 @@ do
 			bufMap(fBuf.id, {"t", "n"}, "", incBlend)
 		else
 			local col, row, wid, hei =
-				require("euclidian.lib.dialog").centeredSize(math.huge, math.huge)
+				require("euclidian.lib.dialog").centeredSize(math.huge as integer, math.huge as integer)
 
 			fWin = nvim.openWin(fBuf, true, {
 				relative = "editor",

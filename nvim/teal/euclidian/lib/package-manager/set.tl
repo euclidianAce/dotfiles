@@ -1,8 +1,9 @@
 
 local tree <const> = require("euclidian.lib.package-manager.tree")
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
-local Spec <const> = packagespec.Spec
 local uv <const> = vim.loop
+
+local type Spec = packagespec.Spec
 
 local set <const> = {}
 local setPath = tree.set
@@ -62,7 +63,7 @@ function set.serialize(ps: {Spec}): string
 	local pkgs <const>: {number:Spec} = {}
 
 	local lastId = 0
-	local function nextId(): number
+	local function nextId(): integer
 		lastId = lastId + 1
 		return lastId
 	end
@@ -87,8 +88,8 @@ function set.serialize(ps: {Spec}): string
 	return table.concat(out)
 end
 
-function set.deserialize(str: string): {Spec}
-	local packages <const>: {number:Spec} = {}
+function set.deserialize(str: string): {Spec}, string
+	local packages <const>: {integer:Spec} = {}
 
 	local largestId = -1
 	local function Package(p: Spec)
@@ -101,14 +102,16 @@ function set.deserialize(str: string): {Spec}
 
 	local chunk <const> = assert(loadstring(str))
 	setfenv(chunk, { Package = Package } as table)
-	-- Should I be pcalling this? Yes. Am I? No.
-	chunk()
+	local ok <const>, err <const> = pcall(chunk)
+	if not ok then
+		return nil, err as string
+	end
 
 	for _, pkg in pairs(packages) do
 		pkg.id = nil
 		if pkg.dependents then
 			for i, depId in ipairs(pkg.dependents) do
-				pkg.dependents[i] = packages[depId as number]
+				pkg.dependents[i] = packages[depId as integer]
 			end
 		end
 	end
@@ -125,7 +128,7 @@ end
 
 -- TODO: use luv to do the file reads/writes
 
-local function loadSet(name: string): {Spec}
+local function loadSet(name: string): {Spec}, string
 	local fh <const> = assert(io.open(setPath .. "/" .. name, "r"))
 	local content <const> = fh:read("*a")
 	fh:close()

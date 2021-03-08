@@ -30,32 +30,33 @@ local modes = {
       oldPrint(table.concat(text, " "))
    end,
    buffer = function(...)
-      if not printBuf then
-         printBuf = nvim.createBuf(false, true)
-         printBuf:setLines(0, -1, false, { "=== print buffer ===" })
-      end
-      if not (printWin and printWin:isValid()) then
-         local col, row, wid, hei = dialog.centeredSize(55, nvim.ui().height - 20)
-         printWin = nvim.openWin(printBuf, false, {
-            relative = "editor",
-            style = "minimal",
-            col = col + math.floor(nvim.ui().width / 3), row = row,
-            height = hei, width = wid,
-         })
-      end
-
-      local text = {}
-      for i = 1, select("#", ...) do
-         local thing = select(i, ...)
-         if type(thing) == "string" then
-            thing = (thing):gsub("\n", "\\n")
-         else
-            thing = vim.inspect(thing, inspectOpts)
-         end
-         table.insert(text, thing)
-      end
-
+      local args = { n = select("#", ...), ... }
       vim.schedule(function()
+         if not printBuf then
+            printBuf = nvim.createBuf(false, true)
+            printBuf:setLines(0, -1, false, { "=== print buffer ===" })
+         end
+         if not (printWin and printWin:isValid()) then
+            local col, row, wid, hei = dialog.centeredSize(55, nvim.ui().height - 20)
+            printWin = nvim.openWin(printBuf, false, {
+               relative = "editor",
+               style = "minimal",
+               col = col + math.floor(nvim.ui().width / 3), row = row,
+               height = hei, width = wid,
+            })
+         end
+
+         local text = {}
+         for i = 1, args.n do
+            local thing = args[i]
+            if type(thing) == "string" then
+               thing = (thing):gsub("\n", "\\n")
+            else
+               thing = vim.inspect(thing, inspectOpts)
+            end
+            table.insert(text, thing)
+         end
+
          printBuf:setLines(-1, -1, false, vim.split(table.concat(text, " "), "\n", true))
       end)
    end,

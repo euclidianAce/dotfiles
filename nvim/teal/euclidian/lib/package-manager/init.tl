@@ -8,6 +8,7 @@ local commands <const>: {string:function} = {
 	["Install"] = interface.installSet,
 	["Update"] = interface.updateSet,
 	["Add"] = interface.addPackage,
+	["View"] = interface.showSets,
 }
 
 local record manager

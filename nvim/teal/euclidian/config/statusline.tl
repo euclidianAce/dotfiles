@@ -57,7 +57,7 @@ local function tiFmt(t: {string}, fmt: string, ...: any)
 	ti(t, sf(fmt, ...))
 end
 
-stl.add(alwaysActive, empty, function(winid: number): string
+stl.add(alwaysActive, empty, function(winid: integer): string
 	local win <const> = nvim.Window(winid)
 	local spaces <const> = win:getOption("numberwidth") + 1
 	return (" "):rep(spaces) .. nvim.Window(winid):getBuf() .. " "
@@ -74,7 +74,7 @@ stl.add(active, inactive, function(): string
 	return "  * " .. branch .. " "
 end, "STLGit")
 local maxFileNameLen <const> = 20
-stl.add(alwaysActive, empty, function(winid: number): string
+stl.add(alwaysActive, empty, function(winid: integer): string
 	local buf <const> = nvim.Buffer(nvim.Window(winid):getBuf())
 	local fname = buf:getName() or ""
 	if fname:match("/bin/bash$") or #fname == 0 then
@@ -96,9 +96,9 @@ stl.add(active, inactive, " %= ", "StatusLine")
 stl.add(inactive, active, " %= ", "StatusLineNC")
 
 local minWid <const> = 100
-stl.add(alwaysActive, empty, function(winid: number): string
+stl.add(alwaysActive, empty, function(winid: integer): string
 	local win <const> = nvim.Window(winid)
-	local buf <const> = nvim.Buffer(nvim.Window(winid):getBuf())
+	local buf <const> = nvim.Buffer(win:getBuf())
 
 	local wid <const> = win:getWidth()
 	local pos <const> = win:getCursor()
@@ -107,12 +107,12 @@ stl.add(alwaysActive, empty, function(winid: number): string
 	if stl.isActive(winid) then
 		-- tabs/spaces info
 		if wid > minWid then
-			local expandtab = buf:getOption("expandtab") as boolean
+			local expandtab = buf:getOption("expandtab")
 			local num: number
 			if expandtab then
-				num = buf:getOption("shiftwidth") as number
+				num = buf:getOption("shiftwidth")
 			else
-				num = buf:getOption("tabstop") as number
+				num = buf:getOption("tabstop")
 			end
 			tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 		end
@@ -122,7 +122,7 @@ stl.add(alwaysActive, empty, function(winid: number): string
 		if wid > minWid then
 			tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
 			tiFmt(out, "Col: %3d", pos[2] + 1)
-			tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines * 100))
+			tiFmt(out, "%3d%%", pos[1] // totalLines * 100)
 		else
 			tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
 		end

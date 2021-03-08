@@ -17,7 +17,7 @@ local function split(str: string, delimiter: string): string, string
 	return str:sub(1, found - 1), str:sub(found + #delimiter, -1)
 end
 
-local function getCommentString(buf: number): string, string
+local function getCommentString(buf: integer): string, string
 	local c = nvim.Buffer(buf):getOption("commentstring")
 	if not c then
 		print("[commenter] Couldn't get commentstring")
@@ -49,7 +49,7 @@ local function commentStr(pre: string, post: string, str: string): string
 	return leadingWs .. pre .. " " .. rest .. (#post > 0 and " " .. post or "")
 end
 
-function commenter.commentLine(buf: number, lineNum: number)
+function commenter.commentLine(buf: integer, lineNum: integer)
 	local pre, post = getCommentString(buf)
 
 	if not pre then
@@ -66,7 +66,7 @@ local function xor(a: any, b: any): boolean
 	return (not a and b as boolean) or (a as boolean and not b)
 end
 
-function commenter.commentRange(buf: number, start: number, finish: number)
+function commenter.commentRange(buf: integer, start: integer, finish: integer)
 	assert(buf, "no buffer")
 	assert(start, "no start")
 	assert(finish, "no finish")

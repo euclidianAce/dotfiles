@@ -1,40 +1,30 @@
 
-local _ENV = st
+st.font = "terminus:size=12"
+-- st.font = "Fixedsys Excelsior:size=12"
+-- st.font = "Ubuntu Mono:size=12:antialias=true"
+-- st.font = "FiraCode Light:size=12:antialias=true"
 
-font = "terminus:size=12"
--- font = "Fixedsys Excelsior:size=12"
--- font = "Ubuntu Mono:size=12:antialias=true"
--- font = "FiraCode Light:size=12:antialias=true"
-
-cwscale = 1
-chscale = 1
-
-colorname = {
-	-- 8 normal colors
+st.colorname = {
 	"#181520",
-	"red3",
-	"green3",
-	"yellow3",
-	"blue2",
-	"magenta3",
+	"#D16161",
+	"#62F5A2",
+	"#D5C876",
+	"#799AE0",
+	"#6554A0",
 	"cyan3",
 	"gray90",
 
-	-- 8 bright colors
 	"gray50",
-	"red",
-	"green",
-	"yellow",
-	"#5c5cff",
+	"#E69090",
+	"#A8EBC5",
+	"#F0E7AC",
+	"#AAC3FD",
 	"magenta",
 	"cyan",
 	"white",
 }
 
-defaultfg = 7
-defaultbg = 0
-
--- TODO: implement this
--- shortcuts = {
-	-- { xk.any_mod, xb.break, ttysend }
--- }
+st.shortcuts = {
+	{ mod.crtl, key.Up, function() term.zoom(2) end },
+	{ mod.crtl, key.Down, function() term.zoom(-2) end },
+}

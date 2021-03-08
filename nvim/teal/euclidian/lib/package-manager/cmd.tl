@@ -118,9 +118,15 @@ local function eventedCmd(opts: cmdOpts)
 		},
 	}
 
-	ev.anchor(function(): boolean
-		return not closed
-	end)
+	if opts.thread then
+		ev.anchor(opts.thread, function(): boolean
+			return not closed
+		end)
+	else
+		ev.anchor(function(): boolean
+			return not closed
+		end)
+	end
 end
 
 local git <const> = {}

@@ -17,6 +17,7 @@ local interface = {
    addPackage = nil,
    installSet = nil,
    updateSet = nil,
+   showSets = nil,
 }
 
 local function longest(lines)
@@ -157,6 +158,8 @@ local function runForEachPkg(getCmd)
 
 
 
+
+
             end
             table.insert(jobs, function(t)
                cmd.runEvented({
@@ -230,6 +233,30 @@ local function runForEachPkg(getCmd)
       d:close()
    end)
 end
+
+interface.showSets = newDialog(function()
+   local d = interface.displaySets()
+   d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+   yield()
+
+
+   local ln = d:getCursor()
+   local selected = d:getLine(ln)
+   local setName = selected
+   local selectedSet = set.load(selected)
+
+   table.sort(selectedSet, setComparator)
+   local txt = {
+      setName,
+      ("="):rep(30),
+   }
+   for i, pkg in ipairs(selectedSet) do
+      txt[i + 2] = pkg:title()
+   end
+   d:setLines(txt)
+   yield()
+   d:close()
+end)
 
 interface.installSet = runForEachPkg(function(p)
    if not p:isInstalled() then

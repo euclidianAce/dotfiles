@@ -8,8 +8,8 @@ local ev <const> = require("euclidian.lib.ev")
 
 local a <const> = vim.api
 
-local Spec <const> = packagespec.Spec
-local Dialog <const> = dialog.Dialog
+local type Spec = packagespec.Spec
+local type Dialog = dialog.Dialog
 
 local yield <const> = coroutine.yield
 
@@ -17,9 +17,10 @@ local interface <const> = {
 	addPackage: function() = nil,
 	installSet: function() = nil,
 	updateSet: function() = nil,
+	showSets: function() = nil,
 }
 
-local function longest(lines: {string}): number, string
+local function longest(lines: {string}): integer, string
 	local idx, len = 1, #lines[1]
 	for i = 2, #lines do
 		if len < #lines[i] then
@@ -98,7 +99,7 @@ local function setComparator(a: Spec, b: Spec): boolean
 	return a:title() < b:title()
 end
 
-local defaultKeymapOpts <const> = { silent = true, noremap = true }
+local defaultKeymapOpts <const>: nvim.MapOpts = { silent = true, noremap = true }
 
 local record PkgInfo
 	{string}
@@ -149,6 +150,8 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo): function()
 					if not p.post then
 						return
 					end
+					--- TODO: this is janky, the set should be reloaded before
+					--- so that any functions that need to be can be sourced
 					-- updateStatus("post...")
 					-- updateText("Running post install hooks...")
 					-- table.insert(jobs, function()
@@ -230,6 +233,30 @@ local function runForEachPkg(getCmd: function(Spec): PkgInfo): function()
 		d:close()
 	end)
 end
+
+interface.showSets = newDialog(function()
+	local d <const> = interface.displaySets()
+	d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
+	yield()
+
+
+	local ln <const> = d:getCursor()
+	local selected <const> = d:getLine(ln)
+	local setName = selected
+	local selectedSet = set.load(selected)
+
+	table.sort(selectedSet, setComparator)
+	local txt = {
+		setName,
+		("="):rep(30),
+	}
+	for i, pkg in ipairs(selectedSet) do
+		txt[i+2] = pkg:title()
+	end
+	d:setLines(txt)
+	yield()
+	d:close()
+end)
 
 interface.installSet = runForEachPkg(function(p: Spec): PkgInfo
 	if not p:isInstalled() then

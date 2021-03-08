@@ -103,7 +103,7 @@ function ev.anchor(t, ...)
    if type(t) == "thread" then
       local loop = eventLoops[t]
       if not loop then
-         error("Cannot create anchor: " .. tostring(t) .. " is not an event loop")
+         error("Cannot create anchor: " .. tostring(t) .. " is not an event loop", 2)
       end
       a = loop.anchors
    else

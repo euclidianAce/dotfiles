@@ -98,7 +98,7 @@ stl.add(inactive, active, " %= ", "StatusLineNC")
 local minWid = 100
 stl.add(alwaysActive, empty, function(winid)
    local win = nvim.Window(winid)
-   local buf = nvim.Buffer(nvim.Window(winid):getBuf())
+   local buf = nvim.Buffer(win:getBuf())
 
    local wid = win:getWidth()
    local pos = win:getCursor()
@@ -122,7 +122,7 @@ stl.add(alwaysActive, empty, function(winid)
       if wid > minWid then
          tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
          tiFmt(out, "Col: %3d", pos[2] + 1)
-         tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines * 100))
+         tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines) * 100)
       else
          tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
       end

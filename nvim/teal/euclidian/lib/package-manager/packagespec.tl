@@ -9,7 +9,7 @@ end
 local record Spec
 	opt: boolean
 
-	id: number
+	id: integer
 	dependents: {number|Spec}
 
 	post: string -- post-install/update vimscript actions

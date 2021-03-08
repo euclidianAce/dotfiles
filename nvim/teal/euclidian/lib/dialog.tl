@@ -3,10 +3,10 @@ local nvim <const> = require("euclidian.lib.nvim")
 
 local record Dialog
 	record Opts
-		wid: number
-		hei: number
-		row: number
-		col: number
+		wid: integer
+		hei: integer
+		row: integer
+		col: integer
 	end
 	
 	buf: nvim.Buffer
@@ -17,7 +17,7 @@ local dialog <const> = {
 	Dialog = Dialog,
 }
 
-function dialog.new(col: number, row: number, wid: number, hei: number): Dialog
+function dialog.new(col: integer, row: integer, wid: integer, hei: integer): Dialog
 	local buf <const> = nvim.createBuf(false, true)
 	buf:setOption("buftype", "nofile")
 	buf:setOption("modifiable", false)
@@ -50,11 +50,11 @@ end
 local floor <const>, max <const>, min <const>
 	= math.floor, math.max, math.min
 
-local function clamp(n: number, lower: number, upper: number): number
+local function clamp<T>(n: T, lower: T, upper: T): T
 	return min(max(lower, n), upper)
 end
 
-function dialog.centeredSize(wid: number, hei: number): number, number, number, number
+function dialog.centeredSize(wid: integer, hei: integer): integer, integer, integer, integer
 	local ui <const> = nvim.ui()
 
 	local actualWid <const> = clamp(
@@ -75,7 +75,7 @@ function dialog.centeredSize(wid: number, hei: number): number, number, number, 
 		actualHei -- hei
 end
 
-function dialog.centered(wid: number, hei: number): Dialog
+function dialog.centered(wid: integer, hei: integer): Dialog
 	return dialog.new(dialog.centeredSize(wid, hei))
 end
 
@@ -97,7 +97,7 @@ function Dialog:setLines(txt: {string}): Dialog
 		self.buf:setLines(0, -1, false, txt)
 	end)
 end
-function Dialog:setText(edits: {{string, number, number, number, number}}): Dialog
+function Dialog:setText(edits: {{string, integer, integer, integer, integer}}): Dialog
 	-- edit: {text, start_row, start_col, end_row, end_col}
 	return self:modify(function()
 		for _, edit in ipairs(edits) do
@@ -105,18 +105,18 @@ function Dialog:setText(edits: {{string, number, number, number, number}}): Dial
 		end
 	end)
 end
-function Dialog:setCursor(row: number, col: number): Dialog
+function Dialog:setCursor(row: integer, col: integer): Dialog
 	self.win:setCursor{row, col}
 	return self
 end
-function Dialog:getCursor(): number, number
+function Dialog:getCursor(): integer, integer
 	local pos <const> = self.win:getCursor()
 	return pos[1], pos[2]
 end
-function Dialog:getLine(n: number): string
+function Dialog:getLine(n: integer): string
 	return self.buf:getLines(n - 1, n, false)[1]
 end
-function Dialog:getLines(min: number, max: number): {string}
+function Dialog:getLines(min: integer, max: integer): {string}
 	return self.buf:getLines(min or 0, max or -1, false)
 end
 function Dialog:setWin(o: Dialog.Opts): Dialog
@@ -127,7 +127,7 @@ function Dialog:setWin(o: Dialog.Opts): Dialog
 	}
 	return self
 end
-function Dialog:center(width: number, height: number): Dialog
+function Dialog:center(width: integer, height: integer): Dialog
 	local col <const>, row <const>, wid <const>, hei <const> = dialog.centeredSize(width, height)
 	self:setWin{ col = col, row = row, wid = wid, hei = hei }
 	return self

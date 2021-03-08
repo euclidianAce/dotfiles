@@ -75,7 +75,7 @@ function statusline.add(tags: {string}, invertedTags: {string}, text: (string | 
 	comp.hiGroup = hiGroup
 	if text is string then
 		comp.text = text
-	elseif text is function(number): string then
+	elseif text then
 		statusline._funcs[#lineComponents + 1] = text
 		comp.isFunc = true
 		comp.funcId = #lineComponents + 1
@@ -120,7 +120,7 @@ local function makeLine(tags: {string}, winId: number): string
 	return table.concat(buf)
 end
 
-local function setLine(winId: number)
+local function setLine(winId: integer)
 	local win <const> = nvim.Window(winId)
 	local tags <const> = active[win.id]
 		and {"Active"}
@@ -134,13 +134,13 @@ function statusline.updateWindows()
 	end
 end
 
-function statusline.setInactive(winId: number)
+function statusline.setInactive(winId: integer)
 	winId = winId or nvim.Window().id
 	active[winId] = false
 	statusline.updateWindows()
 end
 
-function statusline.setActive(winId: number)
+function statusline.setActive(winId: integer)
 	winId = winId or nvim.Window().id
 	active[winId] = true
 	statusline.updateWindows()
@@ -157,7 +157,7 @@ function statusline.toggleTag(name: string | {string})
 	statusline.updateWindows()
 end
 
-function statusline.isActive(winId: number): boolean
+function statusline.isActive(winId: integer): boolean
 	winId = winId or nvim.Window().id
 	return active[winId]
 end

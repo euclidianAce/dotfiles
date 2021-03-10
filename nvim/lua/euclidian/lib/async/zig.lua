@@ -44,19 +44,16 @@ local function await(frame)
    return frame._v
 end
 
+local function currentFrame()
+   local co = coroutine.running()
+   return frames[co]
+end
+
 local function nosuspend(fn, ...)
    local frame = { _t = coroutine.create(fn) }
    frames[frame._t] = frame
    internalResume(frame, ...)
    errIf(status(frame._t) ~= "dead", "Function suspended in a nosuspend", 2)
-   return frame._v
-end
-
-local function nosuspendAwait(frame)
-   if status(frame._t) ~= "dead" then
-      internalResume(frame)
-      errIf(status(frame._t) ~= "dead", "Frame suspended in a nosuspendAwait", 2)
-   end
    return frame._v
 end
 
@@ -74,7 +71,7 @@ return {
    async = async,
    await = await,
    nosuspend = nosuspend,
-   nosuspendAwait = nosuspendAwait,
+   currentFrame = currentFrame,
 
    Frame = Frame,
 }

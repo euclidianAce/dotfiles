@@ -34,7 +34,7 @@ export EDITOR=nvim
 export MANPAGER="nvim +Man!"
 
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
-export PATH+=":./:$HOME/Applications:$HOME/bin"
+export PATH+=":./:$HOME/Applications:$HOME/bin:/usr/local/bin"
 
 # xterm-kitty doesn't work over ssh
 export TERM=xterm-256color

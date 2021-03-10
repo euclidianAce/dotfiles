@@ -117,10 +117,10 @@ do
 	local openTerm, hideTerm: function(), function()
 
 	local function incBlend()
-		fWin:setOption("winblend", fWin:getOption("winblend") as number - 8)
+		fWin:setOption("winblend", fWin:getOption("winblend") - 8)
 	end
 	local function decBlend()
-		fWin:setOption("winblend", fWin:getOption("winblend") as number + 8)
+		fWin:setOption("winblend", fWin:getOption("winblend") + 8)
 	end
 
 	local key <const> = ""
@@ -161,10 +161,10 @@ do
 
 	hideTerm = function()
 		if fWin:isValid() then
-			a.nvim_set_current_win(fWin.id)
+			local id <const> = fWin.id
 			vim.schedule(function()
-				-- no api function to just hide a window?, so this feels super hacky
-				nvim.command "hide"
+				a.nvim_set_current_win(id)
+				nvim.command [[hide]]
 			end)
 		end
 		fWin = nil

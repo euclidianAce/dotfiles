@@ -256,6 +256,7 @@ local function createLoop(f: function): thread
 		eventLoops[mainThread] = loop
 
 		while status(mainThread) ~= "dead" do
+			print("Ticking main event loop thread")
 			local ok, err = resume(mainThread)
 			if not ok then
 				error("error in main thread: " .. tostring(err) .. "\n" .. debug.traceback(mainThread), 2)
@@ -293,6 +294,7 @@ function EventLoop:asyncRun(interval: number): uv.Timer
 	local timer <const> = uv.new_timer()
 	local function step()
 		if status(t) ~= "dead" then
+			print("ticking event loop")
 			local ok, err = resume(t)
 			if not ok then
 				error("Error in event loop: " .. tostring(err) .. "\n" .. debug.traceback(t))
@@ -303,6 +305,7 @@ function EventLoop:asyncRun(interval: number): uv.Timer
 		if status(t) ~= "dead" then
 			step()
 		elseif not timer:is_closing() then
+			print("event loop done")
 			timer:stop()
 			timer:close()
 		end

@@ -161,10 +161,10 @@ do
 
    hideTerm = function()
       if fWin:isValid() then
-         a.nvim_set_current_win(fWin.id)
+         local id = fWin.id
          vim.schedule(function()
-
-            nvim.command("hide")
+            a.nvim_set_current_win(id)
+            nvim.command([[hide]])
          end)
       end
       fWin = nil

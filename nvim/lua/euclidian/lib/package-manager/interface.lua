@@ -224,7 +224,7 @@ local function runForEachPkg(getCmd)
             updateText()
 
             d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
-         end):asyncRun()
+         end):asyncRun(150)
       else
          d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
       end
@@ -238,7 +238,6 @@ interface.showSets = newDialog(function()
    local d = interface.displaySets()
    d:addKeymap("n", "<cr>", stepCmd, defaultKeymapOpts)
    yield()
-
 
    local ln = d:getCursor()
    local selected = d:getLine(ln)

@@ -84,7 +84,7 @@ set(vim.o, {
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
 
-	mouse = "a",
+	mouse = "nv",
 	termguicolors = true,
 	belloff = "all",
 	swapfile = false,
@@ -131,7 +131,7 @@ if not lspconfig.teal then
 		default_config = {
 			cmd = {
 				"teal-language-server",
-				"logging=on",
+				-- "logging=on",
 			},
 			filetypes = { "teal" };
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),

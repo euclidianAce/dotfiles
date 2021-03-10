@@ -50,7 +50,7 @@ end
 local floor <const>, max <const>, min <const>
 	= math.floor, math.max, math.min
 
-local function clamp<T>(n: T, lower: T, upper: T): T
+local function clamp(n: number, lower: number, upper: number): number
 	return min(max(lower, n), upper)
 end
 

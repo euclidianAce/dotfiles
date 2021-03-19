@@ -21,8 +21,8 @@ local modes <const>: {Mode:function(...:any)} = {
 		local text: {string} = {}
 		for i = 1, select("#", ...) do
 			local obj <const> = select(i, ...)
-			if type(obj) == "string" then
-				table.insert(text, obj as string)
+			if obj is string then
+				table.insert(text, obj)
 			else
 				table.insert(text, vim.inspect(obj, inspectOpts))
 			end
@@ -37,20 +37,20 @@ local modes <const>: {Mode:function(...:any)} = {
 				printBuf:setLines(0, -1, false, { "=== print buffer ===" })
 			end
 			if not (printWin and printWin:isValid()) then
-				local col <const>, row <const>, wid <const>, hei <const> = dialog.centeredSize(55, nvim.ui().height - 20)
+				local opts <const> = dialog.centeredSize(55, nvim.ui().height - 20)
 				printWin = nvim.openWin(printBuf, false, {
 					relative = "editor",
 					style = "minimal",
-					col = col + nvim.ui().width // 3, row = row,
-					height = hei, width = wid,
+					col = opts.col + nvim.ui().width // 3, row = opts.row,
+					height = opts.hei, width = opts.wid,
 				})
 			end
 
 			local text <const> = {}
 			for i = 1, args.n do
 				local thing = args[i]
-				if type(thing) == "string" then
-					thing = (thing as string):gsub("\n", "\\n")
+				if thing is string then
+					thing = thing:gsub("\n", "\\n")
 				else
 					thing = vim.inspect(thing, inspectOpts)
 				end

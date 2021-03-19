@@ -9,7 +9,7 @@ local record color
 	end
 end
 color.scheme.hi = {}
-local Color = color.Color
+local type Color = color.Color
 
 local function tiFmt(t: {string}, fmt: string, ...: any)
 	table.insert(t, string.format(fmt, ...))

@@ -12,8 +12,6 @@ local record Spec
 	id: integer
 	dependents: {number|Spec}
 
-	post: string -- post-install/update vimscript actions
-
 	kind: Kind
 
 	-- git
@@ -34,9 +32,9 @@ local packagespec <const> = {
 	},
 }
 
-local SpecMt <const> = { __index = Spec } as metatable<Spec>
+local spec_mt <const> = { __index = Spec } as metatable<Spec>
 function packagespec.new(p: Spec): Spec
-	return setmetatable(p, SpecMt)
+	return setmetatable(p, spec_mt)
 end
 
 function Spec:locationInTree(): string

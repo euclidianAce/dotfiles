@@ -5,8 +5,9 @@ local uv <const> = vim.loop
 
 local type Spec = packagespec.Spec
 
-local set <const> = {}
-local setPath = tree.set
+local set <const> = {
+	loaded: {string:{Spec}} = {},
+}
 
 local ti <const>, sf <const> = table.insert, string.format
 local function tiFmt(t: {string}, s: string, ...: any)
@@ -48,10 +49,6 @@ local function generateDef(out: {string}, p: Spec)
 		if #d > 0 then
 			ins("dependents = { %s }", table.concat(d, ", "))
 		end
-	end
-
-	if p.post then
-		ins("post = %q", p.post)
 	end
 
 	table.remove(out)
@@ -129,32 +126,30 @@ end
 -- TODO: use luv to do the file reads/writes
 
 local function loadSet(name: string): {Spec}, string
-	local fh <const> = assert(io.open(setPath .. "/" .. name, "r"))
+	local fh <const> = assert(io.open(tree.set .. "/" .. name, "r"))
 	local content <const> = fh:read("*a")
 	fh:close()
 	return set.deserialize(content)
 end
 
-local loadedSets <const>: {string:{Spec}} = {}
 function set.load(name: string): {Spec}
-	if not loadedSets[name] then
-		loadedSets[name] = loadSet(name)
+	if not set.loaded[name] then
+		set.loaded[name] = loadSet(name)
 	end
-	return loadedSets[name]
+	return set.loaded[name]
 end
 
 function set.save(name: string, s: {Spec})
 	assert(name, "Can't save a set without a name") assert(s, "No set to save")
-	local fh <const> = assert(io.open(setPath .. "/" .. name, "w"))
+	local fh <const> = assert(io.open(tree.set .. "/" .. name, "w"))
 	fh:write(set.serialize(s), "\n")
 	fh:close()
-	loadedSets[name] = nil
+	set.loaded[name] = nil
 end
 
 function set.list(): {string}
 	local list: {string} = {}
-	local dir = uv.fs_scandir(setPath)
-	for name in uv.fs_scandir_next, dir do
+	for name in uv.fs_scandir_next, uv.fs_scandir(tree.set) do
 		table.insert(list, name)
 	end
 	return list

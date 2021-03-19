@@ -17,30 +17,43 @@ local dialog <const> = {
 	Dialog = Dialog,
 }
 
-function dialog.new(col: integer, row: integer, wid: integer, hei: integer): Dialog
-	local buf <const> = nvim.createBuf(false, true)
+local type BufOrId = nvim.Buffer | nvim.Buffer.Id
+
+local function getBuf(maybeBuf: BufOrId): nvim.Buffer
+	if not maybeBuf then
+		return nvim.createBuf(false, true)
+	elseif maybeBuf is nvim.Buffer then
+		return maybeBuf
+	else
+		return nvim.Buffer(maybeBuf)
+	end
+end
+
+function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
+	local buf <const> = getBuf(maybeBuf)
+
 	buf:setOption("buftype", "nofile")
 	buf:setOption("modifiable", false)
 
 	local win <const> = nvim.openWin(buf, true, {
 		relative = "editor",
-		row = row, col = col,
-		width = wid, height = hei,
+		row = 1, col = 1,
+		width = 1, height = 1,
 	})
 	win:setOption("winblend", 5)
 
 	local ui <const> = nvim.ui()
 
-	if col < 0 then
-		col = ui.width + col
-	end
-	if row < 0 then
-		row = ui.height + row
-	end
+	local col <const> = opts.col < 0
+		and ui.width + opts.col
+		or opts.col
+	local row <const> = opts.row < 0
+		and ui.height + opts.row
+		or opts.row
 
 	win:setConfig{
 		relative = "editor", style = "minimal", anchor = "NW",
-		width = wid, height = hei,
+		width = opts.wid, height = opts.hei,
 		row = row, col = col,
 	}
 
@@ -50,11 +63,11 @@ end
 local floor <const>, max <const>, min <const>
 	= math.floor, math.max, math.min
 
-local function clamp(n: number, lower: number, upper: number): number
+local function clamp<T>(n: T, lower: T, upper: T): T
 	return min(max(lower, n), upper)
 end
 
-function dialog.centeredSize(wid: integer, hei: integer): integer, integer, integer, integer
+function dialog.centeredSize(wid: integer, hei: integer): Dialog.Opts
 	local ui <const> = nvim.ui()
 
 	local actualWid <const> = clamp(
@@ -68,15 +81,16 @@ function dialog.centeredSize(wid: integer, hei: integer): integer, integer, inte
 		floor(ui.height * .90)
 	)
 
-	return
-		(ui.width - actualWid) // 2, -- col
-		(ui.height - actualHei) // 2, -- row
-		actualWid, -- wid
-		actualHei -- hei
+	return {
+		col = (ui.width - actualWid) // 2,
+		row = (ui.height - actualHei) // 2,
+		wid = actualWid,
+		hei = actualHei,
+	}
 end
 
-function dialog.centered(wid: integer, hei: integer): Dialog
-	return dialog.new(dialog.centeredSize(wid, hei))
+function dialog.centered(wid: integer, hei: integer, maybeBuf: BufOrId): Dialog
+	return dialog.new(dialog.centeredSize(wid, hei), maybeBuf)
 end
 
 function Dialog:isModifiable(): boolean
@@ -95,6 +109,11 @@ end
 function Dialog:setLines(txt: {string}): Dialog
 	return self:modify(function()
 		self.buf:setLines(0, -1, false, txt)
+	end)
+end
+function Dialog:setLine(num: integer, ln: string): Dialog
+	return self:modify(function()
+		self.buf:setLines(num, num + 1, false, { ln })
 	end)
 end
 function Dialog:setText(edits: {{string, integer, integer, integer, integer}}): Dialog
@@ -116,6 +135,9 @@ end
 function Dialog:getLine(n: integer): string
 	return self.buf:getLines(n - 1, n, false)[1]
 end
+function Dialog:getCurrentLine(): string
+	return self:getLine((self:getCursor()))
+end
 function Dialog:getLines(min: integer, max: integer): {string}
 	return self.buf:getLines(min or 0, max or -1, false)
 end
@@ -128,11 +150,9 @@ function Dialog:setWin(o: Dialog.Opts): Dialog
 	return self
 end
 function Dialog:center(width: integer, height: integer): Dialog
-	local col <const>, row <const>, wid <const>, hei <const> = dialog.centeredSize(width, height)
-	self:setWin{ col = col, row = row, wid = wid, hei = hei }
-	return self
+	return self:setWin(dialog.centeredSize(width, height))
 end
-function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string, opts: nvim.MapOpts): Dialog
+function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: nvim.MapOpts): Dialog
 	self.buf:setKeymap(mode, lhs, rhs, opts)
 	return self
 end
@@ -154,6 +174,31 @@ function Dialog:unsetPrompt(): Dialog
 	self.buf:setOption("modifiable", false)
 	self.buf:setOption("buftype", "nofile")
 	nvim.command("stopinsert")
+	return self
+end
+function Dialog:fitText(minWid: integer, minHei: integer, maxWid: integer, maxHei: integer): Dialog
+	local lines <const> = self.buf:getLines(0, -1, false)
+	local line = ""
+	for _, ln in ipairs(lines) do
+		if #ln > #line then
+			line = ln
+		end
+	end
+	local ui <const> = nvim.ui()
+	self.win:setHeight(clamp(#lines, minHei or 1, maxHei or ui.height))
+	self.win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
+	return self
+end
+function Dialog:center(): Dialog
+	local ui <const> = nvim.ui()
+	local cfg <const> = self.win:getConfig()
+	self.win:setConfig{
+		relative = "editor",
+		col = (ui.width - cfg.width) // 2,
+		row = (ui.height - cfg.height) // 2,
+		width = cfg.width,
+		height = cfg.height,
+	}
 	return self
 end
 function Dialog:close()

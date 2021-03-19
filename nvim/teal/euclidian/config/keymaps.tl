@@ -1,7 +1,8 @@
 
-local M <const> = { _exports: table = {} }
+local M <const> = { _exports: {string:function} = {} }
 
 local nvim <const> = require("euclidian.lib.nvim")
+local dialog <const> = require("euclidian.lib.dialog")
 local a <const> = vim.api
 
 local function map(m: vim.Mode | {vim.Mode}, lhs: string, rhs: string | function)
@@ -35,13 +36,22 @@ end)
 local enum OperatorfuncMode -- TODO: put this in the .d.tl
 	"line" "char" "block"
 end
+local commenter <const> = require("euclidian.lib.commenter")
 M._exports.commentMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
 	local b <const> = nvim.Buffer()
-	require("euclidian.lib.commenter").commentRange(
-		0,
+	commenter.commentRange(
+		b.id,
 		b:getMark('[')[1] - 1,
 		b:getMark(']')[1]
+	)
+end
+M._exports.commentVisualSelection = function()
+	local b <const> = nvim.Buffer()
+	commenter.commentRange(
+		b.id,
+		b:getMark('<')[1] - 1,
+		b:getMark('>')[1]
 	)
 end
 
@@ -49,11 +59,39 @@ map(
 	"n", "<leader>c",
 	[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]]
 )
+map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
 
 local getchar <const> = vim.fn.getchar as function(): number
-map("n", "<leader>a", function()
-	require("euclidian.lib.append").toCurrentLine(string.char(getchar()))
+local append <const> = require("euclidian.lib.append")
+
+M._exports.appendMotion = function(kind: OperatorfuncMode)
+	if kind ~= "line" then return end
+	local b <const> = nvim.Buffer()
+	append.toRange(
+		b:getMark('[')[1] - 1,
+		b:getMark(']')[1],
+		string.char(getchar()),
+		b.id
+	)
+end
+M._exports.appendToVisualSelection = function()
+	local b <const> = nvim.Buffer()
+	append.toRange(
+		b:getMark('<')[1] - 1,
+		b:getMark('>')[1],
+		string.char(getchar()),
+		b.id
+	)
+end
+
+map(
+	"n", "<leader>a",
+	[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendMotion")<cr>g@]]
+)
+map("n", "<leader>aa", function()
+	append.toCurrentLine(string.char(getchar()))
 end)
+map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection()<cr>]])
 
 for _, v in ipairs{
 	{"h", "<"},
@@ -83,28 +121,38 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 map("t", "<Esc>", "<C-\\><C-n>")
 
 do
-	local lastText = { "-- Press <CR> in normal mode to run", "-- Enter lua code here:", "" }
+	local d: dialog.Dialog
+	local buf: nvim.Buffer
 	-- floating buffer to execute some lua
 	map("n", "<leader>lua", function()
-		local d <const> = require("euclidian.lib.dialog").centered(75, 30)
-		d.buf:setOption("ft", "teal")
-		d.buf:setOption("tabstop", 3)
-		d.buf:setOption("shiftwidth", 3)
-		d:setModifiable(true)
-		d:addKeymap("n", "<CR>", "<cmd>lua require'euclidian.config.keymaps'._exports.luaPrompt()<cr>", { silent = true, noremap = true })
-		if lastText[#lastText] ~= "" then
-			table.insert(lastText, "")
+		d = dialog.centered(75, 30, buf)
+		if not buf then
+			buf = d.buf
+			buf:setOption("ft", "teal")
+			buf:setOption("tabstop", 3)
+			buf:setOption("shiftwidth", 3)
+			buf:setKeymap(
+				"n", "<cr>",
+				function() M._exports.luaPrompt() end,
+				{ silent = true, noremap = true }
+			)
+			buf:setKeymap(
+				"n", "",
+				function() d.win:hide() end,
+				{ silent = true, noremap = true }
+			)
 		end
-		d:setLines(lastText)
-		d:setCursor(#lastText, 0)
-		nvim.command([[autocmd BufDelete <buffer=%d> lua require'euclidian.config.keymap'._exports.luaPrompt = nil<cr>]], d.buf.id)
+		d:setModifiable(true)
 		M._exports.luaPrompt = function()
-			local lines = d:getLines()
-			lastText = lines
+			local lines <const> = d:getLines()
 			local txt <const> = table.concat(lines, "\n")
 
-			local chunk <const> = loadstring(txt)
-			local ok, err = pcall(chunk) as (boolean, string)
+			local chunk <const>, loaderr <const> = loadstring(txt)
+			if not chunk then
+				a.nvim_err_writeln(loaderr)
+				return
+			end
+			local ok <const>, err <const> = pcall(chunk) as (boolean, string)
 			if not ok then
 				a.nvim_err_writeln(err)
 			end
@@ -130,12 +178,12 @@ do
 			a.nvim_set_current_win(fWin.id)
 		elseif not (fBuf and fBuf:isValid()) then
 			fBuf = nvim.createBuf(true, false)
-			local col, row, wid, hei =
-				require("euclidian.lib.dialog").centeredSize(math.huge as integer, math.huge as integer)
+			local opts <const> =
+				dialog.centeredSize(math.huge as integer, math.huge as integer)
 
 			fWin = nvim.openWin(fBuf, true, {
 				relative = "editor",
-				row = row, col = col, width = wid, height = hei
+				row = opts.row, col = opts.col, width = opts.wid, height = opts.hei
 			})
 
 			fWin:setOption("winblend", 16)
@@ -149,23 +197,19 @@ do
 			bufMap(fBuf.id, {"t", "n"}, "", decBlend)
 			bufMap(fBuf.id, {"t", "n"}, "", incBlend)
 		else
-			local col, row, wid, hei =
-				require("euclidian.lib.dialog").centeredSize(math.huge as integer, math.huge as integer)
+			local opts <const> =
+				dialog.centeredSize(math.huge as integer, math.huge as integer)
 
 			fWin = nvim.openWin(fBuf, true, {
 				relative = "editor",
-				row = row, col = col, width = wid, height = hei
+				row = opts.row, col = opts.col, width = opts.wid, height = opts.hei
 			})
 		end
 	end
 
 	hideTerm = function()
 		if fWin:isValid() then
-			local id <const> = fWin.id
-			vim.schedule(function()
-				a.nvim_set_current_win(id)
-				nvim.command [[hide]]
-			end)
+			fWin:hide()
 		end
 		fWin = nil
 		map("n", key, openTerm)

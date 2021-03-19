@@ -68,6 +68,6 @@ return {
 	arrange = organize,
 	name = "Tiled",
 	mouse_resize_handler = mouse_resize_handler,
-	resize_jump_to_corner = true,
+	resize_jump_to_corner = false,
 }
 

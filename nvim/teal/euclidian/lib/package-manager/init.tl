@@ -1,50 +1,32 @@
 
-local nvim <const> = require("euclidian.lib.nvim")
-local interface <const> = require("euclidian.lib.package-manager.interface")
-local loader <const> = require("euclidian.lib.package-manager.loader")
-local tree <const> = require("euclidian.lib.package-manager.tree")
-
-local commands <const>: {string:function} = {
-	["Install"] = interface.installSet,
-	["Update"] = interface.updateSet,
-	["Add"] = interface.addPackage,
-	["View"] = interface.showSets,
-}
-
-local record manager
-	record SetupOpts
+local record packagemanager
+	record SetupOptions
 		enable: {string}
 	end
 
-	metamethod __call: function(manager, SetupOpts)
+	commands: {string:function}
+
+	metamethod __call: function(any, SetupOptions)
 end
 
-function manager.command(cmdName: string)
-	local cmd <const> = commands[cmdName]
-	if not cmd then
-		return
-	end
-	cmd()
-end
+local nvim <const> = require("euclidian.lib.nvim")
+local loader <const> = require("euclidian.lib.package-manager.loader")
+local actions <const> = require("euclidian.lib.package-manager.actions")
 
-for name in pairs(commands) do
-	nvim.command(
-		[[command -nargs=0 PackageManager%s lua require'euclidian.lib.package-manager'.command(%q)]],
-		name, name
-	)
-end
+packagemanager.commands = {
+	View = actions.listSets,
+	Install = actions.install,
+	Update = actions.update,
+}
 
-package.path = tree.luarocks .. "/share/lua/5.1/?.lua;"
-	.. tree.luarocks .. "/share/lua/5.1/?/init.lua;"
-	.. package.path
+return setmetatable(packagemanager, {
+	__call = function(_: packagemanager, opts: packagemanager.SetupOptions)
 
-package.cpath = tree.luarocks .. "/lib/lua/5.1/?.so;"
-	.. package.cpath
+		nvim.command[[ command -nargs=1 PackageManager lua require'euclidian.lib.package-manager'.commands['<args>']() ]]
 
-return setmetatable(manager, {
-	__call = function(_: manager, opts: manager.SetupOpts)
-		for _, setname in ipairs(opts.enable) do
-			loader.enableSet(setname)
+		if not opts then return end
+		for _, s in ipairs(opts.enable or {}) do
+			loader.enableSet(s)
 		end
-	end,
+	end
 })

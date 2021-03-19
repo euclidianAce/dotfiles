@@ -1,5 +1,6 @@
 
 -- An attempt to recreate Zig's 'colorless' async/await (+suspend/resume) on top of Lua's coroutines
+-- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines
 
 local record Frame<T>
 	_t: thread
@@ -16,7 +17,7 @@ local function errIf(cond: boolean, msg: string, lvl: number)
 	end
 end
 
-local function suspend(fn: function)
+local function suspend<T>(fn: function(Frame<T>))
 	coroutine.yield(fn and suspendBlock, fn)
 end
 

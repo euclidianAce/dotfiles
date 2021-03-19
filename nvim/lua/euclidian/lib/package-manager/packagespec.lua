@@ -23,8 +23,6 @@ local Spec = {}
 
 
 
-
-
 local packagespec = {
    Spec = Spec,
    Kind = Kind,
@@ -34,9 +32,9 @@ local packagespec = {
    },
 }
 
-local SpecMt = { __index = Spec }
+local spec_mt = { __index = Spec }
 function packagespec.new(p)
-   return setmetatable(p, SpecMt)
+   return setmetatable(p, spec_mt)
 end
 
 function Spec:locationInTree()

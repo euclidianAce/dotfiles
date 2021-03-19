@@ -109,6 +109,7 @@ local function makeLine(tags, winId)
             buf,
             ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):
             format(component.funcId, winId))
+
          else
             table.insert(buf, component.text)
          end

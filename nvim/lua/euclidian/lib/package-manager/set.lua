@@ -5,8 +5,9 @@ local uv = vim.loop
 
 local Spec = packagespec.Spec
 
-local set = {}
-local setPath = tree.set
+local set = {
+   loaded = {},
+}
 
 local ti, sf = table.insert, string.format
 local function tiFmt(t, s, ...)
@@ -48,10 +49,6 @@ local function generateDef(out, p)
       if #d > 0 then
          ins("dependents = { %s }", table.concat(d, ", "))
       end
-   end
-
-   if p.post then
-      ins("post = %q", p.post)
    end
 
    table.remove(out)
@@ -129,32 +126,30 @@ end
 
 
 local function loadSet(name)
-   local fh = assert(io.open(setPath .. "/" .. name, "r"))
+   local fh = assert(io.open(tree.set .. "/" .. name, "r"))
    local content = fh:read("*a")
    fh:close()
    return set.deserialize(content)
 end
 
-local loadedSets = {}
 function set.load(name)
-   if not loadedSets[name] then
-      loadedSets[name] = loadSet(name)
+   if not set.loaded[name] then
+      set.loaded[name] = loadSet(name)
    end
-   return loadedSets[name]
+   return set.loaded[name]
 end
 
 function set.save(name, s)
    assert(name, "Can't save a set without a name"); assert(s, "No set to save")
-   local fh = assert(io.open(setPath .. "/" .. name, "w"))
+   local fh = assert(io.open(tree.set .. "/" .. name, "w"))
    fh:write(set.serialize(s), "\n")
    fh:close()
-   loadedSets[name] = nil
+   set.loaded[name] = nil
 end
 
 function set.list()
    local list = {}
-   local dir = uv.fs_scandir(setPath)
-   for name in uv.fs_scandir_next, dir do
+   for name in uv.fs_scandir_next, uv.fs_scandir(tree.set) do
       table.insert(list, name)
    end
    return list

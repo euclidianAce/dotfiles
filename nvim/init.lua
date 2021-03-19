@@ -58,9 +58,7 @@ nvim.augroup("Custom", {
 		local win = nvim.Window()
 		win:setOption("number", false)
 		win:setOption("relativenumber", false)
-		win:setOption("foldcolumn", "0")
 		win:setOption("signcolumn", "no")
-		win:setOption("cursorline", false)
 	end },
 })
 
@@ -131,7 +129,7 @@ if not lspconfig.teal then
 		default_config = {
 			cmd = {
 				"teal-language-server",
-				-- "logging=on",
+				"logging=on",
 			},
 			filetypes = { "teal" };
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
@@ -144,8 +142,7 @@ lspconfig.clangd.setup{}
 
 function req(lib)
 	package.loaded[lib] = nil
-	local loaded = require(lib)
-	return loaded
+	return require(lib)
 end
 
 confreq "statusline"

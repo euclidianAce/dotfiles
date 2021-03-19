@@ -37,12 +37,12 @@ local modes = {
             printBuf:setLines(0, -1, false, { "=== print buffer ===" })
          end
          if not (printWin and printWin:isValid()) then
-            local col, row, wid, hei = dialog.centeredSize(55, nvim.ui().height - 20)
+            local opts = dialog.centeredSize(55, nvim.ui().height - 20)
             printWin = nvim.openWin(printBuf, false, {
                relative = "editor",
                style = "minimal",
-               col = col + math.floor(nvim.ui().width / 3), row = row,
-               height = hei, width = wid,
+               col = opts.col + math.floor(nvim.ui().width / 3), row = opts.row,
+               height = opts.hei, width = opts.wid,
             })
          end
 
@@ -50,7 +50,7 @@ local modes = {
          for i = 1, args.n do
             local thing = args[i]
             if type(thing) == "string" then
-               thing = (thing):gsub("\n", "\\n")
+               thing = thing:gsub("\n", "\\n")
             else
                thing = vim.inspect(thing, inspectOpts)
             end

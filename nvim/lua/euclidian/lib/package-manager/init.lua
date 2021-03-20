@@ -17,6 +17,7 @@ packagemanager.commands = {
    View = actions.listSets,
    Install = actions.install,
    Update = actions.update,
+   Add = actions.add,
 }
 
 return setmetatable(packagemanager, {

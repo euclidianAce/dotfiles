@@ -9,6 +9,7 @@ local actions <const> = {
 	listSets: function(): z.Frame<nil> = nil,
 	update: function(): z.Frame<nil> = nil,
 	install: function(): z.Frame<nil> = nil,
+	add: function(): z.Frame<nil> = nil,
 }
 
 local type Spec = packagespec.Spec
@@ -32,15 +33,15 @@ local function waitForKey(d: Dialog, ...: string): string
 		end
 	end
 	local pressed: string
-	z.suspend(function(me: z.Frame<nil>)
-		for _, key in ipairs(keys) do
-			d:addKeymap("n", key, function()
-				pressed = key
-				delKeymaps()
-				z.resume(me)
-			end, { noremap = true, silent = true })
-		end
-	end)
+	local me <const> = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
+	for _, key in ipairs(keys) do
+		d:addKeymap("n", key, function()
+			pressed = key
+			delKeymaps()
+			z.resume(me)
+		end, { noremap = true, silent = true })
+	end
+	z.suspend()
 	return pressed
 end
 
@@ -77,7 +78,7 @@ actions.listSets = createDialog(function(d: Dialog)
 	d:close()
 end)
 
-local function chooseAndLoadSet(d: Dialog): {Spec}
+local function chooseAndLoadSet(d: Dialog): {Spec}, string
 	local pkgs <const> = set.list()
 	table.sort(pkgs)
 
@@ -87,7 +88,140 @@ local function chooseAndLoadSet(d: Dialog): {Spec}
 
 	waitForKey(d, "<cr>")
 
-	return set.load(d:getCurrentLine())
+	local name <const> = d:getCurrentLine()
+	return set.load(name), name
+end
+
+local function prompt(d: Dialog, promptText: string): string
+	local f <const> = z.currentFrame()
+	local val: string
+	d:setPrompt(promptText, function(s: string)
+		print("Prompt: ", s)
+		val = s
+		d:unsetPrompt()
+		vim.schedule(function()
+			z.resume(f)
+		end)
+	end)
+	z.suspend()
+	return val
+end
+
+local function yesOrNo(d: Dialog, pre: string, affirm: string, deny: string): boolean
+	affirm = affirm or "yes"
+	deny = deny or "no"
+	d:setLines{
+		pre,
+		affirm,
+		deny,
+	}
+	local ln: integer
+	repeat
+		waitForKey(d, "<cr>")
+		ln = d:getCursor()
+	until ln > 1
+	return ln == 2
+end
+
+local checkKey <const> = "a"
+local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
+	local lines <const> = {}
+	for i, v in ipairs(opts) do
+		lines[i] = "[ ] " .. v
+	end
+	table.insert(lines, 1, pre)
+	d:setLines(lines):fitText():center()
+	d:addKeymap("n", checkKey, function()
+		local ln <const> = d:getCursor()
+		local l <const> = d:getLine(ln)
+		d:setText{{
+			l:match"^%[%*" and " " or "*", ln-1, 1, ln-1, 2
+		}}
+	end, { silent = true, noremap = true })
+	waitForKey(d, "<cr>")
+	d:delKeymap("n", checkKey)
+	local selected <const>: {integer} = {}
+	for i, v in ipairs(d:getLines(1, -1)) do
+		if v:match"^%[%*" then
+			table.insert(selected, i)
+		end
+	end
+	return selected
+end
+
+do
+	local function addVimPlugPackage()
+		print("Vim Plug Package: not yet implemented")
+	end
+	local function addPackerPackage()
+		print("Packer Package: not yet implemented")
+	end
+	local function addGitPackage(d: Dialog, s: {Spec})
+		d:setLines{}
+		local repo <const> = prompt(d, "Repo: ")
+		local pkgNames <const> = {}
+		for i, v in ipairs(s) do
+			pkgNames[i] = v:title()
+		end
+		local p <const>: Spec = {
+			kind = "git",
+			dependents = {},
+			repo = repo,
+		}
+		if yesOrNo(d, "Does this package depend on other packages?") then
+			local deps <const> = checklist(d, "Dependencies:", pkgNames)
+			for _, idx in ipairs(deps) do
+				if not s[idx].dependents then
+					s[idx].dependents = {}
+				end
+				table.insert(s[idx].dependents, p)
+			end
+		end
+		if yesOrNo(d, "Do other packages depend on this package?") then
+			local deps <const> = checklist(d, "Dependents:", pkgNames)
+			for _, idx in ipairs(deps) do
+				table.insert(p.dependents, s[idx])
+			end
+		end
+		print("Pre insert length: ", #s)
+		table.insert(s, p)
+		print("Post insert length: ", #s)
+		for i, v in ipairs(s) do
+			print(i, v.repo)
+		end
+	end
+	local function addLocalPackage()
+		print("Local package: Not yet implemented")
+	end
+	local handlers <const>: {integer:function(Dialog, {Spec})} = {
+		[1] = addVimPlugPackage,
+		[2] = addPackerPackage,
+		[3] = addGitPackage,
+		[4] = addLocalPackage,
+	}
+
+	actions.add = createDialog(function(d: Dialog)
+		local loaded <const>, name <const> = chooseAndLoadSet(d)
+
+		d:setLines{
+			"Add new package:",
+			"  from Vim-Plug expression",
+			"  from Packer expression",
+			"  git",
+			"  local",
+		}:fitText():center()
+
+		local ln: integer
+		repeat
+			waitForKey(d, "<cr>")
+			ln = d:getCursor()
+		until ln > 1
+
+		set.save("." .. name .. "__bak", loaded)
+		handlers[ln-1](d, loaded)
+		set.save(name, loaded)
+		d:close()
+	end)
 end
 
 local maxConcurrent <const> = 2
@@ -98,7 +232,7 @@ actions.update = createDialog(function(d: Dialog)
 	for i, pkg in ipairs(loaded) do
 		lines[i] = " " .. pkg:title() .. " "
 	end
-	d:setLines(lines):fitText()
+	d:setLines(lines):fitText():center()
 
 	local main <const> = z.currentFrame()
 

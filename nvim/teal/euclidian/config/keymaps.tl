@@ -164,6 +164,17 @@ do
 	local fBuf, fWin: nvim.Buffer, nvim.Window
 	local openTerm, hideTerm: function(), function()
 
+	M._exports.getTermChannel = function(): integer
+		return fBuf and fBuf:getOption("channel") as integer
+	end
+	M._exports.termSend = function(s: string): boolean
+		if not fBuf or not fBuf:isValid() then
+			return false
+		end
+		vim.fn.chansend(fBuf:getOption("channel"), s)
+		return true
+	end
+	
 	local function incBlend()
 		fWin:setOption("winblend", fWin:getOption("winblend") - 8)
 	end

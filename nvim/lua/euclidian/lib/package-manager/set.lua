@@ -57,7 +57,6 @@ end
 
 function set.serialize(ps)
    local out = {}
-   local pkgs = {}
 
    local lastId = 0
    local function nextId()
@@ -69,7 +68,6 @@ function set.serialize(ps)
       if not p.id then
          p.id = nextId()
          generateDef(out, p)
-         pkgs[p.id] = p
       end
    end
 
@@ -81,6 +79,10 @@ function set.serialize(ps)
    end
 
    table.insert(out, "\n-- vim: ft=teal")
+
+   for _, p in ipairs(ps) do
+      p.id = nil
+   end
 
    return table.concat(out)
 end
@@ -150,7 +152,9 @@ end
 function set.list()
    local list = {}
    for name in uv.fs_scandir_next, uv.fs_scandir(tree.set) do
-      table.insert(list, name)
+      if name:sub(1, 1) ~= "." then
+         table.insert(list, name)
+      end
    end
    return list
 end

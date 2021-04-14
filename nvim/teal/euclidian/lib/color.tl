@@ -45,7 +45,7 @@ setmetatable(color.scheme.hi, {
 		if not val then
 			nvim.command("hi link %s NONE", key)
 			actualHi[key] = nil
-		elseif groups[val] then
+		elseif groups[val] and key ~= groups[val] then
 			-- just link the group
 			nvim.command("hi clear %s", key)
 			nvim.command("hi link %s %s", key, groups[val])

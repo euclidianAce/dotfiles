@@ -37,12 +37,13 @@ local modes <const>: {Mode:function(...:any)} = {
 				printBuf:setLines(0, -1, false, { "=== print buffer ===" })
 			end
 			if not (printWin and printWin:isValid()) then
-				local opts <const> = dialog.centeredSize(55, nvim.ui().height - 20)
+				local opts <const> = dialog.centeredOpts(.3, -20)
 				printWin = nvim.openWin(printBuf, false, {
 					relative = "editor",
 					style = "minimal",
 					col = opts.col + nvim.ui().width // 3, row = opts.row,
 					height = opts.hei, width = opts.wid,
+					border = "double",
 				})
 			end
 

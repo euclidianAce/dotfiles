@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
 local a = vim.api
 
 local function failsafe(f, err_prefix)
@@ -77,6 +77,12 @@ genSetMetatable(auto.Buffer, "buf")
 genSetMetatable(auto.Window, "win")
 genSetMetatable(auto.Tab, "tab")
 
+local AutocmdOpts = {}
+
+
+
+
+
 local nvim = {
    Window = auto.Window,
    Buffer = auto.Buffer,
@@ -84,6 +90,7 @@ local nvim = {
 
    UI = UI,
    MapOpts = auto.MapOpts,
+   AutocmdOpts = AutocmdOpts,
 
    _exports = {},
 }
@@ -104,7 +111,7 @@ function nvim.command(fmt, ...)
    a.nvim_command(string.format(fmt, ...))
 end
 
-local function to_str_arr(s)
+local function toStrArr(s)
    if type(s) == "string" then
       return { s }
    else
@@ -112,24 +119,35 @@ local function to_str_arr(s)
    end
 end
 
-function nvim.autocmd(s_events, s_patts, expr)
-   assert(s_events, "no events")
-   assert(s_patts, "no patterns")
+function nvim.autocmd(sEvents, sPatts, expr, maybeOpts)
+   assert(sEvents, "no events")
    assert(expr, "no expr")
 
-   local events = table.concat(to_str_arr(s_events), ",")
-   local patts = table.concat(to_str_arr(s_patts), ",")
+   local events = table.concat(toStrArr(sEvents), ",")
+   local opts = maybeOpts or {}
 
-   local actual_expr
+   assert(sPatts or opts.buffer, "no patterns or buffer")
+   local patts = sPatts and table.concat(toStrArr(sPatts), ",")
+
+   local actualExpr
    if type(expr) == "string" then
-      actual_expr = expr
+      actualExpr = expr
    else
-      local key = "autocmd" .. events .. patts
+      local key = "autocmd" .. events .. (patts or "buffer=" .. tostring(opts.buffer))
       nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
-      actual_expr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
+      actualExpr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
    end
+   local cmd = { "autocmd" }
+   table.insert(cmd, events)
+   if opts.buffer then
+      table.insert(cmd, ("<buffer=%d>"):format(opts.buffer == true and vim.api.nvim_get_current_buf() or opts.buffer))
+   end
+   if patts then table.insert(cmd, patts) end
+   if opts.once then table.insert(cmd, "++once") end
+   if opts.nested then table.insert(cmd, "++nested") end
+   table.insert(cmd, actualExpr)
 
-   nvim.command("autocmd %s %s %s", events, patts, actual_expr)
+   nvim.command(table.concat(cmd, " "))
 end
 
 function nvim.augroup(name, lst, clear)

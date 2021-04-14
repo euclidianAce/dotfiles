@@ -1,6 +1,7 @@
 
 -- An attempt to recreate Zig's 'colorless' async/await (+suspend/resume) on top of Lua's coroutines
 -- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines
+-- honestly this is barely a wrapper and the only 'new' things are stuff like `nosuspend`
 
 local record Frame<T>
 	_t: thread

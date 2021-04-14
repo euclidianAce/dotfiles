@@ -1,17 +1,34 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
 local M = { _exports = {} }
 
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 local a = vim.api
 
-local function map(m, lhs, rhs)
-   if type(m) == "string" then
-      nvim.setKeymap(m, lhs, rhs, { noremap = true, silent = true })
-   else
-      for _, mode in ipairs(m) do
-         nvim.setKeymap(mode, lhs, rhs, { noremap = true, silent = true })
+local function combinations(as, bs)
+   return coroutine.wrap(function()
+      for _, a in ipairs(as) do
+         for _, b in ipairs(bs) do
+            coroutine.yield(a, b)
+         end
       end
+   end)
+end
+
+local function ensure_array(t)
+
+   if type(t) ~= "table" then
+      return { t }
+   elseif t then
+      return t
+   else
+      return {}
+   end
+end
+
+local function map(m, lhs, rhs)
+   for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+      nvim.setKeymap(mode, l, rhs, { noremap = true, silent = true })
    end
 end
 local function unmap(m, lhs)
@@ -20,12 +37,8 @@ end
 
 local function bufMap(bufid, m, lhs, rhs)
    local buf = nvim.Buffer(bufid)
-   if type(m) == "string" then
-      buf:setKeymap(m, lhs, rhs, { noremap = true, silent = true })
-   else
-      for _, mode in ipairs(m) do
-         buf:setKeymap(mode, lhs, rhs, { noremap = true, silent = true })
-      end
+   for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+      buf:setKeymap(mode, l, rhs, { noremap = true, silent = true })
    end
 end
 
@@ -123,9 +136,8 @@ map("t", "<Esc>", "<C-\\><C-n>")
 do
    local d
    local buf
-
    map("n", "<leader>lua", function()
-      d = dialog.centered(75, 30, buf)
+      d = dialog.centered(75, 30, { interactive = true, notMinimal = true })
       if not buf then
          buf = d.buf
          buf:setOption("ft", "teal")
@@ -133,96 +145,115 @@ do
          buf:setOption("shiftwidth", 3)
          buf:setKeymap(
          "n", "<cr>",
-         function() M._exports.luaPrompt() end,
+         function()
+            local lines = d:getLines()
+            local txt = table.concat(lines, "\n")
+
+            local chunk, loaderr = loadstring(txt)
+            if not chunk then
+               a.nvim_err_writeln(loaderr)
+               return
+            end
+            local ok, err = pcall(chunk)
+            if not ok then
+               a.nvim_err_writeln(err)
+            end
+         end,
          { silent = true, noremap = true })
 
          buf:setKeymap(
          "n", "",
-         function() d.win:hide() end,
+         function()
+            d.win:hide()
+         end,
          { silent = true, noremap = true })
 
       end
       d:setModifiable(true)
-      M._exports.luaPrompt = function()
-         local lines = d:getLines()
-         local txt = table.concat(lines, "\n")
-
-         local chunk, loaderr = loadstring(txt)
-         if not chunk then
-            a.nvim_err_writeln(loaderr)
-            return
-         end
-         local ok, err = pcall(chunk)
-         if not ok then
-            a.nvim_err_writeln(err)
-         end
-      end
    end)
 end
 
 do
-   local fBuf, fWin
+   local d
+   local bufid
    local openTerm, hideTerm
 
    M._exports.getTermChannel = function()
-      return fBuf and fBuf:getOption("channel")
+      return d and d.buf:getOption("channel")
    end
    M._exports.termSend = function(s)
-      if not fBuf or not fBuf:isValid() then
+      if not (d and d.buf:isValid()) then
          return false
       end
-      vim.fn.chansend(fBuf:getOption("channel"), s)
+      a.nvim_chan_send(d.buf:getOption("channel"), s)
       return true
    end
 
-   local function incBlend()
-      fWin:setOption("winblend", fWin:getOption("winblend") - 8)
+   local lastCfg
+
+   local function editCfg(field, val)
+      return function()
+         local c = d.win:getConfig()
+         local f = c[field]
+         c[field] = (type(f) == "number" and assert(f) or f[false]) + val
+         d.win:setConfig(c)
+         lastCfg = c
+      end
    end
-   local function decBlend()
-      fWin:setOption("winblend", fWin:getOption("winblend") + 8)
+
+   local resizing = true
+   local function makeMap(resizeOpt, moveOpt, val)
+      local resize = editCfg(resizeOpt, val)
+      local move = editCfg(moveOpt, val)
+      return function()
+         if resizing then
+            resize()
+         else
+            move()
+         end
+      end
    end
 
    local key = ""
 
+   local function getDialog()
+      if not nvim.Buffer(bufid):isValid() then bufid = nil end
+      local dwin = dialog.centered(0.9, 0.85, { interactive = true }, bufid)
+      bufid = dwin.buf.id
+      if lastCfg then
+         dwin.win:setConfig(lastCfg)
+      end
+      return dwin
+   end
+
    openTerm = function()
-      if fWin and fWin:isValid() then
-         a.nvim_set_current_win(fWin.id)
-      elseif not (fBuf and fBuf:isValid()) then
-         fBuf = nvim.createBuf(true, false)
-         local opts = 
-         dialog.centeredSize(math.huge, math.huge)
-
-         fWin = nvim.openWin(fBuf, true, {
-            relative = "editor",
-            row = opts.row, col = opts.col, width = opts.wid, height = opts.hei,
-         })
-
-         fWin:setOption("winblend", 16)
+      if d and d.win:isValid() then
+         a.nvim_set_current_win(d.win.id)
+      elseif not (d and d.buf:isValid()) then
+         d = getDialog()
+         d.win:setOption("winblend", 8)
 
 
 
-         fBuf:setOption("modified", false)
-
+         d.buf:setOption("modified", false)
          nvim.command([[term]])
-         bufMap(fBuf.id, { "t", "n" }, key, hideTerm)
-         bufMap(fBuf.id, { "t", "n" }, "", decBlend)
-         bufMap(fBuf.id, { "t", "n" }, "", incBlend)
-      else
-         local opts = 
-         dialog.centeredSize(math.huge, math.huge)
+         bufMap(d.buf.id, { "t", "n" }, key, hideTerm)
 
-         fWin = nvim.openWin(fBuf, true, {
-            relative = "editor",
-            row = opts.row, col = opts.col, width = opts.wid, height = opts.hei,
-         })
+         bufMap(d.buf.id, "n", "<leader>r", function() resizing = not resizing end)
+         bufMap(d.buf.id, "n", "<M-h>", makeMap("width", "col", -3))
+         bufMap(d.buf.id, "n", "<M-l>", makeMap("width", "col", 3))
+
+         bufMap(d.buf.id, "n", "<M-j>", makeMap("height", "row", 3))
+         bufMap(d.buf.id, "n", "<M-k>", makeMap("height", "row", -3))
+      else
+         d = getDialog()
       end
    end
 
    hideTerm = function()
-      if fWin:isValid() then
-         fWin:hide()
+      if d and d.win:isValid() then
+         d.win:hide()
       end
-      fWin = nil
       map("n", key, openTerm)
    end
 

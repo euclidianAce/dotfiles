@@ -22,6 +22,7 @@ libreq "package-manager" {
 	enable = {
 		"World",
 		"TSPlayground",
+		-- "Test",
 	}
 }
 
@@ -43,11 +44,22 @@ nvim.augroup("Custom", {
 		buf:setOption("tabstop", 3)
 	end },
 
+	{ "BufReadPost", {"*.adb", "*.ads"}, function()
+		local buf = nvim.Buffer()
+		-- local win = nvim.Window()
+		buf:setOption("shiftwidth", 3)
+		buf:setOption("tabstop", 3)
+		buf:setOption("expandtab", true)
+
+		buf:delKeymap("i", "<space>aj")
+		buf:delKeymap("i", "<space>al")
+	end },
 
 	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
 		local buf = nvim.Buffer()
 		buf:setOption("shiftwidth", 4)
 		buf:setOption("tabstop", 4)
+		buf:setOption("commentstring", "// %s")
 	end },
 
 	{ "TextYankPost", "*", function()
@@ -78,7 +90,7 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	-- guicursor = "",
+	guicursor = "",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
 
@@ -102,7 +114,7 @@ set(vim.o, {
 	gdefault = true,
 	listchars = "tab:   ,trail:-,space:·,precedes:<,extends:>,nbsp:+",
 	fillchars = "fold: ,vert: ",
-	inccommand = "split",
+	inccommand = "nosplit",
 	laststatus = 2,
 	scrolloff = 2,
 	virtualedit = "block",
@@ -131,7 +143,7 @@ if not lspconfig.teal then
 				"teal-language-server",
 				"logging=on",
 			},
-			filetypes = { "teal" };
+			filetypes = { "teal", "lua" };
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
 			settings = {};
 		},
@@ -161,7 +173,22 @@ hi = libreq "color" .scheme.hi
 palette = confreq "colors"
 
 euclidian = {
+	lib = requirer("euclidian.lib"),
 	config = requirer("euclidian.config"),
-	lib = requirer("euclidian.lib")
 }
 
+setmetatable(_G, {
+	__index = function(_, key)
+		for _, r in ipairs{libreq, confreq} do
+			local ok, res = pcall(r, key)
+			if ok then
+				return res
+			end
+		end
+		local ok, res = pcall(require, key)
+		if ok then
+			return res
+		end
+		return nil
+	end
+})

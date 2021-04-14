@@ -47,88 +47,90 @@ local record Buffer
 	clearNamespace: function(Buffer, integer, integer, integer)
 	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
 	enum BooleanOpt
-		"cindent"
-		"copyindent"
-		"fixendofline"
-		"buflisted"
+		"readonly"
+		"smartindent"
+		"swapfile"
+		"undofile"
+		"infercase"
 		"autoindent"
 		"autoread"
 		"binary"
 		"bomb"
-		"infercase"
-		"preserveindent"
+		"buflisted"
+		"cindent"
+		"copyindent"
 		"lisp"
-		"swapfile"
-		"modeline"
-		"smartindent"
-		"readonly"
-		"expandtab"
-		"undofile"
-		"modified"
-		"modifiable"
 		"endofline"
+		"expandtab"
+		"modifiable"
+		"modeline"
+		"fixendofline"
+		"modified"
+		"preserveindent"
 	end
 	enum NumberOpt
 		"scrollback"
 		"shiftwidth"
-		"synmaxcol"
 		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"wrapmargin"
 		"textwidth"
 		"undolevels"
 		"channel"
-		"imsearch"
-		"tabstop"
 		"iminsert"
-		"wrapmargin"
+		"imsearch"
 	end
 	enum StringOpt
-		"cinkeys"
-		"cinoptions"
-		"cinwords"
-		"equalprg"
-		"errorformat"
-		"comments"
-		"fileencoding"
-		"completefunc"
-		"fileformat"
-		"omnifunc"
-		"formatexpr"
-		"define"
-		"formatprg"
-		"grepprg"
-		"backupcopy"
-		"indentkeys"
-		"iskeyword"
-		"keywordprg"
-		"lispwords"
-		"makeencoding"
-		"makeprg"
-		"matchpairs"
-		"nrformats"
 		"quoteescape"
-		"tags"
-		"bufhidden"
-		"formatoptions"
-		"keymap"
 		"spellcapcheck"
-		"dictionary"
 		"spellfile"
 		"spelllang"
 		"spelloptions"
-		"buftype"
-		"tagfunc"
-		"thesaurus"
-		"filetype"
-		"commentstring"
-		"formatlistpat"
-		"includeexpr"
-		"indentexpr"
-		"tagcase"
-		"syntax"
 		"suffixesadd"
+		"syntax"
+		"tagfunc"
+		"tagcase"
+		"tags"
+		"thesaurus"
 		"path"
+		"includeexpr"
+		"varsofttabstop"
+		"vartabstop"
+		"backupcopy"
+		"bufhidden"
+		"buftype"
+		"cinkeys"
+		"cinoptions"
+		"cinwords"
+		"comments"
+		"commentstring"
 		"include"
 		"complete"
+		"completefunc"
+		"indentexpr"
+		"indentkeys"
+		"iskeyword"
+		"keymap"
+		"keywordprg"
+		"define"
+		"formatprg"
+		"lispwords"
+		"formatexpr"
+		"formatoptions"
+		"formatlistpat"
+		"matchpairs"
+		"equalprg"
+		"errorformat"
+		"grepprg"
+		"fileencoding"
+		"makeprg"
+		"fileformat"
+		"filetype"
+		"nrformats"
+		"omnifunc"
+		"makeencoding"
+		"dictionary"
 	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
@@ -137,28 +139,34 @@ local record Window
 	type Id = integer
 	id: Id
 	record Config
-	enum Anchor
-		"NW" "NE" "SW" "SE"
+		enum Anchor
+			"NW" "NE" "SW" "SE"
+		end
+		enum Style
+			"minimal"
+		end
+		enum Relativity
+			"editor" "win" "cursor"
+		end
+		enum Border
+			"none"
+			"single"
+			"double"
+		end
+	
+		win: Id
+		relative: Relativity
+		anchor: Anchor
+		row: integer
+		col: integer
+		width: integer
+		height: integer
+		bufpos: integer
+		focusable: boolean
+		external: boolean
+		style: Style
+		border: Border | { string | {string, string} }
 	end
-	enum Style
-		"minimal"
-	end
-	enum Relativity
-		"editor" "win" "cursor"
-	end
-
-	win: Id
-	relative: Relativity
-	anchor: Anchor
-	row: integer
-	col: integer
-	width: integer
-	height: integer
-	bufpos: integer
-	focusable: boolean
-	external: boolean
-	style: Style
-end
 	getConfig: function(Window): Config
 	setConfig: function(Window, Config)
 	getOption: function(Window, StringOpt): string
@@ -187,52 +195,52 @@ end
 	hide: function(Window)
 	close: function(Window, boolean)
 	enum BooleanOpt
-		"arabic"
-		"cursorbind"
-		"cursorcolumn"
-		"diff"
-		"foldenable"
-		"linebreak"
-		"relativenumber"
-		"spell"
-		"winfixheight"
-		"cursorline"
-		"winfixwidth"
 		"list"
-		"number"
-		"scrollbind"
-		"rightleft"
-		"previewwindow"
 		"wrap"
+		"winfixheight"
+		"relativenumber"
+		"previewwindow"
+		"arabic"
 		"breakindent"
+		"cursorcolumn"
+		"cursorline"
+		"spell"
+		"scrollbind"
+		"foldenable"
+		"rightleft"
+		"winfixwidth"
+		"number"
+		"cursorbind"
+		"diff"
+		"linebreak"
 	end
 	enum NumberOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
 		"scrolloff"
 		"sidescrolloff"
-		"winblend"
-		"numberwidth"
+		"conceallevel"
 		"scroll"
+		"foldlevel"
+		"foldminlines"
+		"numberwidth"
+		"winblend"
+		"foldnestmax"
 	end
 	enum StringOpt
+		"winhighlight"
 		"breakindentopt"
 		"concealcursor"
-		"fillchars"
-		"foldcolumn"
-		"foldexpr"
-		"foldignore"
-		"foldmarker"
-		"foldmethod"
-		"foldtext"
-		"rightleftcmd"
 		"signcolumn"
-		"winhighlight"
-		"colorcolumn"
-		"statusline"
+		"fillchars"
+		"foldignore"
+		"foldmethod"
 		"listchars"
+		"rightleftcmd"
+		"statusline"
+		"foldmarker"
+		"foldtext"
+		"foldexpr"
+		"foldcolumn"
+		"colorcolumn"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

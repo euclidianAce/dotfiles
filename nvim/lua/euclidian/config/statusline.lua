@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
 local color = require("euclidian.lib.color")
 local p = require("euclidian.config.colors")
 local stl = require("euclidian.lib.statusline")
@@ -76,10 +76,10 @@ end, "STLGit")
 local maxFileNameLen = 20
 stl.add(alwaysActive, empty, function(winid)
    local buf = nvim.Buffer(nvim.Window(winid):getBuf())
-   local fname = buf:getName() or ""
-   if fname:match("/bin/bash$") or #fname == 0 then
+   if buf:getOption("buftype") == "terminal" then
       return ""
    end
+   local fname = buf:getName()
    local cwd = vim.fn.getcwd()
    if fname:match("^" .. vim.pesc(cwd)) then
       fname = fname:sub(#cwd + 2, -1)
@@ -122,7 +122,7 @@ stl.add(alwaysActive, empty, function(winid)
       if wid > minWid then
          tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
          tiFmt(out, "Col: %3d", pos[2] + 1)
-         tiFmt(out, "%3d%%", math.floor(pos[1] / totalLines) * 100)
+         tiFmt(out, "%3d%%", pos[1] / totalLines * 100)
       else
          tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
       end

@@ -46,7 +46,7 @@ hi.Normal                  = { p.fg, p.bg }
 hi.Visual                  = { -1, p.darkGray }
 hi.ErrorMsg                = { nil, p.red }
 hi.Question                = { p.darkGreen }
-hi.Search                  = { p.bg, p.darkGreen }
+hi.Search                  = { p.darkGreen, hi.Visual[2], "bold" }
 hi.IncSearch               = hi.Search
 
 hi.VertSplit               = { nil, p.bg }
@@ -55,6 +55,8 @@ hi.TabLine                 = { nil, p.brightGray }
 hi.TabLineSel              = { nil, p.gray, "bold" }
 hi.TabLineFill             = { nil, p.darkGray }
 hi.Title                   = { p.green, nil, "bold" }
+
+hi.FloatBorder             = { p.darkFg, p.brightBg }
 
 hi.Pmenu                   = { p.fg, p.brightBg }
 hi.PmenuSel                = { nil,  p.gray }

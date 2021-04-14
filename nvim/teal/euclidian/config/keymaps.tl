@@ -5,27 +5,40 @@ local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
 local a <const> = vim.api
 
-local function map(m: vim.Mode | {vim.Mode}, lhs: string, rhs: string | function)
-	if m is vim.Mode then
-		nvim.setKeymap(m, lhs, rhs, {noremap = true, silent = true})
-	else
-		for _, mode in ipairs(m) do
-			nvim.setKeymap(mode, lhs, rhs, {noremap = true, silent = true})
+local function combinations<A, B>(as: {A}, bs: {B}): function(): A, B
+	return coroutine.wrap(function(): A, B
+		for _, a in ipairs(as) do
+			for _, b in ipairs(bs) do
+				coroutine.yield(a, b)
+			end
 		end
+	end) as function(): (A, B)
+end
+
+local function ensure_array<T>(t: T | {T}): {T}
+	-- for generics `t is T` always compiles to type(t) == "table"
+	if type(t) ~= "table" then
+		return {t as T}
+	elseif t then
+		return t as {T}
+	else
+		return {}
+	end
+end
+
+local function map(m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
+	for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+		nvim.setKeymap(mode, l, rhs, {noremap = true, silent = true})
 	end
 end
 local function unmap(m: vim.Mode, lhs: string)
 	nvim.delKeymap(m, lhs)
 end
 
-local function bufMap(bufid: integer, m: string | {string}, lhs: string, rhs: string|function)
+local function bufMap(bufid: integer, m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
 	local buf <const> = nvim.Buffer(bufid)
-	if m is vim.Mode then
-		buf:setKeymap(m, lhs, rhs, {noremap = true, silent = true})
-	else
-		for _, mode in ipairs(m as {vim.Mode}) do
-			buf:setKeymap(mode, lhs, rhs, {noremap = true, silent = true})
-		end
+	for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+		buf:setKeymap(mode, l, rhs, {noremap = true, silent = true})
 	end
 end
 
@@ -120,12 +133,11 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
-do
+do -- floating buffer to execute some lua
 	local d: dialog.Dialog
 	local buf: nvim.Buffer
-	-- floating buffer to execute some lua
 	map("n", "<leader>lua", function()
-		d = dialog.centered(75, 30, buf)
+		d = dialog.centered(75, 30, { interactive = true, notMinimal = true })
 		if not buf then
 			buf = d.buf
 			buf:setOption("ft", "teal")
@@ -133,96 +145,115 @@ do
 			buf:setOption("shiftwidth", 3)
 			buf:setKeymap(
 				"n", "<cr>",
-				function() M._exports.luaPrompt() end,
+				function()
+					local lines <const> = d:getLines()
+					local txt <const> = table.concat(lines, "\n")
+
+					local chunk <const>, loaderr <const> = loadstring(txt)
+					if not chunk then
+						a.nvim_err_writeln(loaderr)
+						return
+					end
+					local ok <const>, err <const> = pcall(chunk) as (boolean, string)
+					if not ok then
+						a.nvim_err_writeln(err)
+					end
+				end,
 				{ silent = true, noremap = true }
 			)
 			buf:setKeymap(
 				"n", "",
-				function() d.win:hide() end,
+				function()
+					d.win:hide()
+				end,
 				{ silent = true, noremap = true }
 			)
 		end
 		d:setModifiable(true)
-		M._exports.luaPrompt = function()
-			local lines <const> = d:getLines()
-			local txt <const> = table.concat(lines, "\n")
-
-			local chunk <const>, loaderr <const> = loadstring(txt)
-			if not chunk then
-				a.nvim_err_writeln(loaderr)
-				return
-			end
-			local ok <const>, err <const> = pcall(chunk) as (boolean, string)
-			if not ok then
-				a.nvim_err_writeln(err)
-			end
-		end
 	end)
 end
 
-do
-	local fBuf, fWin: nvim.Buffer, nvim.Window
+do -- floatterm
+	local d: dialog.Dialog
+	local bufid: nvim.Buffer.Id
 	local openTerm, hideTerm: function(), function()
 
 	M._exports.getTermChannel = function(): integer
-		return fBuf and fBuf:getOption("channel") as integer
+		return d and d.buf:getOption("channel") as integer
 	end
 	M._exports.termSend = function(s: string): boolean
-		if not fBuf or not fBuf:isValid() then
+		if not (d and d.buf:isValid()) then
 			return false
 		end
-		vim.fn.chansend(fBuf:getOption("channel"), s)
+		a.nvim_chan_send(d.buf:getOption("channel") as integer, s)
 		return true
 	end
-	
-	local function incBlend()
-		fWin:setOption("winblend", fWin:getOption("winblend") - 8)
+
+	local lastCfg: nvim.Window.Config
+
+	local function editCfg(field: string, val: integer): function()
+		return function()
+			local c <const> = d.win:getConfig() as table
+			local f <const> = c[field] as {boolean:number} | number
+			c[field] = (f is number and assert(f) or f[false]) + val
+			d.win:setConfig(c as nvim.Window.Config)
+			lastCfg = c as nvim.Window.Config
+		end
 	end
-	local function decBlend()
-		fWin:setOption("winblend", fWin:getOption("winblend") + 8)
+
+	local resizing = true
+	local function makeMap(resizeOpt: string, moveOpt: string, val: integer): function()
+		local resize <const> = editCfg(resizeOpt, val)
+		local move <const> = editCfg(moveOpt, val)
+		return function()
+			if resizing then
+				resize()
+			else
+				move()
+			end
+		end
 	end
 
 	local key <const> = ""
 
+	local function getDialog(): dialog.Dialog
+		if not nvim.Buffer(bufid):isValid() then bufid = nil end
+		local dwin = dialog.centered(0.9, 0.85, { interactive = true }, bufid)
+		bufid = dwin.buf.id
+		if lastCfg then
+			dwin.win:setConfig(lastCfg)
+		end
+		return dwin
+	end
+
 	openTerm = function()
-		if fWin and fWin:isValid() then
-			a.nvim_set_current_win(fWin.id)
-		elseif not (fBuf and fBuf:isValid()) then
-			fBuf = nvim.createBuf(true, false)
-			local opts <const> =
-				dialog.centeredSize(math.huge as integer, math.huge as integer)
-
-			fWin = nvim.openWin(fBuf, true, {
-				relative = "editor",
-				row = opts.row, col = opts.col, width = opts.wid, height = opts.hei
-			})
-
-			fWin:setOption("winblend", 16)
+		if d and d.win:isValid() then
+			a.nvim_set_current_win(d.win.id)
+		elseif not (d and d.buf:isValid()) then
+			d = getDialog()
+			d.win:setOption("winblend", 8)
 
 			-- ':h terminal-emulator' says that this prevents it complaining when closing
 			-- but it still sometimes does :P
-			fBuf:setOption("modified", false)
-
+			d.buf:setOption("modified", false)
 			nvim.command [[term]]
-			bufMap(fBuf.id, {"t", "n"}, key, hideTerm)
-			bufMap(fBuf.id, {"t", "n"}, "", decBlend)
-			bufMap(fBuf.id, {"t", "n"}, "", incBlend)
-		else
-			local opts <const> =
-				dialog.centeredSize(math.huge as integer, math.huge as integer)
+			bufMap(d.buf.id, {"t", "n"}, key, hideTerm)
 
-			fWin = nvim.openWin(fBuf, true, {
-				relative = "editor",
-				row = opts.row, col = opts.col, width = opts.wid, height = opts.hei
-			})
+			bufMap(d.buf.id, "n", "<leader>r", function() resizing = not resizing end)
+			bufMap(d.buf.id, "n", "<M-h>", makeMap("width", "col", -3))
+			bufMap(d.buf.id, "n", "<M-l>", makeMap("width", "col", 3))
+
+			bufMap(d.buf.id, "n", "<M-j>", makeMap("height", "row", 3))
+			bufMap(d.buf.id, "n", "<M-k>", makeMap("height", "row", -3))
+		else
+			d = getDialog()
 		end
 	end
 
 	hideTerm = function()
-		if fWin:isValid() then
-			fWin:hide()
+		if d and d.win:isValid() then
+			d.win:hide()
 		end
-		fWin = nil
 		map("n", key, openTerm)
 	end
 

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
 local oldPrint = print
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
@@ -37,12 +37,13 @@ local modes = {
             printBuf:setLines(0, -1, false, { "=== print buffer ===" })
          end
          if not (printWin and printWin:isValid()) then
-            local opts = dialog.centeredSize(55, nvim.ui().height - 20)
+            local opts = dialog.centeredOpts(.3, -20)
             printWin = nvim.openWin(printBuf, false, {
                relative = "editor",
                style = "minimal",
                col = opts.col + math.floor(nvim.ui().width / 3), row = opts.row,
                height = opts.hei, width = opts.wid,
+               border = "double",
             })
          end
 

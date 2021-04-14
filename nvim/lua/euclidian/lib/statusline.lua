@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
 local nvim = require("euclidian.lib.nvim")
 
 local function set(t)
@@ -30,10 +30,9 @@ local modeMap = setmetatable({
    [""] = { "Select Block", "Visual" },
    ["t"] = { "Terminal", "Number" },
    ["!"] = { "Shell", "Comment" },
-   ["?"] = { " ???? ", "Error" },
 }, {
    __index = function(self, key)
-      return rawget(self, string.sub(key, 1, 1)) or self["?"]
+      return rawget(self, string.sub(key, 1, 1)) or { " ???? ", "Error" }
    end,
 })
 
@@ -48,7 +47,7 @@ function statusline.mode(mode, text, hlgroup)
 end
 
 function statusline.getModeText()
-   local m = vim.fn.mode(true)
+   local m = vim.api.nvim_get_mode().mode
    local map = userModes[m]
    nvim.command("hi! clear StatuslineModeText")
    nvim.command("hi! link StatuslineModeText %s", map[2])
@@ -123,10 +122,12 @@ end
 
 local function setLine(winId)
    local win = nvim.Window(winId)
-   local tags = active[win.id] and
-   { "Active" } or
-   { "Inactive" }
-   win:setOption("statusline", makeLine(tags, win.id))
+   if win:isValid() then
+      local tags = active[win.id] and
+      { "Active" } or
+      { "Inactive" }
+      win:setOption("statusline", makeLine(tags, win.id))
+   end
 end
 
 function statusline.updateWindows()

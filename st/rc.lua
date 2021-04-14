@@ -1,7 +1,7 @@
 
-st.font = "terminus:size=12"
--- st.font = "Fixedsys Excelsior:size=12"
--- st.font = "Ubuntu Mono:size=12:antialias=true"
+st.font = "terminus:size=12:antialias=true"
+-- st.font = "Fixedsys Excelsior:size=12:antialias=true:bold=false" -- this has problems with width
+-- st.font = "Ubuntu Mono:size=10:antialias=true"
 -- st.font = "FiraCode Light:size=12:antialias=true"
 
 st.colorname = {

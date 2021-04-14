@@ -30,10 +30,9 @@ local modeMap <const>: {vim.Mode:{string}} = setmetatable({
 	[""] = {"Select Block", "Visual"},
 	["t"] = {"Terminal", "Number"},
 	["!"] = {"Shell", "Comment"},
-	["?" as vim.Mode] = {" ???? ", "Error"},
 }, {
 	__index = function(self: {vim.Mode:{string}}, key: vim.Mode): {string}
-		return rawget(self, string.sub(key, 1, 1) as vim.Mode) or self["?" as vim.Mode]
+		return rawget(self, string.sub(key, 1, 1) as vim.Mode) or { " ???? ", "Error" }
 	end
 })
 
@@ -48,7 +47,7 @@ function statusline.mode(mode: string, text: string, hlgroup: string)
 end
 
 function statusline.getModeText(): string
-	local m = vim.fn.mode(true) as vim.Mode
+	local m <const> = vim.api.nvim_get_mode().mode as string
 	local map <const> = userModes[m]
 	nvim.command("hi! clear StatuslineModeText")
 	nvim.command("hi! link StatuslineModeText %s", map[2])
@@ -123,10 +122,12 @@ end
 
 local function setLine(winId: integer)
 	local win <const> = nvim.Window(winId)
-	local tags <const> = active[win.id]
-		and {"Active"}
-		or {"Inactive"}
-	win:setOption("statusline", makeLine(tags, win.id))
+	if win:isValid() then
+		local tags <const> = active[win.id]
+			and {"Active"}
+			or {"Inactive"}
+		win:setOption("statusline", makeLine(tags, win.id))
+	end
 end
 
 function statusline.updateWindows()

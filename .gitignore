@@ -5,3 +5,4 @@ nvim/ftdetect
 nvim/syntax
 nvim/teal-types
 .netrwhist
+nvim/.last_nvim_commit

@@ -1,15 +1,18 @@
 
+local nvim <const> = require("euclidian.lib.nvim")
 local command <const> = require("euclidian.lib.command")
 local dialog <const> = require("euclidian.lib.dialog")
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
 local set <const> = require("euclidian.lib.package-manager.set")
 local z <const> = require("euclidian.lib.async.zig")
 
+local type NilFrame = z.Frame<nil>
+
 local actions <const> = {
-	listSets: function(): z.Frame<nil> = nil,
-	update: function(): z.Frame<nil> = nil,
-	install: function(): z.Frame<nil> = nil,
-	add: function(): z.Frame<nil> = nil,
+	listSets: function(): NilFrame = nil,
+	update: function(): NilFrame = nil,
+	install: function(): NilFrame = nil,
+	add: function(): NilFrame = nil,
 }
 
 local type Spec = packagespec.Spec
@@ -18,10 +21,11 @@ local function setCmp(a: Spec, b: Spec): boolean
 	return a:title() < b:title()
 end
 
-local function createDialog(fn: function(Dialog)): function(): z.Frame<nil>
-	return function(): z.Frame<nil>
+local function createDialog(fn: function(Dialog)): function(): NilFrame
+	return function(): NilFrame
 		local d <const> = dialog.centered(35, 17)
-		return z.async(fn as (function(Dialog): nil), d)
+		d.win:setOption("wrap", false)
+		return z.async(fn as function, d) as NilFrame
 	end
 end
 
@@ -183,12 +187,7 @@ do
 				table.insert(p.dependents, s[idx])
 			end
 		end
-		print("Pre insert length: ", #s)
 		table.insert(s, p)
-		print("Post insert length: ", #s)
-		for i, v in ipairs(s) do
-			print(i, v.repo)
-		end
 	end
 	local function addLocalPackage()
 		print("Local package: Not yet implemented")
@@ -232,7 +231,7 @@ actions.update = createDialog(function(d: Dialog)
 	for i, pkg in ipairs(loaded) do
 		lines[i] = " " .. pkg:title() .. " "
 	end
-	d:setLines(lines):fitText():center()
+	d:setLines(lines):fitText(nvim.ui().width - 5, 14):center()
 
 	local main <const> = z.currentFrame()
 
@@ -248,12 +247,12 @@ actions.update = createDialog(function(d: Dialog)
 	local jobqueue <const> = {}
 	for i, pkg in ipairs(loaded) do
 		if pkg.kind == "git" then
+			local r <const> = d:claimRegion(
+				{ line = i-1, char = #pkg:title() + 4 },
+				1, 0
+			)
 			local updateTxt <const> = vim.schedule_wrap(function(ln: string)
-				-- TODO: do some fancier setText things
-
-				d:setLine(i-1, " " .. pkg:title() .. ": " .. ln:sub(1, 20) .. " ")
-				 :fitText()
-				 :center()
+				r:set(ln, true)
 			end) as function(string)
 
 			table.insert(jobqueue, function()
@@ -305,12 +304,12 @@ actions.install = createDialog(function(d: Dialog)
 
 	local jobqueue <const> = {}
 	for i, pkg in ipairs(loaded) do
-		if pkg:isInstalled() then
+		if not pkg:isInstalled() then
 			if pkg.kind == "git" then
 				local updateTxt <const> = vim.schedule_wrap(function(ln: string)
 					-- TODO: do some fancier setText things
 
-					d:setLine(i-1, " " .. pkg:title() .. ": " .. ln:sub(1, 20) .. " ")
+					d:setLine(i-1, " " .. pkg:title() .. ": " .. ln)
 					 :fitText():center()
 				end) as function(string)
 

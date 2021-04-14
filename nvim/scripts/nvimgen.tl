@@ -263,11 +263,12 @@ end
 local function addOpts(ns: Namespace, o: {string:{string}})
 	for t, vals in pairs(o) do
 		local out = {}
-		ins(out, "enum " .. t:sub(1, 1):upper() .. t:sub(2) .. "Opt")
 		for _, entry in ipairs(vals) do
 			ins(out, string.format("\t%q", entry))
 		end
+		table.sort(out)
 		ins(out, "end")
+		ins(out, 1, "enum " .. t:sub(1, 1):upper() .. t:sub(2) .. "Opt")
 		table.insert(ns.entries, table.concat(out, "\n\t"))
 	end
 end

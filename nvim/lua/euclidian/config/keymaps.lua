@@ -236,7 +236,10 @@ do
 
 
          d.buf:setOption("modified", false)
-         nvim.command([[term]])
+         d.buf:call(vim.schedule_wrap(function()
+            vim.fn.termopen("bash")
+         end))
+
          bufMap(d.buf.id, { "t", "n" }, key, hideTerm)
 
          bufMap(d.buf.id, "n", "<leader>r", function() resizing = not resizing end)

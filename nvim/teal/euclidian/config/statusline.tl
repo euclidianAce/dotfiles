@@ -65,13 +65,14 @@ end, "STLBufferInfo")
 stl.add(active, inactive, function(): string
 	return "  " .. stl.getModeText() .. " "
 end, stl.higroup)
+local maxBranchWid <const> = 20
 stl.add(active, inactive, function(): string
 	-- [Git(branch)]
 	local branch = (vim.fn.FugitiveStatusline() as string):sub(6, -3)
 	if branch == "" then
 		return ""
 	end
-	return "  * " .. branch .. " "
+	return "  * " .. branch:sub(1, maxBranchWid) .. " "
 end, "STLGit")
 local maxFileNameLen <const> = 20
 stl.add(alwaysActive, empty, function(winid: integer): string

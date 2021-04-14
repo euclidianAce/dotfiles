@@ -236,7 +236,10 @@ do -- floatterm
 			-- ':h terminal-emulator' says that this prevents it complaining when closing
 			-- but it still sometimes does :P
 			d.buf:setOption("modified", false)
-			nvim.command [[term]]
+			d.buf:call(vim.schedule_wrap(function()
+				vim.fn.termopen("bash")
+			end) as function(): nil)
+			-- nvim.command [[term]]
 			bufMap(d.buf.id, {"t", "n"}, key, hideTerm)
 
 			bufMap(d.buf.id, "n", "<leader>r", function() resizing = not resizing end)

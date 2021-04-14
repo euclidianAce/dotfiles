@@ -9,10 +9,21 @@ local function runCmd(cmd: string, readArg: string): string
 end
 
 local function exec()
+	local src <const> = fs.path.new("scripts/nvimgen.tl")
+	local target <const> = fs.path.new("scripts/nvimgen.lua")
+	local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
+	if scriptUpdated then
+		log.warn(src:tostring(), " is newer than ", target:tostring(), ". Attempting to update...")
+		if not os.execute(("cyan gen %s -o %s"):format(src:to_real_path(), target:to_real_path())) then
+			log.err("Failed to update nvimgen script")
+			return
+		end
+	end
+
 	local last <const> = fs.read(".last_nvim_commit")
 
 	local current <const> = runCmd("nvim --version", "*l")
-	if last then
+	if last and not scriptUpdated then
 		if current == last then
 			log.info("Neovim api definitions up to date")
 			return
@@ -21,30 +32,12 @@ local function exec()
 			"      last: ", tostring(last), "\n",
 			"   current: ", current)
 	end
-	log.info("Neovim api definitions not up to date:\n",
-		"      last: ", last or "(none)", "\n",
-		"   current: ", current
-	)
 
-	-- TODO: a nice api to have would be something like
-	--
-	--       local result = compiler.compile_if_newer("scripts/nvimgen.tl", "scripts/.nvimgen.lua", load_config())
-	--       if not result:ok() then
-	--          log.err(result:err())
-	--          return
-	--       end
-	--       assert(result:write_out())
-	-- 
-	-- Basically I want Zig's build system, but for Teal :P
-
-	local src = fs.path.new("scripts/nvimgen.tl")
-	local target = fs.path.new("scripts/nvimgen.lua")
-	if src:mod_time() > (target:mod_time() or -1) then
-		log.warn(src:tostring(), " is newer than ", target:tostring(), ". Attempting to update...")
-		if not os.execute(("cyan gen %s -o %s"):format(src:to_real_path(), target:to_real_path())) then
-			log.err("Failed to update nvimgen script")
-			return
-		end
+	if not scriptUpdated then
+		log.info("Neovim api definitions not up to date:\n",
+			"      last: ", last or "(none)", "\n",
+			"   current: ", current
+		)
 	end
 
 	runCmd("nvim --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'")

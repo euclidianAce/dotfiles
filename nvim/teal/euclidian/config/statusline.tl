@@ -80,6 +80,10 @@ do -- git stuffs
 
 	local filesChanged, insertions, deletions = "0", "0", "0"
 	nvim.autocmd("VimEnter,BufWritePost", "*", function()
+		local b = nvim.Buffer()
+		if b:getOption("buftype") == "nofile" then
+			return
+		end
 		command.spawn{
 			command = { "git", "diff", "--shortstat" },
 			cwd = vim.loop.cwd(),
@@ -89,11 +93,10 @@ do -- git stuffs
 			end,
 		}
 		command.spawn{
-			command = { "git", "branch" },
+			command = { "git", "branch", "--show-current" },
 			cwd = vim.loop.cwd(),
 			onStdoutLine = function(ln: string)
-				local b <const> = ln:match("^%* (.*)$")
-				if b then currentBranch = b end
+				currentBranch = ln
 				vim.schedule(stl.updateWindow)
 			end,
 		}
@@ -103,7 +106,7 @@ do -- git stuffs
 		return " " .. currentBranch:sub(1, maxBranchWid)
 	end, "STLGit", true)
 	stl.add(gitActive, gitInactive, function(): string
-		return (" %s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
+		return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
 	end, "STLGit", true)
 
 	stl.toggleTag("Git")

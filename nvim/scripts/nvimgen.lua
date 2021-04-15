@@ -119,13 +119,13 @@ local namespaces = {
 
          "getOption: function(Buffer, StringOpt): string",
          "getOption: function(Buffer, BooleanOpt): boolean",
-         "getOption: function(Buffer, NumberOpt): number",
+         "getOption: function(Buffer, IntegerOpt): integer",
          "getOption: function(Buffer, string): number | boolean | string",
 
          "setOption: function(Buffer, StringOpt, string)",
          "setOption: function(Buffer, BooleanOpt, boolean)",
-         "setOption: function(Buffer, NumberOpt, number)",
-         "setOption: function(Buffer, string, number | boolean | string)",
+         "setOption: function(Buffer, IntegerOpt, integer)",
+         "setOption: function(Buffer, string, integer | boolean | string)",
 
          "setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)",
       },
@@ -172,13 +172,13 @@ local namespaces = {
 
          "getOption: function(Window, StringOpt): string",
          "getOption: function(Window, BooleanOpt): boolean",
-         "getOption: function(Window, NumberOpt): number",
-         "getOption: function(Window, string): number | boolean | string",
+         "getOption: function(Window, IntegerOpt): integer",
+         "getOption: function(Window, string): integer | boolean | string",
 
          "setOption: function(Window, StringOpt, string)",
          "setOption: function(Window, BooleanOpt, boolean)",
-         "setOption: function(Window, NumberOpt, number)",
-         "setOption: function(Window, string, number | boolean | string)",
+         "setOption: function(Window, IntegerOpt, integer)",
+         "setOption: function(Window, string, integer | boolean | string)",
       },
    },
    ["Tab"] = {
@@ -239,13 +239,13 @@ opts[""] = nil
 local wo = {
    ["string"] = {},
    ["boolean"] = {},
-   ["number"] = {},
+   ["integer"] = {},
 }
 
 local bo = {
    ["string"] = {},
    ["boolean"] = {},
-   ["number"] = {},
+   ["integer"] = {},
 }
 
 for _, opt in pairs(opts) do
@@ -255,6 +255,7 @@ for _, opt in pairs(opts) do
    elseif opt.scope == "buf" then
       tab = bo
    end
+   if opt.type == "number" then opt.type = "integer" end
    if tab then
       table.insert(tab[opt.type], opt.name)
    end

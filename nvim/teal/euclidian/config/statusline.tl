@@ -1,19 +1,18 @@
 
 local color <const> = require("euclidian.lib.color")
+local command <const> = require("euclidian.lib.command")
+local nvim <const> = require("euclidian.lib.nvim")
 local p <const> = require("euclidian.config.colors")
 local stl <const> = require("euclidian.lib.statusline")
-local nvim <const> = require("euclidian.lib.nvim")
-local command <const> = require("euclidian.lib.command")
--- local z <const> = require("euclidian.lib.async.zig")
 
 local hi <const> = color.scheme.hi
 local min <const>, max <const> = math.min, math.max
-local function clamp(n: number, a: number, b: number): number
-	return min(max(n, a), b)
+local function clamp<T>(n: T, a: number, b: number): T
+	return min(max(n, a), b) as T
 end
 
-local darkenFactor <const> = 2^7
-local function invert(fgColor: number): color.Color
+local darkenFactor <const> = 128
+local function invert(fgColor: integer): color.Color
 	local r, g, b = color.hexToRgb(fgColor)
 	return {
 		color.rgbToHex(
@@ -104,7 +103,7 @@ do -- git stuffs
 		return " " .. currentBranch:sub(1, maxBranchWid)
 	end, "STLGit", true)
 	stl.add(gitActive, gitInactive, function(): string
-		return (" %s +%s -%s "):format(filesChanged, insertions, deletions)
+		return (" %s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
 	end, "STLGit", true)
 
 	stl.toggleTag("Git")
@@ -135,7 +134,7 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 		-- tabs/spaces info
 		if wid > minWid then
 			local expandtab = buf:getOption("expandtab")
-			local num: number
+			local num: integer
 			if expandtab then
 				num = buf:getOption("shiftwidth")
 			else

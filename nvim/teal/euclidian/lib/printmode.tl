@@ -73,6 +73,14 @@ function printmode.printfn(mode: Mode): function(...: any)
 	return modes[mode or currentMode]
 end
 
+function printmode.clearBuffer()
+	vim.schedule(function()
+		if printBuf and printBuf:isValid() then
+			printBuf:setLines(0, -1, false, {})
+		end
+	end)
+end
+
 function printmode.set(newMode: Mode): printmode
 	currentMode = newMode
 	return printmode

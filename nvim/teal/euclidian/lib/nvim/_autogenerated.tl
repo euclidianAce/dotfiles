@@ -12,12 +12,12 @@ local record Buffer
 	call: function<T>(Buffer, function(): T): T
 	getOption: function(Buffer, StringOpt): string
 	getOption: function(Buffer, BooleanOpt): boolean
-	getOption: function(Buffer, NumberOpt): number
+	getOption: function(Buffer, IntegerOpt): integer
 	getOption: function(Buffer, string): number | boolean | string
 	setOption: function(Buffer, StringOpt, string)
 	setOption: function(Buffer, BooleanOpt, boolean)
-	setOption: function(Buffer, NumberOpt, number)
-	setOption: function(Buffer, string, number | boolean | string)
+	setOption: function(Buffer, IntegerOpt, integer)
+	setOption: function(Buffer, string, integer | boolean | string)
 	setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)
 	lineCount: function(Buffer): integer
 	attach: function(Buffer, boolean, {string:any}): boolean
@@ -46,6 +46,41 @@ local record Buffer
 	addHighlight: function(Buffer, integer, string, integer, integer, integer): integer
 	clearNamespace: function(Buffer, integer, integer, integer)
 	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
+	enum BooleanOpt
+		"autoindent"
+		"autoread"
+		"binary"
+		"bomb"
+		"buflisted"
+		"cindent"
+		"copyindent"
+		"endofline"
+		"expandtab"
+		"fixendofline"
+		"infercase"
+		"lisp"
+		"modeline"
+		"modifiable"
+		"modified"
+		"preserveindent"
+		"readonly"
+		"smartindent"
+		"swapfile"
+		"undofile"
+	end
+	enum IntegerOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
+	end
 	enum StringOpt
 		"backupcopy"
 		"bufhidden"
@@ -97,41 +132,6 @@ local record Buffer
 		"varsofttabstop"
 		"vartabstop"
 	end
-	enum BooleanOpt
-		"autoindent"
-		"autoread"
-		"binary"
-		"bomb"
-		"buflisted"
-		"cindent"
-		"copyindent"
-		"endofline"
-		"expandtab"
-		"fixendofline"
-		"infercase"
-		"lisp"
-		"modeline"
-		"modifiable"
-		"modified"
-		"preserveindent"
-		"readonly"
-		"smartindent"
-		"swapfile"
-		"undofile"
-	end
-	enum NumberOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
 end
@@ -171,12 +171,12 @@ local record Window
 	setConfig: function(Window, Config)
 	getOption: function(Window, StringOpt): string
 	getOption: function(Window, BooleanOpt): boolean
-	getOption: function(Window, NumberOpt): number
-	getOption: function(Window, string): number | boolean | string
+	getOption: function(Window, IntegerOpt): integer
+	getOption: function(Window, string): integer | boolean | string
 	setOption: function(Window, StringOpt, string)
 	setOption: function(Window, BooleanOpt, boolean)
-	setOption: function(Window, NumberOpt, number)
-	setOption: function(Window, string, number | boolean | string)
+	setOption: function(Window, IntegerOpt, integer)
+	setOption: function(Window, string, integer | boolean | string)
 	getBuf: function(Window): integer
 	setBuf: function(Window, integer)
 	getCursor: function(Window): {integer,integer}
@@ -194,23 +194,6 @@ local record Window
 	isValid: function(Window): boolean
 	hide: function(Window)
 	close: function(Window, boolean)
-	enum StringOpt
-		"breakindentopt"
-		"colorcolumn"
-		"concealcursor"
-		"fillchars"
-		"foldcolumn"
-		"foldexpr"
-		"foldignore"
-		"foldmarker"
-		"foldmethod"
-		"foldtext"
-		"listchars"
-		"rightleftcmd"
-		"signcolumn"
-		"statusline"
-		"winhighlight"
-	end
 	enum BooleanOpt
 		"arabic"
 		"breakindent"
@@ -231,7 +214,7 @@ local record Window
 		"winfixwidth"
 		"wrap"
 	end
-	enum NumberOpt
+	enum IntegerOpt
 		"conceallevel"
 		"foldlevel"
 		"foldminlines"
@@ -241,6 +224,23 @@ local record Window
 		"scrolloff"
 		"sidescrolloff"
 		"winblend"
+	end
+	enum StringOpt
+		"breakindentopt"
+		"colorcolumn"
+		"concealcursor"
+		"fillchars"
+		"foldcolumn"
+		"foldexpr"
+		"foldignore"
+		"foldmarker"
+		"foldmethod"
+		"foldtext"
+		"listchars"
+		"rightleftcmd"
+		"signcolumn"
+		"statusline"
+		"winhighlight"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

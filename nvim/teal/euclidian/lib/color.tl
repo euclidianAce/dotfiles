@@ -2,10 +2,10 @@
 local nvim <const> = require("euclidian.lib.nvim")
 
 local record color
-	type Color = {number, number, string}
+	type Color = {integer, integer, string}
 	record scheme
 		hi: {string:Color}
-		groups: function(): (function(): string, number, number, string)
+		groups: function(): (function(): string, integer, integer, string)
 	end
 end
 color.scheme.hi = {}
@@ -14,7 +14,7 @@ local type Color = color.Color
 local function tiFmt(t: {string}, fmt: string, ...: any)
 	table.insert(t, string.format(fmt, ...))
 end
-local function updateHiGroup(group: string, fg: number, bg: number, ex: string)
+local function updateHiGroup(group: string, fg: integer, bg: integer, ex: string)
 	local out = { "hi", group }
 	if fg then
 		tiFmt(out, "guifg=#%06x", fg)
@@ -59,10 +59,10 @@ setmetatable(color.scheme.hi, {
 	end,
 })
 
-function color.scheme.groups(): function(): (string, number, number, string)
+function color.scheme.groups(): function(): (string, integer, integer, string)
 	local idx: string
 	local val: Color
-	return function(): (string, number, number, string)
+	return function(): (string, integer, integer, string)
 		idx, val = next(actualHi, idx)
 		if val then
 			return idx, val[1], val[2], val[3]
@@ -70,11 +70,11 @@ function color.scheme.groups(): function(): (string, number, number, string)
 	end
 end
 
-function color.hexToRgb(hex: number): number, number, number
+function color.hexToRgb(hex: integer): integer, integer, integer
 	return hex >> 16, (hex >> 8) & 0xff, hex & 0xff
 end
 
-function color.rgbToHex(r: number, g: number, b: number): number
+function color.rgbToHex(r: integer, g: integer, b: integer): integer
 	return (r << 16) | (g << 8) | b
 end
 

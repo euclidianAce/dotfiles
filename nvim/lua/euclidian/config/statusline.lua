@@ -1,10 +1,9 @@
 
 local color = require("euclidian.lib.color")
+local command = require("euclidian.lib.command")
+local nvim = require("euclidian.lib.nvim")
 local p = require("euclidian.config.colors")
 local stl = require("euclidian.lib.statusline")
-local nvim = require("euclidian.lib.nvim")
-local command = require("euclidian.lib.command")
-
 
 local hi = color.scheme.hi
 local min, max = math.min, math.max
@@ -12,7 +11,7 @@ local function clamp(n, a, b)
    return min(max(n, a), b)
 end
 
-local darkenFactor = 2 ^ 7
+local darkenFactor = 128
 local function invert(fgColor)
    local r, g, b = color.hexToRgb(fgColor)
    return {
@@ -104,7 +103,7 @@ do
       return " " .. currentBranch:sub(1, maxBranchWid)
    end, "STLGit", true)
    stl.add(gitActive, gitInactive, function()
-      return (" %s +%s -%s "):format(filesChanged, insertions, deletions)
+      return (" %s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
    end, "STLGit", true)
 
    stl.toggleTag("Git")

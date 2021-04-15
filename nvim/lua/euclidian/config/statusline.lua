@@ -3,6 +3,8 @@ local color = require("euclidian.lib.color")
 local p = require("euclidian.config.colors")
 local stl = require("euclidian.lib.statusline")
 local nvim = require("euclidian.lib.nvim")
+local command = require("euclidian.lib.command")
+
 
 local hi = color.scheme.hi
 local min, max = math.min, math.max
@@ -61,37 +63,61 @@ stl.add(alwaysActive, empty, function(winid)
    local win = nvim.Window(winid)
    local spaces = win:getOption("numberwidth") + 1
    return (" "):rep(spaces) .. nvim.Window(winid):getBuf() .. " "
-end, "STLBufferInfo")
+end, "STLBufferInfo", true)
 stl.add(active, inactive, function()
-   return "  " .. stl.getModeText() .. " "
+   return " " .. stl.getModeText() .. " "
 end, stl.higroup)
-local maxBranchWid = 20
-stl.add(active, inactive, function()
 
-   local branch = (vim.fn.FugitiveStatusline()):sub(6, -3)
-   if branch == "" then
-      return ""
+
+do
+   local gitActive, gitInactive = { "Git" }, { "Inactive" }
+   local maxBranchWid = 20
+   local currentBranch = ""
+
+   local function parseDiff(s)
+
+      return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
    end
-   return "  * " .. branch:sub(1, maxBranchWid) .. " "
-end, "STLGit")
-local maxFileNameLen = 20
+
+   local filesChanged, insertions, deletions = "0", "0", "0"
+   nvim.autocmd("VimEnter,BufWritePost", "*", function()
+      command.spawn({
+         command = { "git", "diff", "--shortstat" },
+         cwd = vim.loop.cwd(),
+         onStdoutLine = function(ln)
+            filesChanged, insertions, deletions = parseDiff(ln)
+            vim.schedule(stl.updateWindow)
+         end,
+      })
+      command.spawn({
+         command = { "git", "branch" },
+         cwd = vim.loop.cwd(),
+         onStdoutLine = function(ln)
+            local b = ln:match("^%* (.*)$")
+            if b then currentBranch = b end
+            vim.schedule(stl.updateWindow)
+         end,
+      })
+   end)
+
+   stl.add(gitActive, gitInactive, function()
+      return " " .. currentBranch:sub(1, maxBranchWid)
+   end, "STLGit", true)
+   stl.add(gitActive, gitInactive, function()
+      return (" %s +%s -%s "):format(filesChanged, insertions, deletions)
+   end, "STLGit", true)
+
+   stl.toggleTag("Git")
+   nvim.setKeymap("n", "<F12>", function() stl.toggleTag("Git") end, { noremap = true })
+end
+
 stl.add(alwaysActive, empty, function(winid)
    local buf = nvim.Buffer(nvim.Window(winid):getBuf())
    if buf:getOption("buftype") == "terminal" then
       return ""
    end
-   local fname = buf:getName()
-   local cwd = vim.fn.getcwd()
-   if fname:match("^" .. vim.pesc(cwd)) then
-      fname = fname:sub(#cwd + 2, -1)
-   end
-   if #fname > maxFileNameLen then
-      fname = " < " .. fname:sub(-maxFileNameLen, -1)
-   end
-   return "  " .. fname .. " "
-end, "STLFname")
-stl.add(alwaysActive, empty, "%m", "STLFname")
-stl.add(active, inactive, "%r%h%w", "STLFname")
+   return " %f %m%r%h%w"
+end, "STLFname", true)
 
 stl.add(active, inactive, " %= ", "StatusLine")
 stl.add(inactive, active, " %= ", "StatusLineNC")

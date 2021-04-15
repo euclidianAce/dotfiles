@@ -141,7 +141,7 @@ if not lspconfig.teal then
 		default_config = {
 			cmd = {
 				"teal-language-server",
-				"logging=on",
+				-- "logging=on",
 			},
 			filetypes = { "teal", "lua" };
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),

@@ -46,19 +46,6 @@ local record Buffer
 	addHighlight: function(Buffer, integer, string, integer, integer, integer): integer
 	clearNamespace: function(Buffer, integer, integer, integer)
 	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
-	enum NumberOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
 	enum StringOpt
 		"backupcopy"
 		"bufhidden"
@@ -132,6 +119,19 @@ local record Buffer
 		"swapfile"
 		"undofile"
 	end
+	enum NumberOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
+	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
 end
@@ -194,17 +194,6 @@ local record Window
 	isValid: function(Window): boolean
 	hide: function(Window)
 	close: function(Window, boolean)
-	enum NumberOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"scrolloff"
-		"sidescrolloff"
-		"winblend"
-	end
 	enum StringOpt
 		"breakindentopt"
 		"colorcolumn"
@@ -241,6 +230,17 @@ local record Window
 		"winfixheight"
 		"winfixwidth"
 		"wrap"
+	end
+	enum NumberOpt
+		"conceallevel"
+		"foldlevel"
+		"foldminlines"
+		"foldnestmax"
+		"numberwidth"
+		"scroll"
+		"scrolloff"
+		"sidescrolloff"
+		"winblend"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

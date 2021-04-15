@@ -11,7 +11,7 @@ end
 
 local statusline <const> = { 
 	higroup = "StatuslineModeText",
-	_funcs: {function(number): string} = {},
+	_funcs: {function(integer): string} = {},
 }
 
 local active <const>: {nvim.Window.Id:boolean} = {}
@@ -56,7 +56,8 @@ end
 
 local record Component
 	isFunc: boolean
-	funcId: number
+	funcId: integer
+	preEval: boolean
 	hiGroup: string
 	text: string
 	tags: {string:boolean}
@@ -66,7 +67,13 @@ end
 local lineComponents <const>: {Component} = {}
 local currentTags <const>: {string:boolean} = {}
 
-function statusline.add(tags: {string}, invertedTags: {string}, text: (string | function(number): (string)), hiGroup: string)
+function statusline.add(
+	tags: {string},
+	invertedTags: {string},
+	text: (string | function(integer): string),
+	hiGroup: string,
+	preEval: boolean
+)
 	local comp: Component = {
 		tags = set(tags),
 		invertedTags = set(invertedTags)
@@ -79,10 +86,11 @@ function statusline.add(tags: {string}, invertedTags: {string}, text: (string | 
 		comp.isFunc = true
 		comp.funcId = #lineComponents + 1
 	end
+	comp.preEval = preEval
 	table.insert(lineComponents, comp)
 end
 
-local function makeLine(tags: {string}, winId: number): string
+local function makeLine(tags: {string}, winId: integer): string
 	local tagSet = set(tags)
 	local buf = {}
 	for i, component in ipairs(lineComponents) do
@@ -104,15 +112,22 @@ local function makeLine(tags: {string}, winId: number): string
 		if include then
 			table.insert(buf, ("%%#%s#"):format(component.hiGroup))
 			if component.isFunc then
-				table.insert(
-					buf,
-					([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]])
-						:format(component.funcId, winId)
-				)
+				if component.preEval then
+					table.insert(
+						buf,
+						statusline._funcs[component.funcId]()
+					)
+				else
+					table.insert(
+						buf,
+						([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]])
+							:format(component.funcId, winId)
+					)
+				end
 			else
 				table.insert(buf, component.text)
 			end
-			if i < #lineComponents then
+			if i < #lineComponents and not lineComponents[i + 1].hiGroup then
 				table.insert(buf, "%#Normal#")
 			end
 		end
@@ -120,7 +135,7 @@ local function makeLine(tags: {string}, winId: number): string
 	return table.concat(buf)
 end
 
-local function setLine(winId: integer)
+function statusline.updateWindow(winId: integer)
 	local win <const> = nvim.Window(winId)
 	if win:isValid() then
 		local tags <const> = active[win.id]
@@ -130,22 +145,22 @@ local function setLine(winId: integer)
 	end
 end
 
-function statusline.updateWindows()
+function statusline.updateAllWindows()
 	for _, winId in ipairs(vim.api.nvim_list_wins()) do
-		setLine(winId)
+		statusline.updateWindow(winId)
 	end
 end
 
 function statusline.setInactive(winId: integer)
 	winId = winId or nvim.Window().id
 	active[winId] = false
-	statusline.updateWindows()
+	statusline.updateAllWindows()
 end
 
 function statusline.setActive(winId: integer)
 	winId = winId or nvim.Window().id
 	active[winId] = true
-	statusline.updateWindows()
+	statusline.updateAllWindows()
 end
 
 function statusline.toggleTag(name: string | {string})
@@ -156,7 +171,7 @@ function statusline.toggleTag(name: string | {string})
 			currentTags[v] = not currentTags[v]
 		end
 	end
-	statusline.updateWindows()
+	statusline.updateAllWindows()
 end
 
 function statusline.isActive(winId: integer): boolean
@@ -170,7 +185,7 @@ nvim.augroup("Statusline", {
 })
 
 statusline.setActive()
-statusline.updateWindows()
+statusline.updateAllWindows()
 
 return statusline
 

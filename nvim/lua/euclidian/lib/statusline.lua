@@ -63,10 +63,17 @@ local Component = {}
 
 
 
+
 local lineComponents = {}
 local currentTags = {}
 
-function statusline.add(tags, invertedTags, text, hiGroup)
+function statusline.add(
+   tags,
+   invertedTags,
+   text,
+   hiGroup,
+   preEval)
+
    local comp = {
       tags = set(tags),
       invertedTags = set(invertedTags),
@@ -79,6 +86,7 @@ function statusline.add(tags, invertedTags, text, hiGroup)
       comp.isFunc = true
       comp.funcId = #lineComponents + 1
    end
+   comp.preEval = preEval
    table.insert(lineComponents, comp)
 end
 
@@ -104,15 +112,22 @@ local function makeLine(tags, winId)
       if include then
          table.insert(buf, ("%%#%s#"):format(component.hiGroup))
          if component.isFunc then
-            table.insert(
-            buf,
-            ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):
-            format(component.funcId, winId))
+            if component.preEval then
+               table.insert(
+               buf,
+               statusline._funcs[component.funcId]())
 
+            else
+               table.insert(
+               buf,
+               ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):
+               format(component.funcId, winId))
+
+            end
          else
             table.insert(buf, component.text)
          end
-         if i < #lineComponents then
+         if i < #lineComponents and not lineComponents[i + 1].hiGroup then
             table.insert(buf, "%#Normal#")
          end
       end
@@ -120,7 +135,7 @@ local function makeLine(tags, winId)
    return table.concat(buf)
 end
 
-local function setLine(winId)
+function statusline.updateWindow(winId)
    local win = nvim.Window(winId)
    if win:isValid() then
       local tags = active[win.id] and
@@ -130,22 +145,22 @@ local function setLine(winId)
    end
 end
 
-function statusline.updateWindows()
+function statusline.updateAllWindows()
    for _, winId in ipairs(vim.api.nvim_list_wins()) do
-      setLine(winId)
+      statusline.updateWindow(winId)
    end
 end
 
 function statusline.setInactive(winId)
    winId = winId or nvim.Window().id
    active[winId] = false
-   statusline.updateWindows()
+   statusline.updateAllWindows()
 end
 
 function statusline.setActive(winId)
    winId = winId or nvim.Window().id
    active[winId] = true
-   statusline.updateWindows()
+   statusline.updateAllWindows()
 end
 
 function statusline.toggleTag(name)
@@ -156,7 +171,7 @@ function statusline.toggleTag(name)
          currentTags[v] = not currentTags[v]
       end
    end
-   statusline.updateWindows()
+   statusline.updateAllWindows()
 end
 
 function statusline.isActive(winId)
@@ -170,6 +185,6 @@ nvim.augroup("Statusline", {
 })
 
 statusline.setActive()
-statusline.updateWindows()
+statusline.updateAllWindows()
 
 return statusline

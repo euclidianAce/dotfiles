@@ -30,7 +30,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export DOTFILE_DIR="$HOME/dotfiles"
 
 # set nvim as the default editor
-export EDITOR=nvim
+export EDITOR="nvim-qt --nvim /usr/local/bin/nvim"
 export MANPAGER="nvim +Man!"
 
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
@@ -71,9 +71,9 @@ function update_ps1 {
 update_ps1
 PROMPT_COMMAND=update_ps1
 
-# if [[ -z $TMUX ]]; then
-	# exec tmux
-# fi
+if [[ -z $TMUX ]]; then
+	exec tmux
+fi
 
 # This is silly
 # if [[ -z $NVIM_STARTED ]]; then

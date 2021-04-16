@@ -3,6 +3,9 @@ st.font = "terminus:size=12:antialias=true"
 -- st.font = "Fixedsys Excelsior:size=12:antialias=true:bold=false" -- this has problems with width
 -- st.font = "Ubuntu Mono:size=10:antialias=true"
 -- st.font = "FiraCode Light:size=12:antialias=true"
+-- st.font = "Julia Mono:size=10:antialias=true"
+
+-- st.borderpx = 4
 
 st.colorname = {
 	"#181520",

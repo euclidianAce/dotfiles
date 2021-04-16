@@ -103,9 +103,11 @@ do
    end)
 
    stl.add(gitActive, gitInactive, function()
+      if currentBranch == "" then return "" end
       return " " .. currentBranch:sub(1, maxBranchWid)
    end, "STLGit", true)
    stl.add(gitActive, gitInactive, function()
+      if currentBranch == "" then return "" end
       return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
    end, "STLGit", true)
 

@@ -74,7 +74,7 @@ do -- git stuffs
 	local currentBranch = ""
 
 	local function parseDiff(s: string): string, string, string
-		-- 5 files changed, 98 insertions(+), 45 deletions(-)
+		-- ex: 5 files changed, 98 insertions(+), 45 deletions(-)
 		return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
 	end
 
@@ -103,9 +103,11 @@ do -- git stuffs
 	end)
 
 	stl.add(gitActive, gitInactive, function(): string
+		if currentBranch == "" then return "" end
 		return " " .. currentBranch:sub(1, maxBranchWid)
 	end, "STLGit", true)
 	stl.add(gitActive, gitInactive, function(): string
+		if currentBranch == "" then return "" end
 		return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
 	end, "STLGit", true)
 

@@ -115,7 +115,7 @@ local function makeLine(tags: {string}, winId: integer): string
 				if component.preEval then
 					table.insert(
 						buf,
-						statusline._funcs[component.funcId]()
+						statusline._funcs[component.funcId](winId)
 					)
 				else
 					table.insert(

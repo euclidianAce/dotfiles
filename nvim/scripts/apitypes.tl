@@ -5,7 +5,7 @@ local ansi <const> = require("cyan.ansi")
 
 local logCmd <const> = log.create_logger(
 	io.stdout,
-	cs.highlight({ansi.color.dark.green}, "Cmd")
+	cs.highlight({ansi.color.dark.green}, "Cmd Out")
 )
 
 local logCmdCont <const> = log.create_logger(
@@ -32,8 +32,6 @@ local function runCmd(cmd: string, max_log_lines: integer): {string}
 			else
 				logCmd(ln)
 			end
-		elseif #res == max_log_lines then
-			logCmdCont(" ...")
 		end
 		table.insert(res, ln)
 		ln = p:read("*l")
@@ -43,6 +41,7 @@ local function runCmd(cmd: string, max_log_lines: integer): {string}
 end
 
 local function exec()
+	local nvim_cmd <const> = "/usr/local/bin/nvim"
 	local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/nvimgen.lua")
 	local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
 	if scriptUpdated then
@@ -55,7 +54,7 @@ local function exec()
 
 	local last <const> = fs.read(".last_nvim_commit")
 
-	local current <const> = runCmd("nvim --version", 3)[1]
+	local current <const> = runCmd(("%s --version"):format(nvim_cmd), 2)[1]
 	if not scriptUpdated then
 		if last then
 			if current == last then
@@ -73,7 +72,7 @@ local function exec()
 		end
 	end
 
-	runCmd("nvim --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'")
+	runCmd(("%s --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'"):format(nvim_cmd))
 
 	local f = io.open(".last_nvim_commit", "w")
 	f:write(current)

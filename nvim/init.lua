@@ -90,7 +90,8 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	guicursor = "",
+	guifont = "JuliaMono:h10",
+	guicursor = "a:block",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
 

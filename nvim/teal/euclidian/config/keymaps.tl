@@ -137,7 +137,7 @@ do -- floating buffer to execute some lua
 	local d: dialog.Dialog
 	local buf: nvim.Buffer
 	map("n", "<leader>lua", function()
-		d = dialog.centered(75, 30, { interactive = true, notMinimal = true })
+		d = dialog.centered(75, 30, { interactive = true, notMinimal = true }, buf)
 		if not buf then
 			buf = d.buf
 			buf:setOption("ft", "teal")

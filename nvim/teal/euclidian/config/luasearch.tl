@@ -1,6 +1,7 @@
 
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
+local hi <const> = require("euclidian.lib.color").scheme.hi
 
 local function gfind(str: string, patt: string): function(): integer, integer, {string}
 	local idx = 0
@@ -32,18 +33,23 @@ local function findMatches(buf: nvim.Buffer, patt: string): function(): integer,
 	end) as function(): integer, integer, integer, string, boolean
 end
 
+hi.LuaSearch = hi.Search
+hi.LuaSearchCapture = { hi.STLNormal[1], hi.LuaSearch[2], "bold" }
 local function exec()
+	local buf <const> = nvim.Buffer()
+
 	local d <const> = dialog.new{
 		wid = 30, hei = 1,
 		row = -10, col = 0.5,
-
+		centered = { horizontal = true },
 		interactive = true,
 	}
-	local buf <const> = d.buf
+	d.buf:setOption("bufhidden", "wipe") -- TODO: make this a dialog option, something like `ephemeral = true`
+	nvim.command [[startinsert]]
 
 	local ns <const> = vim.api.nvim_create_namespace("luasearch")
-	nvim.autocmd({"BufDelete", "BufHidden"}, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d.buf.id })
-	buf:attach(false, {
+	nvim.autocmd({"BufDelete", "BufHidden", "BufWipeout"}, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d.buf.id })
+	d.buf:attach(false, {
 		on_lines = function()
 			buf:clearNamespace(ns, 0, -1)
 			local patt <const> = d:getLine(1)
@@ -56,7 +62,7 @@ local function exec()
 					buf:setExtmark(ns, lnum - 1, s - 1, {
 						end_line = lnum - 1,
 						end_col = e,
-						hl_group = isCapture and "STLNormal" or "STLInsert",
+						hl_group = isCapture and "LuaSearchCapture" or "LuaSearch",
 					})
 				end
 			end)
@@ -65,5 +71,7 @@ local function exec()
 	})
 	d:setModifiable(true)
 end
+
+nvim.command [[command! LuaSearch lua require"euclidian.config.luasearch"()]]
 
 return exec

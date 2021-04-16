@@ -1,6 +1,6 @@
 # vim: filetype=sh
-alias gs="git status"
-alias gss="git status --short"
+alias gs="git status --short"
+alias gsl="git status"
 
 alias gd="git diff"
 alias gdt="git difftool -y"
@@ -11,7 +11,7 @@ function ga {
 }
 alias gaa="git add -A; git status --short"
 alias gap="git add -p"
-alias gc="git commit"
+alias gc="EDITOR='$EDITOR --nofork' git commit"
 alias gcm="git commit -m"
 
 alias gpush="git push"

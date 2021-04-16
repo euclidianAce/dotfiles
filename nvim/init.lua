@@ -178,6 +178,8 @@ euclidian = {
 	config = requirer("euclidian.config"),
 }
 
+confreq "luasearch"
+
 setmetatable(_G, {
 	__index = function(_, key)
 		for _, r in ipairs{libreq, confreq} do

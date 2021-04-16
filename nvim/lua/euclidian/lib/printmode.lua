@@ -1,6 +1,5 @@
 
 local oldPrint = print
-local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 
 local Mode = {}
@@ -11,7 +10,13 @@ local Mode = {}
 local printmode = {}
 
 
-local printBuf, printWin
+local printDialog = dialog.new({
+   row = 4, col = -65,
+   wid = 50, hei = .75,
+   hidden = true,
+})
+printDialog:setLines({ "=== print buffer ===" })
+
 local inspectOpts = { newline = " ", indent = "" }
 
 local modes = {
@@ -32,19 +37,10 @@ local modes = {
    buffer = function(...)
       local args = { n = select("#", ...), ... }
       vim.schedule(function()
-         if not printBuf then
-            printBuf = nvim.createBuf(false, true)
-            printBuf:setLines(0, -1, false, { "=== print buffer ===" })
-         end
-         if not (printWin and printWin:isValid()) then
-            local opts = dialog.centeredOpts(.3, -20)
-            printWin = nvim.openWin(printBuf, false, {
-               relative = "editor",
-               style = "minimal",
-               col = opts.col + math.floor(nvim.ui().width / 3), row = opts.row,
-               height = opts.hei, width = opts.wid,
-               border = "double",
-            })
+         assert(printDialog.buf:isValid())
+
+         if not printDialog.win:isValid() then
+            printDialog:show()
          end
 
          local text = {}
@@ -58,7 +54,7 @@ local modes = {
             table.insert(text, thing)
          end
 
-         printBuf:setLines(-1, -1, false, vim.split(table.concat(text, " "), "\n", true))
+         printDialog:appendLines(vim.split(table.concat(text, " "), "\n", true))
       end)
    end,
 }
@@ -74,11 +70,7 @@ function printmode.printfn(mode)
 end
 
 function printmode.clearBuffer()
-   vim.schedule(function()
-      if printBuf and printBuf:isValid() then
-         printBuf:setLines(0, -1, false, {})
-      end
-   end)
+   vim.schedule(function() printDialog:setLines({}) end)
 end
 
 function printmode.set(newMode)

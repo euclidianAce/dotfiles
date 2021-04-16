@@ -33,18 +33,17 @@ local function findMatches(buf: nvim.Buffer, patt: string): function(): integer,
 end
 
 local function exec()
-	local ui <const> = nvim.ui()
+	local d <const> = dialog.new{
+		wid = 30, hei = 1,
+		row = -10, col = 0.5,
 
-	local opts <const> = dialog.centeredOpts(30, 1)
-	opts.row = ui.height - 10
-	opts.interactive = true
-
-	local buf <const> = nvim.Buffer()
-	local d <const> = dialog.new(opts)
+		interactive = true,
+	}
+	local buf <const> = d.buf
 
 	local ns <const> = vim.api.nvim_create_namespace("luasearch")
 	nvim.autocmd({"BufDelete", "BufHidden"}, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d.buf.id })
-	d.buf:attach(false, {
+	buf:attach(false, {
 		on_lines = function()
 			buf:clearNamespace(ns, 0, -1)
 			local patt <const> = d:getLine(1)

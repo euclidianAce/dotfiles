@@ -56,6 +56,7 @@ hi.TabLineSel = { nil, p.gray, "bold" }
 hi.TabLineFill = { nil, p.darkGray }
 hi.Title = { p.green, nil, "bold" }
 
+
 hi.FloatBorder = { p.darkFg, p.brightBg }
 
 hi.Pmenu = { p.fg, p.brightBg }

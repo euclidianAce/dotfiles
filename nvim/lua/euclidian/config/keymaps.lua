@@ -4,6 +4,7 @@ local M = { _exports = {} }
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 local a = vim.api
+local uv = vim.loop
 
 local function combinations(as, bs)
    return coroutine.wrap(function()
@@ -134,133 +135,104 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 map("t", "<Esc>", "<C-\\><C-n>")
 
 do
-   local d
-   local buf
-   map("n", "<leader>lua", function()
-      d = dialog.centered(75, 30, { interactive = true, notMinimal = true }, buf)
-      if not buf then
-         buf = d.buf
-         buf:setOption("ft", "teal")
-         buf:setOption("tabstop", 3)
-         buf:setOption("shiftwidth", 3)
-         buf:setKeymap(
-         "n", "<cr>",
-         function()
-            local lines = d:getLines()
-            local txt = table.concat(lines, "\n")
+   local d = dialog.new({
+      wid = 75, hei = 30,
+      centered = true,
+      interactive = true,
+      notMinimal = true,
+      hidden = true,
+   })
+   d:setModifiable(true)
+   local buf = d.buf
 
-            local chunk, loaderr = loadstring(txt)
-            if not chunk then
-               a.nvim_err_writeln(loaderr)
-               return
-            end
-            local ok, err = pcall(chunk)
-            if not ok then
-               a.nvim_err_writeln(err)
-            end
-         end,
-         { silent = true, noremap = true })
+   buf:setOption("ft", "teal")
+   buf:setOption("tabstop", 3)
+   buf:setOption("shiftwidth", 3)
+   buf:setKeymap(
+   "n", "<cr>",
+   function()
+      local lines = d:getLines()
+      local txt = table.concat(lines, "\n")
 
-         buf:setKeymap(
-         "n", "",
-         function()
-            d.win:hide()
-         end,
-         { silent = true, noremap = true })
-
+      local chunk, loaderr = loadstring(txt)
+      if not chunk then
+         a.nvim_err_writeln(loaderr)
+         return
       end
-      d:setModifiable(true)
-   end)
+      local ok, err = pcall(chunk)
+      if not ok then
+         a.nvim_err_writeln(err)
+      end
+   end,
+   { silent = true, noremap = true })
+
+   buf:setKeymap(
+   "n", "",
+   function() d:hide() end,
+   { silent = true, noremap = true })
+
+   map("n", "<leader>lua", function() d:show() end)
 end
 
 do
-   local d
-   local bufid
+   local d = dialog.new({
+      wid = 0.9, hei = 0.85,
+      centered = true,
+      interactive = true,
+      hidden = true,
+   })
+
    local openTerm, hideTerm
+   d.buf:setOption("modified", false)
+   local bufOpenTerm = vim.schedule_wrap(function()
+      vim.fn.termopen("bash")
+   end)
+   local key = ""
 
    M._exports.getTermChannel = function()
-      return d and d.buf:getOption("channel")
+      return d.buf:getOption("channel")
    end
    M._exports.termSend = function(s)
-      if not (d and d.buf:isValid()) then
+      if not d.buf:isValid() then
          return false
       end
       a.nvim_chan_send(d.buf:getOption("channel"), s)
       return true
    end
 
-   local lastCfg
-
-   local function editCfg(field, val)
-      return function()
-         local c = d.win:getConfig()
-         local f = c[field]
-         c[field] = (type(f) == "number" and assert(f) or f[false]) + val
-         d.win:setConfig(c)
-         lastCfg = c
-      end
-   end
-
-   local resizing = true
-   local function makeMap(resizeOpt, moveOpt, val)
-      local resize = editCfg(resizeOpt, val)
-      local move = editCfg(moveOpt, val)
-      return function()
-         if resizing then
-            resize()
-         else
-            move()
-         end
-      end
-   end
-
-   local key = ""
-
-   local function getDialog()
-      if not nvim.Buffer(bufid):isValid() then bufid = nil end
-      local dwin = dialog.centered(0.9, 0.85, { interactive = true }, bufid)
-      bufid = dwin.buf.id
-      if lastCfg then
-         dwin.win:setConfig(lastCfg)
-      end
-      return dwin
-   end
-
    openTerm = function()
-      if d and d.win:isValid() then
-         a.nvim_set_current_win(d.win.id)
-      elseif not (d and d.buf:isValid()) then
-         d = getDialog()
-         d.win:setOption("winblend", 8)
-
-
-
-         d.buf:setOption("modified", false)
-         d.buf:call(vim.schedule_wrap(function()
-            vim.fn.termopen("bash")
-         end))
-
-         bufMap(d.buf.id, { "t", "n" }, key, hideTerm)
-
-         bufMap(d.buf.id, "n", "<leader>r", function() resizing = not resizing end)
-         bufMap(d.buf.id, "n", "<M-h>", makeMap("width", "col", -3))
-         bufMap(d.buf.id, "n", "<M-l>", makeMap("width", "col", 3))
-
-         bufMap(d.buf.id, "n", "<M-j>", makeMap("height", "row", 3))
-         bufMap(d.buf.id, "n", "<M-k>", makeMap("height", "row", -3))
-      else
-         d = getDialog()
+      if d.buf:getOption("buftype") ~= "terminal" then
+         d.buf:call(bufOpenTerm)
       end
+      d:show()
+      d.win:setOption("winblend", 8)
    end
 
    hideTerm = function()
-      if d and d.win:isValid() then
-         d.win:hide()
-      end
+      d:hide()
       map("n", key, openTerm)
    end
 
+   bufMap(d.buf.id, { "t", "n" }, key, hideTerm)
    map("n", key, openTerm)
+end
+
+do
+   local d = dialog.new({
+      wid = 0.4, hei = 0.2,
+      centered = true,
+      interactive = true,
+      hidden = true,
+   })
+   map("n", "<leader>cd", function()
+      local cwd = vim.loop.cwd()
+      local lns = { "== SUPER DUPER WIP ==", "Cwd: " .. cwd }
+      for file in uv.fs_scandir_next, uv.fs_scandir(cwd) do
+         table.insert(lns, file)
+      end
+      d:setLines(lns)
+      d:show()
+   end)
 end
 
 return M

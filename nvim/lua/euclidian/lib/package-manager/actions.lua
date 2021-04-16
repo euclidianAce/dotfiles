@@ -23,7 +23,7 @@ end
 
 local function createDialog(fn)
    return function()
-      local d = dialog.centered(35, 17)
+      local d = dialog.new({ wid = 35, hei = 17, centered = true })
       d.win:setOption("wrap", false)
       return z.async(fn, d)
    end

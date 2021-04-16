@@ -14,22 +14,63 @@ local record TextRegion
 end
 
 local record Dialog
+	-- consider Opts to be lazily evaluated
+	-- "evaluation" meaning being turning into a window config
 	record Opts
-		wid: integer
-		hei: integer
-		row: integer
-		col: integer
+		wid: number
+		hei: number
+		row: number
+		col: number
 
 		notMinimal: boolean
 		interactive: boolean
+		hidden: boolean
+		
+		record Center
+			horizontal: boolean
+			vertical: boolean
+		end
+		centered: boolean | Center
 
-		border: { string | {string, string} }
+		border: nvim.Window.Config.Border
 	end
 	
 	buf: nvim.Buffer
 	win: nvim.Window
 
 	regions: {TextRegion} -- sorted by location
+
+	_origOpts: Opts
+end
+
+local function copyCenterOpts(o: boolean | Dialog.Opts.Center): Dialog.Opts.Center
+	local cpy <const>: Dialog.Opts.Center = {}
+	if not o then
+		cpy.vertical = false
+		cpy.horizontal = false
+	elseif o is boolean then
+		cpy.vertical = true
+		cpy.horizontal = true
+	else
+		cpy.vertical = o.vertical
+		cpy.horizontal = o.horizontal
+	end
+	return cpy
+end
+
+local function copyOpts(o: Dialog.Opts): Dialog.Opts
+	-- TODO: We should totally steal zig's `inline for` for teal
+	return {
+		wid = o.wid,
+		hei = o.hei,
+		row = o.row,
+		col = o.col,
+		notMinimal = o.notMinimal,
+		interactive = o.interactive,
+		hidden = o.hidden,
+		border = o.border,
+		centered = copyCenterOpts(o.centered),
+	}
 end
 
 local dialog <const> = {
@@ -50,7 +91,7 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 end
 
 local defaultBorderHighlight = "Normal"
-local defaultBorder <const> = {
+local defaultBorder <const>: nvim.Window.Config.Border = {
 	{"╭", defaultBorderHighlight},
 	{"─", defaultBorderHighlight},
 	{"╮", defaultBorderHighlight},
@@ -60,53 +101,6 @@ local defaultBorder <const> = {
 	{"╰", defaultBorderHighlight},
 	{"│", defaultBorderHighlight},
 }
-
-function dialog.optsToWinConfig(opts: Dialog.Opts): nvim.Window.Config
-	local col = assert(opts.col, "no col")
-	local row = assert(opts.row, "no row")
-
-	local ui: nvim.UI
-	if col < 0 then
-		ui = nvim.ui()
-		col = ui.width + opts.col
-	end
-	if row < 0 then
-		ui = ui or nvim.ui()
-		row = ui.height + opts.row
-	end
-
-	return {
-		relative = "editor",
-		border = opts.border or defaultBorder,
-		row = row,
-		col = col,
-		width = assert(opts.wid, "no wid"),
-		height = assert(opts.hei, "no hei"),
-		style = not opts.notMinimal and "minimal" or nil,
-
-		focusable = opts.interactive,
-	}
-end
-
-function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
-	local buf <const> = getBuf(maybeBuf)
-
-	if buf:getOption("buftype") == "" then
-		buf:setOption("buftype", "nofile")
-	end
-	buf:setOption("modifiable", false)
-
-	local win <const> = nvim.openWin(
-		buf,
-		opts.interactive,
-		dialog.optsToWinConfig(opts)
-	)
-
-	-- win:setOption("winblend", 5)
-	win:setOption("winhl", "Normal:Normal")
-
-	return setmetatable({ buf = buf, win = win, regions = {} }, { __index = Dialog })
-end
 
 local floor <const>, max <const>, min <const>
 	= math.floor, math.max, math.min
@@ -124,44 +118,88 @@ local function convertNum(n: number, base: integer): integer
 	elseif n < 1 then
 		return floor(base * n)
 	else
-		return clamp(n, 1, base)
+		return floor(clamp(n, 1, base))
 	end
 end
 
-function dialog.centeredOpts(wid: number, hei: number): Dialog.Opts
+function dialog.optsToWinConfig(opts: Dialog.Opts): nvim.Window.Config
+	local cfg <const>: nvim.Window.Config = {
+		relative = "editor",
+		style = not opts.notMinimal and "minimal" or nil,
+		border = opts.border or defaultBorder,
+		focusable = opts.interactive,
+	}
 	local ui <const> = nvim.ui()
 
-	local actualWid <const> = convertNum(wid, ui.width)
-	local actualHei <const> = convertNum(hei, ui.height)
+	local center <const> = copyCenterOpts(opts.centered)
 
-	return {
-		col = (ui.width - actualWid) // 2,
-		row = (ui.height - actualHei) // 2,
-		wid = actualWid,
-		hei = actualHei,
-	}
-end
-
-function dialog.optsWithDefaults(overrides: Dialog.Opts): Dialog.Opts
-	return {
-		wid = overrides and overrides.wid or math.huge,
-		hei = overrides and overrides.hei or math.huge,
-		row = overrides and overrides.row or 0,
-		col = overrides and overrides.col or 0,
-		border = vim.deepcopy(defaultBorder),
-	}
-end
-
-function dialog.centered(wid: number, hei: number, opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
-	local copts <const> = dialog.centeredOpts(wid, hei) as table
-	for k, v in pairs(opts as table) do
-		if not copts[k] then
-			copts[k] = v
-		end
+	if center.horizontal then
+		cfg.width = convertNum(
+			assert(opts.wid, "centered dialogs require a 'wid' field"),
+			ui.width
+		)
+		cfg.col = (ui.width - cfg.width) // 2
+	else
+		cfg.col = convertNum(assert(opts.col, "non-centered dialogs require a 'col' field"), ui.width)
+		cfg.width = convertNum(assert(opts.wid, "non-centered dialogs require a 'wid' field"), ui.width)
 	end
-	return dialog.new(copts as Dialog.Opts, maybeBuf)
+
+	if center.vertical then
+		cfg.height = convertNum(
+			assert(opts.hei, "centered dialogs require a 'hei' field"),
+			ui.height
+		)
+		cfg.row = (ui.height - cfg.height) // 2
+	else
+		cfg.row = convertNum(assert(opts.row, "non-centered dialogs require a 'row' field"), ui.height)
+		cfg.height = convertNum(assert(opts.hei, "non-centered dialogs require a 'hei' field"), ui.height)
+	end
+
+	return cfg
 end
 
+function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
+	local buf <const> = getBuf(maybeBuf)
+
+	if buf:getOption("buftype") == "" then
+		buf:setOption("buftype", "nofile")
+	end
+	buf:setOption("modifiable", false)
+
+	local cfg <const> = dialog.optsToWinConfig(opts)
+	local win <const> = opts and not opts.hidden and nvim.openWin(
+		buf,
+		opts.interactive,
+		cfg
+	) or { isValid = function(): boolean return false end }
+
+	if win:isValid() then
+		win:setOption("winhighlight", "Normal:Normal,NormalFloat:Normal")
+	end
+
+	return setmetatable({
+		buf = buf,
+		win = win,
+		regions = {},
+		_origOpts = copyOpts(opts),
+	}, { __index = Dialog })
+end
+
+function Dialog:show(dontSwitch: boolean, cfg: nvim.Window.Config): Dialog
+	if self.win:isValid() then
+		-- already showing
+		return self
+	end
+
+	self.win = nvim.openWin(
+		self.buf,
+		not dontSwitch,
+		cfg or (self._origOpts and dialog.optsToWinConfig(self._origOpts)) or {}
+	)
+
+	self.win:setOption("winhighlight", "Normal:Normal,NormalFloat:Normal")
+	return self
+end
 function Dialog:isModifiable(): boolean
 	return self.buf:getOption("modifiable")
 end
@@ -178,6 +216,11 @@ end
 function Dialog:setLines(txt: {string}): Dialog
 	return self:modify(function()
 		self.buf:setLines(0, -1, false, txt)
+	end)
+end
+function Dialog:appendLines(txt: {string}): Dialog
+	return self:modify(function()
+		self.buf:setLines(-1, -1, false, txt)
 	end)
 end
 function Dialog:setLine(num: integer, ln: string): Dialog
@@ -234,11 +277,11 @@ function Dialog:moveRelative(drow: integer, dcol: integer): Dialog
 	return self
 end
 function Dialog:setOpts(opts: Dialog.Opts): Dialog
-	opts = dialog.optsWithDefaults(opts)
 	return self:setWinConfig(dialog.optsToWinConfig(opts))
 end
 function Dialog:center(width: integer, height: integer): Dialog
-	return self:setOpts(dialog.centeredOpts(width, height))
+	assert(false and width and height)
+	-- return self:setOpts(dialog.centeredOpts(width, height))
 end
 function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: nvim.MapOpts): Dialog
 	self.buf:setKeymap(mode, lhs, rhs, opts)
@@ -332,6 +375,10 @@ function Dialog:centerVertical(): Dialog
 		width = cfg.width,
 		height = cfg.height,
 	}
+	return self
+end
+function Dialog:hide(): Dialog
+	self.win:hide()
 	return self
 end
 function Dialog:close()

@@ -148,11 +148,13 @@ local namespaces = {
 		enum Relativity
 			"editor" "win" "cursor"
 		end
-		enum Border
+		enum PredefinedBorder
 			"none"
 			"single"
 			"double"
+			"shadow"
 		end
+		type Border = PredefinedBorder | { string | { string, string } }
 	
 		win: Id
 		relative: Relativity
@@ -165,7 +167,7 @@ local namespaces = {
 		focusable: boolean
 		external: boolean
 		style: Style
-		border: Border | { string | {string, string} }
+		border: Border
 	end]],
          "getConfig: function(Window): Config",
          "setConfig: function(Window, Config)",

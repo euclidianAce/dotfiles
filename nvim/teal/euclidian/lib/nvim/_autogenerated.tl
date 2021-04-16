@@ -97,6 +97,19 @@ local record Buffer
 		"varsofttabstop"
 		"vartabstop"
 	end
+	enum IntegerOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
+	end
 	enum BooleanOpt
 		"autoindent"
 		"autoread"
@@ -119,19 +132,6 @@ local record Buffer
 		"swapfile"
 		"undofile"
 	end
-	enum IntegerOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
 end
@@ -148,11 +148,13 @@ local record Window
 		enum Relativity
 			"editor" "win" "cursor"
 		end
-		enum Border
+		enum PredefinedBorder
 			"none"
 			"single"
 			"double"
+			"shadow"
 		end
+		type Border = PredefinedBorder | { string | { string, string } }
 	
 		win: Id
 		relative: Relativity
@@ -165,7 +167,7 @@ local record Window
 		focusable: boolean
 		external: boolean
 		style: Style
-		border: Border | { string | {string, string} }
+		border: Border
 	end
 	getConfig: function(Window): Config
 	setConfig: function(Window, Config)
@@ -211,6 +213,17 @@ local record Window
 		"statusline"
 		"winhighlight"
 	end
+	enum IntegerOpt
+		"conceallevel"
+		"foldlevel"
+		"foldminlines"
+		"foldnestmax"
+		"numberwidth"
+		"scroll"
+		"scrolloff"
+		"sidescrolloff"
+		"winblend"
+	end
 	enum BooleanOpt
 		"arabic"
 		"breakindent"
@@ -230,17 +243,6 @@ local record Window
 		"winfixheight"
 		"winfixwidth"
 		"wrap"
-	end
-	enum IntegerOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"scrolloff"
-		"sidescrolloff"
-		"winblend"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

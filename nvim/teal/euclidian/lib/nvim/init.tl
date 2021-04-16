@@ -166,7 +166,7 @@ function nvim.setKeymap(mode: vim.Mode, lhs: string, rhs: string | function, use
 		a.nvim_set_keymap(mode, lhs, rhs, userSettings)
 	else
 		local key <const> = "keymap" .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
-		nvim._exports[key] = failsafe(rhs, "Error in keymap: ")
+		nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
 		a.nvim_set_keymap(
 			mode,
 			lhs,
@@ -185,7 +185,7 @@ nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string,
 		a.nvim_buf_set_keymap(self.id, mode, lhs, rhs, userSettings)
 	else
 		local key <const> = "bufkeymap" .. tostring(self.id) .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
-		nvim._exports[key] = failsafe(rhs, "Error in keymap: ")
+		nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
 		a.nvim_buf_set_keymap(
 			self.id,
 			mode,

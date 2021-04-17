@@ -30,7 +30,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export DOTFILE_DIR="$HOME/dotfiles"
 
 # set nvim as the default editor
-export EDITOR="nvim-qt --nvim /usr/local/bin/nvim"
+export EDITOR="nvim-qt --nvim /usr/local/bin/nvim --nofork"
 export MANPAGER="nvim +Man!"
 
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"

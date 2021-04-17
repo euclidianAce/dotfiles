@@ -40,9 +40,10 @@ end
 
 local function moveDown(d: Dialog, n: integer)
 	if n > 0 then
-		local c = d.win:getConfig()
+		local win <const> = d:win()
+		local c = win:getConfig()
 		c.row = (c.row as {boolean:integer})[false] + n
-		d.win:setConfig(c)
+		win:setConfig(c)
 	end
 end
 
@@ -60,7 +61,7 @@ local function dismiss(d: Dialog)
 	local acc = 0
 
 	if n.d then
-		acc = n.d.win:getHeight() + borderOffset
+		acc = n.d:win():getHeight() + borderOffset
 		n.d:close()
 	end
 	n = n.next
@@ -86,7 +87,7 @@ function notification.create(txt: string, opts: Opts)
 
 	local n = lastNode()
 	if n.d then
-		local conf <const> = n.d.win:getConfig()
+		local conf <const> = n.d:win():getConfig()
 		dOpts.row = (conf.row as {boolean:integer})[false] - dOpts.hei - borderOffset
 	end
 

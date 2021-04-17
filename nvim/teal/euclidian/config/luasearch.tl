@@ -34,7 +34,7 @@ local function findMatches(buf: nvim.Buffer, patt: string): function(): integer,
 end
 
 hi.LuaSearch = hi.Search
-hi.LuaSearchCapture = { hi.STLNormal[1], hi.LuaSearch[2], "bold" }
+hi.LuaSearchCapture = { -1, -1, "bold,underline" }
 local function exec()
 	local buf <const> = nvim.Buffer()
 
@@ -43,13 +43,13 @@ local function exec()
 		row = -10, col = 0.5,
 		centered = { horizontal = true },
 		interactive = true,
+		ephemeral = true,
 	}
-	d.buf:setOption("bufhidden", "wipe") -- TODO: make this a dialog option, something like `ephemeral = true`
 	nvim.command [[startinsert]]
 
 	local ns <const> = vim.api.nvim_create_namespace("luasearch")
-	nvim.autocmd({"BufDelete", "BufHidden", "BufWipeout"}, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d.buf.id })
-	d.buf:attach(false, {
+	nvim.autocmd({"BufDelete", "BufHidden", "BufWipeout"}, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d:assertBuf().id })
+	d:assertBuf():attach(false, {
 		on_lines = function()
 			buf:clearNamespace(ns, 0, -1)
 			local patt <const> = d:getLine(1)

@@ -143,7 +143,7 @@ do -- floating buffer to execute some lua
 		hidden = true,
 	}
 	d:setModifiable(true)
-	local buf <const> = d.buf
+	local buf <const> = d:assertBuf()
 
 	buf:setOption("ft", "teal")
 	buf:setOption("tabstop", 3)
@@ -181,31 +181,31 @@ do -- floatterm
 		interactive = true,
 		hidden = true,
 	}
+	local buf <const> = d:assertBuf()
 
 	local openTerm, hideTerm: function(), function()
-	d.buf:setOption("modified", false)
+	buf:setOption("modified", false)
 	local bufOpenTerm <const> = vim.schedule_wrap(function()
 		vim.fn.termopen("bash")
 	end) as function(): nil
 	local key <const> = ""
 
 	M._exports.getTermChannel = function(): integer
-		return d.buf:getOption("channel")
+		return buf:getOption("channel")
 	end
 	M._exports.termSend = function(s: string): boolean
-		if not d.buf:isValid() then
+		if not buf:isValid() then
 			return false
 		end
-		a.nvim_chan_send(d.buf:getOption("channel"), s)
+		a.nvim_chan_send(buf:getOption("channel"), s)
 		return true
 	end
 
 	openTerm = function()
-		if d.buf:getOption("buftype") ~= "terminal" then
-			d.buf:call(bufOpenTerm)
+		if buf:getOption("buftype") ~= "terminal" then
+			buf:call(bufOpenTerm)
 		end
-		d:show()
-		d.win:setOption("winblend", 8)
+		d:show():win():setOption("winblend", 8)
 	end
 
 	hideTerm = function()
@@ -213,26 +213,139 @@ do -- floatterm
 		map("n", key, openTerm)
 	end
 
-	bufMap(d.buf.id, {"t", "n"}, key, hideTerm)
+	bufMap(buf.id, {"t", "n"}, key, hideTerm)
 	map("n", key, openTerm)
 end
 
 do -- cd dialog
-	local d: dialog.Dialog = dialog.new{
-		wid = 0.4, hei = 0.2,
-		centered = true,
-		interactive = true,
-		hidden = true,
-	}
-	map("n", "<leader>cd", function()
-		local cwd <const> = vim.loop.cwd()
-		local lns <const> = { "== SUPER DUPER WIP ==", "Cwd: " .. cwd }
-		for file in uv.fs_scandir_next, uv.fs_scandir(cwd) do
-			table.insert(lns, file)
+
+-- TODO: turn this into a telescope lens
+-- TODO: dialog api should have some concept of a window/dialog group
+	local input, result: dialog.Dialog, dialog.Dialog
+	local function init()
+		if not input then
+			input = dialog.new{
+				row = .25,
+				wid = .4, hei = 1,
+				centered = { horizontal = true },
+				ephemeral = true,
+				interactive = true,
+			}
 		end
-		d:setLines(lns)
-		d:show()
-	end)
+		if not result then
+			result = dialog.new{
+				row = .3,
+				wid = .4, hei = .2,
+				centered = { horizontal = true },
+				ephemeral = true,
+			}
+		end
+	end
+	local function close()
+		if input then input:close() end input = nil
+		if result then result:close() end result = nil
+	end
+
+	local function ls(dirname: string): {string}
+		local res = {}
+		local scanner = uv.fs_scandir(dirname)
+		if scanner then
+			for f in uv.fs_scandir_next, scanner do
+				table.insert(res, f)
+			end
+		end
+		return res
+	end
+
+	local function cdDialog()
+		init()
+		result:show(true)
+		input:show()
+		nvim.command[[startinsert]]
+
+		local b = input:assertBuf()
+		input:setModifiable(true)
+
+		local function currentInput(): string, string
+			local ln = input:getLine(1)
+			local head, tail = ln:match("(.*)/([^/]*)$")
+			if not tail then
+				return "", ln
+			end
+			return head, tail
+		end
+
+		local function currentDir(): string
+			return uv.cwd() .. "/" .. currentInput()
+		end
+
+		local function isDir(path: string): boolean
+			local stat = uv.fs_stat(path)
+			return stat and stat.type == "directory"
+		end
+
+		b:setKeymap("n", "<esc>", close, {})
+		b:setKeymap("i", "<esc>", function() nvim.command[[stopinsert]] close() end, {})
+		b:setKeymap("i", "<cr>", function()
+			local res = input:getLine(1)
+			close()
+			nvim.command[[stopinsert]]
+			nvim.command("cd " .. res)
+			print("cd: " .. res)
+		end, {})
+
+		b:setKeymap("i", "<tab>", function()
+			local cd = currentDir()
+			local head, tail = currentInput()
+			local matches = {}
+			local patt = "^" .. vim.pesc(tail)
+			for _, v in ipairs(ls(cd)) do
+				if v:match(patt) and isDir((#head > 0 and head .. "/" or "") .. v) then
+					table.insert(matches, v)
+				end
+			end
+			if #matches == 1 then
+				vim.schedule(function()
+					local newLn = (#head > 0 and head .. "/" or "") .. matches[1] .. "/"
+					input:setLines{ newLn }
+					input:setCursor(1, #newLn)
+				end)
+			else
+				vim.schedule(function()
+					result:setLines{
+						"ls: " .. cd .. (cd:match("/$") and "" or "/") .. "...",
+						("-- %q --"):format(tail)
+					}
+					result:appendLines(matches)
+				end)
+			end
+		end, {})
+
+		local function updateResultText()
+			local cd = currentDir()
+			local dirs, files = {}, {}
+			for _, v in ipairs(ls(cd)) do
+				table.insert(isDir(cd .. "/" .. v) and dirs or files, v)
+			end
+			vim.schedule(function()
+				result:setLines{
+					"ls: " .. cd,
+					("-- %d Director%s --"):format(#dirs, #dirs == 1 and "y" or "ies")
+				}
+				result:appendLines(dirs)
+				result:appendLines{
+					("-- %d File%s --"):format(#files, #files == 1 and "" or "s")
+				}
+				result:appendLines(files)
+			end)
+		end
+
+		b:attach(true, { on_lines = updateResultText })
+
+		updateResultText()
+	end
+
+	map("n", "<leader>cd", cdDialog)
 end
 
 return M

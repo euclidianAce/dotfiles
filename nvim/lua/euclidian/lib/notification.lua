@@ -40,9 +40,10 @@ end
 
 local function moveDown(d, n)
    if n > 0 then
-      local c = d.win:getConfig()
+      local win = d:win()
+      local c = win:getConfig()
       c.row = (c.row)[false] + n
-      d.win:setConfig(c)
+      win:setConfig(c)
    end
 end
 
@@ -60,7 +61,7 @@ local function dismiss(d)
    local acc = 0
 
    if n.d then
-      acc = n.d.win:getHeight() + borderOffset
+      acc = n.d:win():getHeight() + borderOffset
       n.d:close()
    end
    n = n.next
@@ -86,7 +87,7 @@ function notification.create(txt, opts)
 
    local n = lastNode()
    if n.d then
-      local conf = n.d.win:getConfig()
+      local conf = n.d:win():getConfig()
       dOpts.row = (conf.row)[false] - dOpts.hei - borderOffset
    end
 

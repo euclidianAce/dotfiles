@@ -24,7 +24,7 @@ end
 local function createDialog(fn: function(Dialog)): function(): NilFrame
 	return function(): NilFrame
 		local d <const> = dialog.new{wid = 35, hei = 17, centered = true}
-		d.win:setOption("wrap", false)
+		d:win():setOption("wrap", false)
 		return z.async(fn as function, d) as NilFrame
 	end
 end

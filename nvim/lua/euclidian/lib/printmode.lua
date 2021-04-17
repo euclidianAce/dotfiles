@@ -37,11 +37,7 @@ local modes = {
    buffer = function(...)
       local args = { n = select("#", ...), ... }
       vim.schedule(function()
-         assert(printDialog.buf:isValid())
-
-         if not printDialog.win:isValid() then
-            printDialog:show()
-         end
+         printDialog:show()
 
          local text = {}
          for i = 1, args.n do

@@ -41,6 +41,7 @@ local function genMetatable<T>(t: T, prefix: string): metatable<T>
 	local cache <const>: {integer:T} = setmetatable({}, { __mode = "kv" })
 	local api <const> = vim.api as {string:function}
 	return {
+		__name = "nvim." .. prefix,
 		__call = function(_: T, n: integer): T
 			if not n or n == 0 then
 				n = api["nvim_get_current_" .. prefix]() as integer

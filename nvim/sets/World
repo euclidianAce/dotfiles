@@ -32,5 +32,8 @@ Package { kind = "git",
 Package { kind = "git",
           id = 11,
           repo = "iamcco/markdown-preview.nvim" }
+Package { kind = "git",
+          id = 12,
+          repo = "equalsraf/neovim-gui-shim" }
 
--- vim: ft=lua
+-- vim: ft=teal

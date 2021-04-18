@@ -16,11 +16,13 @@ local function packaddSet(setname)
    local pre, post = {}, {}
    local ps = set.load(setname)
    for _, pkg in ipairs(ps) do
-      if pkg.kind == "git" then
-         packadd(pkg.alias or pkg.repo:match("[^/]+$"))
-      elseif pkg.kind == "local" then
-         table.insert(pre, 1, pkg.path)
-         table.insert(post, pkg.path .. "/after")
+      if pkg:isInstalled() then
+         if pkg.kind == "git" then
+            packadd(pkg.alias or pkg.repo:match("[^/]+$"))
+         elseif pkg.kind == "local" then
+            table.insert(pre, 1, pkg.path)
+            table.insert(post, pkg.path .. "/after")
+         end
       end
    end
    local rtp = vim.api.nvim_list_runtime_paths()

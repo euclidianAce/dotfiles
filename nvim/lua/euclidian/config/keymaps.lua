@@ -143,7 +143,7 @@ do
       hidden = true,
    })
    d:setModifiable(true)
-   local buf = d:assertBuf()
+   local buf = d:ensureBuf()
 
    buf:setOption("ft", "teal")
    buf:setOption("tabstop", 3)
@@ -181,7 +181,7 @@ do
       interactive = true,
       hidden = true,
    })
-   local buf = d:assertBuf()
+   local buf = d:ensureBuf()
 
    local openTerm, hideTerm
    buf:setOption("modified", false)
@@ -263,7 +263,7 @@ do
       input:show()
       nvim.command([[startinsert]])
 
-      local b = input:assertBuf()
+      local b = input:ensureBuf()
       input:setModifiable(true)
 
       local function currentInput()

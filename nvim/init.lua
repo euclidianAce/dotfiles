@@ -91,7 +91,7 @@ nvim.command [[set undofile]]
 
 set(vim.o, {
 	guifont = "JuliaMono:h10",
-	guifontwide = "JuliaMono:h10",
+	-- guifontwide = "JuliaMono:h10",
 	guicursor = "a:block",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
@@ -180,6 +180,8 @@ euclidian = {
 }
 
 confreq "luasearch"
+
+pcall(function() nvim.command[[GuiRenderLigatures 1]] end)
 
 setmetatable(_G, {
 	__index = function(_, key)

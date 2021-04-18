@@ -143,7 +143,7 @@ do -- floating buffer to execute some lua
 		hidden = true,
 	}
 	d:setModifiable(true)
-	local buf <const> = d:assertBuf()
+	local buf <const> = d:ensureBuf()
 
 	buf:setOption("ft", "teal")
 	buf:setOption("tabstop", 3)
@@ -181,7 +181,7 @@ do -- floatterm
 		interactive = true,
 		hidden = true,
 	}
-	local buf <const> = d:assertBuf()
+	local buf <const> = d:ensureBuf()
 
 	local openTerm, hideTerm: function(), function()
 	buf:setOption("modified", false)
@@ -263,7 +263,7 @@ do -- cd dialog
 		input:show()
 		nvim.command[[startinsert]]
 
-		local b = input:assertBuf()
+		local b = input:ensureBuf()
 		input:setModifiable(true)
 
 		local function currentInput(): string, string

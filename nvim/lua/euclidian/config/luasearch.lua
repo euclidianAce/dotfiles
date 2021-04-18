@@ -48,8 +48,8 @@ local function exec()
    nvim.command([[startinsert]])
 
    local ns = vim.api.nvim_create_namespace("luasearch")
-   nvim.autocmd({ "BufDelete", "BufHidden", "BufWipeout" }, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d:assertBuf().id })
-   d:assertBuf():attach(false, {
+   nvim.autocmd({ "BufDelete", "BufHidden", "BufWipeout" }, nil, function() buf:clearNamespace(ns, 0, -1) end, { buffer = d:ensureBuf().id })
+   d:ensureBuf():attach(false, {
       on_lines = function()
          buf:clearNamespace(ns, 0, -1)
          local patt = d:getLine(1)

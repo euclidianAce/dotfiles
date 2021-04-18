@@ -93,7 +93,7 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 	end
 end
 
-local defaultBorderHighlight = "Normal"
+local defaultBorderHighlight <const> = "Normal"
 local defaultBorder <const>: nvim.Window.Config.Border = {
 	{"╭", defaultBorderHighlight},
 	{"─", defaultBorderHighlight},
@@ -195,9 +195,7 @@ function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
 	local buf <const> = setupBuf(opts, maybeBuf)
 	local win <const> = setupWin(opts, buf)
 
-	local d <const> = setmetatable({
-		regions = {},
-	}, { __index = Dialog })
+	local d <const> = setmetatable({ regions = {} }, { __index = Dialog })
 
 	bufs[d] = buf
 	wins[d] = win
@@ -212,18 +210,19 @@ end
 function Dialog:buf(): nvim.Buffer
 	return bufs[self]
 end
-function Dialog:assertBuf(): nvim.Buffer -- always returns a valid buffer
+function Dialog:ensureBuf(): nvim.Buffer -- always returns a valid buffer
 	if bufs[self]:isValid() then
 		return bufs[self]
 	end
 	bufs[self] = setupBuf(self:origOpts())
+	assert(bufs[self]:isValid(), "Dialog:ensureBuf() produced an invalid buffer")
 	return bufs[self]
 end
 function Dialog:win(): nvim.Window
 	return wins[self]
 end
 function Dialog:show(dontSwitch: boolean): Dialog
-	if self:win():isValid() then
+	if wins[self]:isValid() then
 		-- already showing
 		return self
 	end
@@ -236,15 +235,22 @@ function Dialog:show(dontSwitch: boolean): Dialog
 	opts.hidden = false
 	opts.interactive = not dontSwitch
 
-	wins[self] = setupWin(opts, self:assertBuf())
+	wins[self] = setupWin(opts, self:ensureBuf())
 
 	return self
 end
+function Dialog:ensureWin(): nvim.Window
+	-- implicitly ensures the buffer as well
+	self:show(true)
+	assert(wins[self]:isValid(), "Dialog:ensureWin() produced an invalid window")
+	return wins[self]
+end
+
 function Dialog:isModifiable(): boolean
-	return self:assertBuf():getOption("modifiable")
+	return self:ensureBuf():getOption("modifiable")
 end
 function Dialog:setModifiable(to: boolean)
-	self:assertBuf():setOption("modifiable", to)
+	self:ensureBuf():setOption("modifiable", to)
 end
 function Dialog:modify(fn: function(Dialog)): Dialog
 	local orig <const> = self:isModifiable()
@@ -255,47 +261,47 @@ function Dialog:modify(fn: function(Dialog)): Dialog
 end
 function Dialog:setLines(txt: {string}): Dialog
 	return self:modify(function()
-		self:assertBuf():setLines(0, -1, false, txt)
+		self:ensureBuf():setLines(0, -1, false, txt)
 	end)
 end
 function Dialog:appendLines(txt: {string}): Dialog
 	return self:modify(function()
-		self:buf():setLines(-1, -1, false, txt)
+		bufs[self]:setLines(-1, -1, false, txt)
 	end)
 end
 function Dialog:setLine(num: integer, ln: string): Dialog
 	return self:modify(function()
-		self:buf():setLines(num, num + 1, false, { ln })
+		bufs[self]:setLines(num, num + 1, false, { ln })
 	end)
 end
 function Dialog:setText(edits: {{string, integer, integer, integer, integer}}): Dialog
 	-- edit: {text, start_row, start_col, end_row, end_col}
 	return self:modify(function()
-		local b <const> = self:buf()
+		local b <const> = bufs[self]
 		for _, edit in ipairs(edits) do
 			b:setText(edit[2], edit[3], edit[4], edit[5], {edit[1]})
 		end
 	end)
 end
 function Dialog:setCursor(row: integer, col: integer): Dialog
-	self:win():setCursor{row or 1, col or 0}
+	self:ensureWin():setCursor{row or 1, col or 0}
 	return self
 end
 function Dialog:getCursor(): integer, integer
-	local pos <const> = self:win():getCursor()
+	local pos <const> = self:ensureWin():getCursor()
 	return pos[1], pos[2]
 end
 function Dialog:getLine(n: integer): string
-	return self:assertBuf():getLines(n - 1, n, false)[1]
+	return self:ensureBuf():getLines(n - 1, n, false)[1]
 end
 function Dialog:getCurrentLine(): string
 	return self:getLine((self:getCursor()))
 end
 function Dialog:getLines(min: integer, max: integer): {string}
-	return self:assertBuf():getLines(min or 0, max or -1, false)
+	return self:ensureBuf():getLines(min or 0, max or -1, false)
 end
 function Dialog:setWinConfig(c: nvim.Window.Config): Dialog
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local orig <const> = win:getConfig() as table
 	local new <const>: table = {}
 	for k, v in pairs(orig) do
@@ -305,7 +311,7 @@ function Dialog:setWinConfig(c: nvim.Window.Config): Dialog
 	return self
 end
 function Dialog:moveAbsolute(row: integer, col: integer): Dialog
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local c <const> = win:getConfig()
 	c.row = row
 	c.col = col
@@ -313,7 +319,7 @@ function Dialog:moveAbsolute(row: integer, col: integer): Dialog
 	return self
 end
 function Dialog:moveRelative(drow: integer, dcol: integer): Dialog
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local c <const> = win:getConfig()
 	c.row = c.row + drow
 	c.col = c.col + dcol
@@ -324,19 +330,20 @@ function Dialog:setOpts(opts: Dialog.Opts): Dialog
 	return self:setWinConfig(dialog.optsToWinConfig(opts))
 end
 -- function Dialog:center(width: integer, height: integer): Dialog
-	-- assert(false and width and height)
+	-- local c = self:ensureWin():getConfig()
+	-- self:setWinConfig
 	-- return self:setOpts(dialog.centeredOpts(width, height))
 -- end
 function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: nvim.MapOpts): Dialog
-	self:assertBuf():setKeymap(mode, lhs, rhs, opts)
+	self:ensureBuf():setKeymap(mode, lhs, rhs, opts)
 	return self
 end
 function Dialog:delKeymap(mode: vim.Mode, lhs: string): Dialog
-	self:assertBuf():delKeymap(mode, lhs)
+	self:ensureBuf():delKeymap(mode, lhs)
 	return self
 end
 function Dialog:setPrompt(prompt: string, cb: function(string), int: function()): Dialog
-	local buf <const> = self:assertBuf()
+	local buf <const> = self:ensureBuf()
 	buf:setOption("modifiable", true)
 	buf:setOption("buftype", "prompt")
 	-- TODO: pester someone about getting api functions for this
@@ -347,14 +354,14 @@ function Dialog:setPrompt(prompt: string, cb: function(string), int: function())
 	return self
 end
 function Dialog:unsetPrompt(): Dialog
-	local buf <const> = self:assertBuf()
+	local buf <const> = self:ensureBuf()
 	buf:setOption("modifiable", false)
 	buf:setOption("buftype", "nofile")
 	nvim.command("stopinsert")
 	return self
 end
 function Dialog:fitText(minWid: integer, minHei: integer, maxWid: integer, maxHei: integer): Dialog
-	local lines <const> = self:assertBuf():getLines(0, -1, false)
+	local lines <const> = self:ensureBuf():getLines(0, -1, false)
 	local line = ""
 	for _, ln in ipairs(lines) do
 		if #ln > #line then
@@ -362,13 +369,13 @@ function Dialog:fitText(minWid: integer, minHei: integer, maxWid: integer, maxHe
 		end
 	end
 	local ui <const> = nvim.ui()
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	win:setHeight(clamp(#lines, minHei or 1, maxHei or ui.height))
 	win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
 	return self
 end
 function Dialog:fitTextPadded(colPad: integer, rowPad: integer, minWid: integer, minHei: integer, maxWid: integer, maxHei: integer): Dialog
-	local lines <const> = self:assertBuf():getLines(0, -1, false)
+	local lines <const> = self:ensureBuf():getLines(0, -1, false)
 	local line = ""
 	for _, ln in ipairs(lines) do
 		if #ln > #line then
@@ -376,7 +383,7 @@ function Dialog:fitTextPadded(colPad: integer, rowPad: integer, minWid: integer,
 		end
 	end
 	local ui <const> = nvim.ui()
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	win:setHeight(clamp(
 		#lines + (rowPad or 0),
 		minHei or 1,
@@ -391,7 +398,7 @@ function Dialog:fitTextPadded(colPad: integer, rowPad: integer, minWid: integer,
 end
 function Dialog:center(): Dialog
 	local ui <const> = nvim.ui()
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local cfg <const> = win:getConfig()
 	win:setConfig{
 		relative = "editor",
@@ -404,7 +411,7 @@ function Dialog:center(): Dialog
 end
 function Dialog:centerHorizontal(): Dialog
 	local ui <const> = nvim.ui()
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local cfg <const> = win:getConfig()
 	win:setConfig{
 		relative = "editor",
@@ -417,7 +424,7 @@ function Dialog:centerHorizontal(): Dialog
 end
 function Dialog:centerVertical(): Dialog
 	local ui <const> = nvim.ui()
-	local win <const> = self:win()
+	local win <const> = self:ensureWin()
 	local cfg <const> = win:getConfig()
 	win:setConfig{
 		relative = "editor",
@@ -429,11 +436,18 @@ function Dialog:centerVertical(): Dialog
 	return self
 end
 function Dialog:hide(): Dialog
-	self:win():hide()
+	local w <const> = self:win()
+	if not w:isValid() then
+		return self
+	end
+	w:hide()
 	return self
 end
 function Dialog:close()
-	self:win():close(true)
+	local w <const> = self:win()
+	if w:isValid() then
+		w:close(true)
+	end
 end
 
 local function cmpPos(a: TextRegion.Position, b: TextRegion.Position): boolean
@@ -484,7 +498,7 @@ end
 
 function TextRegion:set(s: string, clear: boolean): boolean
 	local d <const> = getmt(self).parent
-	local buf <const> = d:assertBuf()
+	local buf <const> = d:ensureBuf()
 	local inputLns <const> = { unpack(vim.split(s, "\n"), 1, self.nlines + 1) } -- trim excess lines
 
 	d:modify(function()

@@ -41,6 +41,11 @@ local Dialog = {Opts = {Center = {}, }, }
 
 local bufs = setmetatable({}, { __mode = "k", __index = function() return nvim.Buffer(-1) end })
 local wins = setmetatable({}, { __mode = "k", __index = function() return nvim.Window(-1) end })
+local links = setmetatable({}, { __mode = "k", __index = function(self, k)
+   local t = {}
+   rawset(self, k, t)
+   return t
+end, })
 local origOpts = setmetatable({}, { __mode = "k" })
 
 local function copyCenterOpts(o)
@@ -204,6 +209,29 @@ function dialog.new(opts, maybeBuf)
    return d
 end
 
+
+function Dialog:link(...)
+   local ls = links[self]
+   for i = 1, select("#", ...) do
+      local d = select(i, ...)
+      if d then
+         table.insert(ls, d)
+      end
+   end
+   return self
+end
+function Dialog:unlink(...)
+   local ls = links[self]
+   for argI = 1, select("#", ...) do
+      local d = select(argI, ...)
+      for i, v in ipairs(ls) do
+         if v == d then
+            table.remove(ls, i)
+         end
+      end
+   end
+end
+
 function Dialog:origOpts()
    return copyOpts(origOpts[self])
 end
@@ -297,8 +325,8 @@ end
 function Dialog:getCurrentLine()
    return self:getLine((self:getCursor()))
 end
-function Dialog:getLines(min, max)
-   return self:ensureBuf():getLines(min or 0, max or -1, false)
+function Dialog:getLines(minimum, maximum)
+   return self:ensureBuf():getLines(minimum or 0, maximum or -1, false)
 end
 function Dialog:setWinConfig(c)
    local win = self:ensureWin()
@@ -447,6 +475,22 @@ function Dialog:close()
    local w = self:win()
    if w:isValid() then
       w:close(true)
+   end
+end
+
+local linkedFns = {
+   hide = true,
+   close = true,
+   show = true,
+}
+local _Dialog = Dialog
+for k in pairs(linkedFns) do
+   local oldFn = _Dialog[k]
+   _Dialog[k] = function(self, ...)
+      for _, d in ipairs(links[self]) do
+         oldFn(d, ...)
+      end
+      return oldFn(self, ...)
    end
 end
 

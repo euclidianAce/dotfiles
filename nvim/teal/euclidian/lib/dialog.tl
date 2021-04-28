@@ -41,6 +41,11 @@ end
 
 local bufs <const>: {Dialog:nvim.Buffer} = setmetatable({}, { __mode = "k", __index = function(): nvim.Buffer return nvim.Buffer(-1) end })
 local wins <const>: {Dialog:nvim.Window} = setmetatable({}, { __mode = "k", __index = function(): nvim.Window return nvim.Window(-1) end })
+local links <const>: {Dialog:{Dialog}} = setmetatable({}, { __mode = "k" , __index = function(self: {Dialog:{Dialog}}, k: Dialog): {Dialog}
+	local t = {}
+	rawset(self, k, t)
+	return t
+end})
 local origOpts <const>: {Dialog:Dialog.Opts} = setmetatable({}, { __mode = "k" })
 
 local function copyCenterOpts(o: boolean | Dialog.Opts.Center): Dialog.Opts.Center
@@ -204,6 +209,29 @@ function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
 	return d
 end
 
+-- TODO: should probably keep linked dialogs in a set rather than a list
+function Dialog:link(...: Dialog): Dialog
+	local ls <const> = links[self]
+	for i = 1, select("#", ...) do
+		local d <const> = select(i, ...)
+		if d then
+			table.insert(ls, d)
+		end
+	end
+	return self
+end
+function Dialog:unlink(...: Dialog): Dialog
+	local ls <const> = links[self]
+	for argI = 1, select("#", ...) do
+		local d <const> = select(argI, ...)
+		for i, v in ipairs(ls) do
+			if v == d then
+				table.remove(ls, i)
+			end
+		end
+	end
+end
+
 function Dialog:origOpts(): Dialog.Opts
 	return copyOpts(origOpts[self])
 end
@@ -297,8 +325,8 @@ end
 function Dialog:getCurrentLine(): string
 	return self:getLine((self:getCursor()))
 end
-function Dialog:getLines(min: integer, max: integer): {string}
-	return self:ensureBuf():getLines(min or 0, max or -1, false)
+function Dialog:getLines(minimum: integer, maximum: integer): {string}
+	return self:ensureBuf():getLines(minimum or 0, maximum or -1, false)
 end
 function Dialog:setWinConfig(c: nvim.Window.Config): Dialog
 	local win <const> = self:ensureWin()
@@ -447,6 +475,22 @@ function Dialog:close()
 	local w <const> = self:win()
 	if w:isValid() then
 		w:close(true)
+	end
+end
+
+local linkedFns: {string:boolean} = {
+	hide = true,
+	close = true,
+	show = true,
+}
+local _Dialog = Dialog as {string:function(...: any): any...}
+for k in pairs(linkedFns) do
+	local oldFn <const> = _Dialog[k]
+	_Dialog[k] = function(self: Dialog, ...: any): any...
+		for _, d in ipairs(links[self]) do
+			oldFn(d, ...)
+		end
+		return oldFn(self, ...)
 	end
 end
 

@@ -57,17 +57,17 @@ local function genMetatable(t, prefix)
             return fn(self.id, ...)
          end
       end,
-      __eq = function(a, b)
-         if not (type(a) == "table") or not (type(b) == "table") then
+      __eq = function(self, other)
+         if not (type(self) == "table") or not (type(other) == "table") then
             return false
          end
-         local aMt = getmetatable(a)
-         local bMt = getmetatable(b)
-         if not aMt or not bMt then
+         local selfMt = getmetatable(self)
+         local otherMt = getmetatable(other)
+         if not selfMt or not otherMt then
             return false
          end
-         return (aMt.__index == bMt.__index) and
-         ((a).id == (b).id)
+         return (selfMt.__index == otherMt.__index) and
+         ((self).id == (other).id)
       end,
    }
 end

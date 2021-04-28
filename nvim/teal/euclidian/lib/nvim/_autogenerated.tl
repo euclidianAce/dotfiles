@@ -46,6 +46,41 @@ local record Buffer
 	addHighlight: function(Buffer, integer, string, integer, integer, integer): integer
 	clearNamespace: function(Buffer, integer, integer, integer)
 	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
+	enum BooleanOpt
+		"autoindent"
+		"autoread"
+		"binary"
+		"bomb"
+		"buflisted"
+		"cindent"
+		"copyindent"
+		"endofline"
+		"expandtab"
+		"fixendofline"
+		"infercase"
+		"lisp"
+		"modeline"
+		"modifiable"
+		"modified"
+		"preserveindent"
+		"readonly"
+		"smartindent"
+		"swapfile"
+		"undofile"
+	end
+	enum IntegerOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
+	end
 	enum StringOpt
 		"backupcopy"
 		"bufhidden"
@@ -96,41 +131,6 @@ local record Buffer
 		"thesaurus"
 		"varsofttabstop"
 		"vartabstop"
-	end
-	enum IntegerOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
-	enum BooleanOpt
-		"autoindent"
-		"autoread"
-		"binary"
-		"bomb"
-		"buflisted"
-		"cindent"
-		"copyindent"
-		"endofline"
-		"expandtab"
-		"fixendofline"
-		"infercase"
-		"lisp"
-		"modeline"
-		"modifiable"
-		"modified"
-		"preserveindent"
-		"readonly"
-		"smartindent"
-		"swapfile"
-		"undofile"
 	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
@@ -196,34 +196,6 @@ local record Window
 	isValid: function(Window): boolean
 	hide: function(Window)
 	close: function(Window, boolean)
-	enum StringOpt
-		"breakindentopt"
-		"colorcolumn"
-		"concealcursor"
-		"fillchars"
-		"foldcolumn"
-		"foldexpr"
-		"foldignore"
-		"foldmarker"
-		"foldmethod"
-		"foldtext"
-		"listchars"
-		"rightleftcmd"
-		"signcolumn"
-		"statusline"
-		"winhighlight"
-	end
-	enum IntegerOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"scrolloff"
-		"sidescrolloff"
-		"winblend"
-	end
 	enum BooleanOpt
 		"arabic"
 		"breakindent"
@@ -243,6 +215,34 @@ local record Window
 		"winfixheight"
 		"winfixwidth"
 		"wrap"
+	end
+	enum IntegerOpt
+		"conceallevel"
+		"foldlevel"
+		"foldminlines"
+		"foldnestmax"
+		"numberwidth"
+		"scroll"
+		"scrolloff"
+		"sidescrolloff"
+		"winblend"
+	end
+	enum StringOpt
+		"breakindentopt"
+		"colorcolumn"
+		"concealcursor"
+		"fillchars"
+		"foldcolumn"
+		"foldexpr"
+		"foldignore"
+		"foldmarker"
+		"foldmethod"
+		"foldtext"
+		"listchars"
+		"rightleftcmd"
+		"signcolumn"
+		"statusline"
+		"winhighlight"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

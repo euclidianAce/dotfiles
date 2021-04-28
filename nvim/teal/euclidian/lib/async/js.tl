@@ -72,7 +72,6 @@ local function newThreaded<T>(fn: function(function(T), function(T), ...: uv.Thr
 	local p <const> = setmetatable({} as Promise<T>, { __index = Promise })
 	states[p] = "pending"
 	thens[p] = {}
-	local args = table.pack(...) as {uv.Threadarg}
 	if fn then
 		local res, rej: uv.Async, uv.Async
 		res = uv.new_async(function(val: T)
@@ -99,7 +98,7 @@ local function newThreaded<T>(fn: function(function(T), function(T), ...: uv.Thr
 			end,
 			string.dump(fn),
 			res as uv.Threadarg, rej as uv.Threadarg,
-			unpack(args as nil) as uv.Threadarg -- TODO: There's some weirdness with generics here for some reason
+			...
 		)
 	end
 

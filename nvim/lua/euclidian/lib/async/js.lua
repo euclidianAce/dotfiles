@@ -72,7 +72,6 @@ local function newThreaded(fn, ...)
    local p = setmetatable({}, { __index = Promise })
    states[p] = "pending"
    thens[p] = {}
-   local args = table.pack(...)
    if fn then
       local res, rej
       res = uv.new_async(function(val)
@@ -99,7 +98,7 @@ local function newThreaded(fn, ...)
       end,
       string.dump(fn),
       res, rej,
-      unpack(args))
+      ...)
 
    end
 

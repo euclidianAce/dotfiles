@@ -115,7 +115,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			setKeymap = true,
 		},
 		entries = {
-			"call: function<T>(Buffer, function(): T): T",
+			"call: function(Buffer, function)",
 
 			"getOption: function(Buffer, StringOpt): string",
 			"getOption: function(Buffer, BooleanOpt): boolean",

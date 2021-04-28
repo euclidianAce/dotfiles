@@ -11,6 +11,7 @@ end
 
 hi = libreq "color" .scheme.hi
 palette = confreq "colors"
+
 -- applyHighlights("blue", "purple", "red", "orange")
 applyHighlights("red", "orange", "blue", "purple")
 
@@ -23,11 +24,13 @@ local nvim = libreq "nvim"
 nvim.command[[filetype indent on]]
 nvim.command[[syntax enable]]
 
+hi.TrailingSpace = hi.Error
+nvim.command[[match TrailingSpace /\s\+$/]]
+
 libreq "package-manager" {
 	enable = {
 		"World",
 		"TSPlayground",
-		-- "Test",
 	}
 }
 
@@ -55,7 +58,6 @@ nvim.augroup("Custom", {
 		win:setOption("foldmethod", "expr")
 		win:setOption("foldexpr", "nvim_treesitter#foldexpr()")
 
-		buf:setOption("syntax", "")
 		buf:setOption("shiftwidth", 3)
 		buf:setOption("tabstop", 3)
 	end },
@@ -106,7 +108,6 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	-- guifont = "Fira Code:h10",
 	-- guicursor = "a:block",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
@@ -129,7 +130,7 @@ set(vim.o, {
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
-	listchars = "tab:   ,trail:-,space:·,precedes:<,extends:>,nbsp:+",
+	listchars = "tab:   ,space:·,precedes:<,extends:>,nbsp:+",
 	fillchars = "fold: ,vert: ",
 	inccommand = "nosplit",
 	laststatus = 2,
@@ -167,9 +168,7 @@ if not lspconfig.teal then
 	}
 end
 lspconfig.teal.setup{}
-lspconfig.clangd.setup{
-	cmd = { "clangd", "--background-index", "-std=c++20" },
-}
+lspconfig.clangd.setup{}
 
 function req(lib)
 	package.loaded[lib] = nil

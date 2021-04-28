@@ -113,10 +113,12 @@ local function makeLine(tags, winId)
          table.insert(buf, ("%%#%s#"):format(component.hiGroup))
          if component.isFunc then
             if component.preEval then
-               table.insert(
-               buf,
-               statusline._funcs[component.funcId](winId))
-
+               local ok, res = pcall(statusline._funcs[component.funcId], winId)
+               if ok then
+                  table.insert(buf, res)
+               else
+                  table.insert(buf, "???")
+               end
             else
                table.insert(
                buf,
@@ -154,13 +156,13 @@ end
 function statusline.setInactive(winId)
    winId = winId or nvim.Window().id
    active[winId] = false
-   statusline.updateAllWindows()
+   statusline.updateWindow(winId)
 end
 
 function statusline.setActive(winId)
    winId = winId or nvim.Window().id
    active[winId] = true
-   statusline.updateAllWindows()
+   statusline.updateWindow(winId)
 end
 
 function statusline.toggleTag(name)
@@ -172,6 +174,10 @@ function statusline.toggleTag(name)
       end
    end
    statusline.updateAllWindows()
+end
+
+function statusline.tagToggler(name)
+   return function() statusline.toggleTag(name) end
 end
 
 function statusline.isActive(winId)

@@ -37,6 +37,17 @@ require("nvim-treesitter.configs").setup{
 	highlight = { enable = tsLangs },
 }
 
+if vim.fn.executable("clang-format") == 1 then
+	nvim.augroup("ClangFormatOnSave", {
+		{ "BufWritePre", { "*.hpp", "*.cpp" }, function()
+			local win = nvim.Window()
+			local cursor = win:getCursor()
+			nvim.command [[%%!clang-format]]
+			win:setCursor(cursor)
+		end }
+	})
+end
+
 nvim.augroup("Custom", {
 	{ "BufReadPost", {"*.tl", "*.lua"}, function()
 		local buf = nvim.Buffer()
@@ -64,6 +75,7 @@ nvim.augroup("Custom", {
 		buf:setOption("shiftwidth", 4)
 		buf:setOption("tabstop", 4)
 		buf:setOption("commentstring", "// %s")
+
 	end },
 
 	{ "TextYankPost", "*", function()
@@ -155,7 +167,9 @@ if not lspconfig.teal then
 	}
 end
 lspconfig.teal.setup{}
-lspconfig.clangd.setup{}
+lspconfig.clangd.setup{
+	cmd = { "clangd", "--background-index", "-std=c++20" },
+}
 
 function req(lib)
 	package.loaded[lib] = nil

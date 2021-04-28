@@ -9,6 +9,11 @@ function libreq(lib)
 	return require("euclidian.lib." .. lib)
 end
 
+hi = libreq "color" .scheme.hi
+palette = confreq "colors"
+-- applyHighlights("blue", "purple", "red", "orange")
+applyHighlights("red", "orange", "blue", "purple")
+
 libreq "printmode"
 	.set "inspect"
 	.override()
@@ -46,7 +51,6 @@ nvim.augroup("Custom", {
 
 	{ "BufReadPost", {"*.adb", "*.ads"}, function()
 		local buf = nvim.Buffer()
-		-- local win = nvim.Window()
 		buf:setOption("shiftwidth", 3)
 		buf:setOption("tabstop", 3)
 		buf:setOption("expandtab", true)
@@ -90,9 +94,8 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	guifont = "JuliaMono:h10",
-	-- guifontwide = "JuliaMono:h10",
-	guicursor = "a:block",
+	-- guifont = "Fira Code:h10",
+	-- guicursor = "a:block",
 	-- guicursor = "n:hor10",
 	-- guicursor = "n:hor10,i:ver10",
 
@@ -171,9 +174,6 @@ local function requirer(str)
 	})
 end
 
-hi = libreq "color" .scheme.hi
-palette = confreq "colors"
-
 euclidian = {
 	lib = requirer("euclidian.lib"),
 	config = requirer("euclidian.config"),
@@ -181,7 +181,13 @@ euclidian = {
 
 confreq "luasearch"
 
-pcall(function() nvim.command[[GuiRenderLigatures 1]] end)
+if vim.fn.exists(":GuiRenderLigatures") == 2 then
+	nvim.command[[GuiRenderLigatures 1]]
+end
+if vim.fn.exists(":GuiFont") == 2 then
+	-- apparently just "JuliaMono" doesn't have ligatures?
+	nvim.command[[GuiFont! JuliaMono Medium:h10]]
+end
 
 setmetatable(_G, {
 	__index = function(_, key)

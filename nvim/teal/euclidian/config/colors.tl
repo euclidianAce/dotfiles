@@ -115,7 +115,7 @@ local function applyHighlights(
 	hi.PreProc                 = { bright[secondary] }
 
 	hi.Todo                    = { bright[secondary], nil, "bold" }
-	hi.Error                   = { nil, normal[secondary], "bold" }
+	hi.Error                   = { nil, dark.red, "bold" }
 
 	hi.Underlined              = { nil, nil, "underline" }
 

@@ -8,9 +8,9 @@ local uv <const> = vim.loop
 
 local function combinations<A, B>(as: {A}, bs: {B}): function(): A, B
 	return coroutine.wrap(function(): A, B
-		for _, a in ipairs(as) do
-			for _, b in ipairs(bs) do
-				coroutine.yield(a, b)
+		for _, x in ipairs(as) do
+			for _, y in ipairs(bs) do
+				coroutine.yield(x, y)
 			end
 		end
 	end) as function(): (A, B)
@@ -143,35 +143,40 @@ do -- floating buffer to execute some lua
 		hidden = true,
 	}
 	d:setModifiable(true)
-	local buf <const> = d:ensureBuf()
 
-	buf:setOption("ft", "teal")
-	buf:setOption("tabstop", 3)
-	buf:setOption("shiftwidth", 3)
-	buf:setKeymap(
-		"n", "<cr>",
-		function()
-			local lines <const> = d:getLines()
-			local txt <const> = table.concat(lines, "\n")
+	local function configureBuf(buf: nvim.Buffer)
+		buf:setOption("ft", "teal")
+		buf:setOption("tabstop", 3)
+		buf:setOption("shiftwidth", 3)
+		buf:setKeymap(
+			"n", "<cr>",
+			function()
+				local lines <const> = d:getLines()
+				local txt <const> = table.concat(lines, "\n")
 
-			local chunk <const>, loaderr <const> = loadstring(txt)
-			if not chunk then
-				a.nvim_err_writeln(loaderr)
-				return
-			end
-			local ok <const>, err <const> = pcall(chunk) as (boolean, string)
-			if not ok then
-				a.nvim_err_writeln(err)
-			end
-		end,
-		{ silent = true, noremap = true }
-	)
-	buf:setKeymap(
-		"n", "",
-		function() d:hide() end,
-		{ silent = true, noremap = true }
-	)
-	map("n", "<leader>lua", function() d:show() end)
+				local chunk <const>, loaderr <const> = loadstring(txt)
+				if not chunk then
+					a.nvim_err_writeln(loaderr)
+					return
+				end
+				local ok <const>, err <const> = pcall(chunk) as (boolean, string)
+				if not ok then
+					a.nvim_err_writeln(err)
+				end
+			end,
+			{ silent = true, noremap = true }
+		)
+		buf:setKeymap(
+			"n", "",
+			function() d:hide() end,
+			{ silent = true, noremap = true }
+		)
+	end
+
+	map("n", "<leader>lua", function()
+		configureBuf(d:ensureBuf())
+		d:show()
+	end)
 end
 
 do -- floatterm
@@ -218,10 +223,11 @@ do -- floatterm
 end
 
 do -- cd dialog
+	-- TODO: turn this into a telescope lens
+	-- TODO: dialog api should have some concept of a window/dialog group
 
--- TODO: turn this into a telescope lens
--- TODO: dialog api should have some concept of a window/dialog group
 	local input, result: dialog.Dialog, dialog.Dialog
+	local currentlyMatching: boolean
 	local function init()
 		if not input then
 			input = dialog.new{
@@ -233,8 +239,10 @@ do -- cd dialog
 			}
 		end
 		if not result then
+			local cfg <const> = input:win():getConfig()
+			local row <const> = (cfg.row as {boolean:integer})[false] + cfg.height + 2
 			result = dialog.new{
-				row = .3,
+				row = row,
 				wid = .4, hei = .2,
 				centered = { horizontal = true },
 				ephemeral = true,
@@ -242,6 +250,7 @@ do -- cd dialog
 		end
 	end
 	local function close()
+		currentlyMatching = false
 		if input then input:close() end input = nil
 		if result then result:close() end result = nil
 	end
@@ -263,12 +272,12 @@ do -- cd dialog
 		input:show()
 		nvim.command[[startinsert]]
 
-		local b = input:ensureBuf()
+		local b <const> = input:ensureBuf()
 		input:setModifiable(true)
 
 		local function currentInput(): string, string
-			local ln = input:getLine(1)
-			local head, tail = ln:match("(.*)/([^/]*)$")
+			local ln <const> = input:getLine(1)
+			local head <const>, tail <const> = ln:match("(.*)/([^/]*)$")
 			if not tail then
 				return "", ln
 			end
@@ -276,69 +285,96 @@ do -- cd dialog
 		end
 
 		local function currentDir(): string
-			return uv.cwd() .. "/" .. currentInput()
+			local components <const>: {string} = {}
+			for _, path in ipairs{ uv.cwd(), (currentInput()) } do
+				for chunk in vim.gsplit(path, "/", true) do
+					if chunk == ".." then
+						table.remove(components)
+					else
+						table.insert(components, chunk)
+					end
+				end
+			end
+
+			return table.concat(components, "/")
 		end
 
 		local function isDir(path: string): boolean
-			local stat = uv.fs_stat(path)
+			local stat <const> = uv.fs_stat(path)
 			return stat and stat.type == "directory"
 		end
 
 		b:setKeymap("n", "<esc>", close, {})
 		b:setKeymap("i", "<esc>", function() nvim.command[[stopinsert]] close() end, {})
 		b:setKeymap("i", "<cr>", function()
-			local res = input:getLine(1)
+			local res <const> = input:getLine(1)
 			close()
-			nvim.command[[stopinsert]]
+			nvim.command [[stopinsert]]
 			nvim.command("cd " .. res)
 			print("cd: " .. res)
 		end, {})
 
-		b:setKeymap("i", "<tab>", function()
-			local cd = currentDir()
-			local head, tail = currentInput()
-			local matches = {}
-			local patt = "^" .. vim.pesc(tail)
-			for _, v in ipairs(ls(cd)) do
-				if v:match(patt) and isDir((#head > 0 and head .. "/" or "") .. v) then
-					table.insert(matches, v)
+		local function updateResultText()
+			local cd <const> = currentDir()
+			if currentlyMatching then
+				local head <const>, tail <const> = currentInput()
+				local matches <const> = {}
+				local patt <const> = "^" .. vim.pesc(tail)
+				for _, v in ipairs(ls(cd)) do
+					if v:match(patt) and isDir((#head > 0 and head .. "/" or "") .. v) then
+						table.insert(matches, v)
+					end
 				end
-			end
-			if #matches == 1 then
-				vim.schedule(function()
-					local newLn = (#head > 0 and head .. "/" or "") .. matches[1] .. "/"
-					input:setLines{ newLn }
-					input:setCursor(1, #newLn)
-				end)
+				if #matches == 1 then
+					currentlyMatching = false
+					vim.schedule(function()
+						local newLn <const> = (#head > 0 and head .. "/" or "") .. matches[1] .. "/"
+						input:setLines{ newLn }
+						input:setCursor(1, #newLn)
+					end)
+				else
+					vim.schedule(function()
+						result:setLines{
+							"ls: " .. cd .. (cd:match("/$") and "" or "/") .. "...",
+							("-- %d Director%s matching %q --"):format(
+								#matches,
+								#matches == 1 and "y" or "ies",
+								tail
+							)
+						}
+						result:appendLines(matches)
+					end)
+				end
 			else
+				local dirs <const>, files <const> = {}, {}
+				for _, v in ipairs(ls(cd)) do
+					table.insert(isDir(cd .. "/" .. v) and dirs or files, v)
+				end
 				vim.schedule(function()
 					result:setLines{
-						"ls: " .. cd .. (cd:match("/$") and "" or "/") .. "...",
-						("-- %q --"):format(tail)
+						"ls: " .. cd,
+						("-- %d Director%s --"):format(#dirs, #dirs == 1 and "y" or "ies")
 					}
-					result:appendLines(matches)
+					result:appendLines(dirs)
+					result:appendLines{
+						("-- %d File%s --"):format(#files, #files == 1 and "" or "s")
+					}
+					result:appendLines(files)
 				end)
 			end
-		end, {})
-
-		local function updateResultText()
-			local cd = currentDir()
-			local dirs, files = {}, {}
-			for _, v in ipairs(ls(cd)) do
-				table.insert(isDir(cd .. "/" .. v) and dirs or files, v)
-			end
-			vim.schedule(function()
-				result:setLines{
-					"ls: " .. cd,
-					("-- %d Director%s --"):format(#dirs, #dirs == 1 and "y" or "ies")
-				}
-				result:appendLines(dirs)
-				result:appendLines{
-					("-- %d File%s --"):format(#files, #files == 1 and "" or "s")
-				}
-				result:appendLines(files)
-			end)
 		end
+
+		b:setKeymap("i", "<tab>", function()
+			currentlyMatching = true
+			updateResultText()
+			if currentlyMatching then
+				b:setKeymap("i", "<bs>", function()
+					b:delKeymap("i", "<bs>")
+					currentlyMatching = false
+					updateResultText()
+				end, {})
+			end
+		end, {})
 
 		b:attach(true, { on_lines = updateResultText })
 
@@ -347,5 +383,15 @@ do -- cd dialog
 
 	map("n", "<leader>cd", cdDialog)
 end
+
+-- font resizing
+map("n", "<S-Up>", function()
+	local name <const>, size <const> = (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
+	a.nvim_set_option("guifont", name .. tostring(tonumber(size) + 2))
+end)
+map("n", "<S-Down>", function()
+	local name <const>, size <const> = (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
+	a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
+end)
 
 return M

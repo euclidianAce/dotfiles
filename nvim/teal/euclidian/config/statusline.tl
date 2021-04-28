@@ -25,17 +25,17 @@ local function invert(fgColor: integer): color.Color
 end
 
 hi.STLBufferInfo  = invert(hi.Comment[1])
-hi.STLGit         = invert(p.darkGreen)
-hi.STLFname       = invert(p.brightGray)
-hi.STLNormal      = invert(p.blue)
-hi.STLInsert      = invert(p.green)
-hi.STLCommand     = invert(p.purple)
-hi.STLReplace     = invert(p.red)
-hi.STLVisual      = invert(p.yellow)
-hi.STLTerminal    = invert(p.orange)
+hi.STLGit         = invert(p.dark.green)
+hi.STLFname       = invert(p.bright.gray)
+hi.STLNormal      = invert(p.normal.blue)
+hi.STLInsert      = invert(p.normal.green)
+hi.STLCommand     = invert(p.normal.purple)
+hi.STLReplace     = invert(p.normal.red)
+hi.STLVisual      = invert(p.normal.yellow)
+hi.STLTerminal    = invert(p.normal.orange)
 
 hi.StatusLine     = hi.STLBufferInfo
-hi.StatusLineNC   = invert(p.gray)
+hi.StatusLineNC   = invert(p.normal.gray)
 
 stl.mode("n", "Normal", "STLNormal")
 stl.mode("i", "Insert", "STLInsert")
@@ -44,8 +44,8 @@ stl.mode("r", "Confirm", "STLCommand")
 stl.mode("R", "Replace", "STLReplace")
 stl.mode("t", "Terminal", "STLTerminal")
 stl.mode("v", "Visual", "STLVisual")
-stl.mode("V", "Visual Line", "STLVisual")
-stl.mode("", "Visual Block", "STLVisual")
+stl.mode("V", "V·Line", "STLVisual")
+stl.mode("", "V·Block", "STLVisual")
 
 local alwaysActive <const> = {"Active", "Inactive"}
 local active <const> = {"Active"}
@@ -112,7 +112,7 @@ do -- git stuffs
 	end, "STLGit", true)
 
 	stl.toggleTag("Git")
-	nvim.setKeymap("n", "<F12>", function() stl.toggleTag("Git") end, {noremap = true})
+	nvim.setKeymap("n", "<F12>", stl.tagToggler("Git"), { noremap = true })
 end
 
 stl.add(alwaysActive, empty, function(winid: integer): string
@@ -135,16 +135,14 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 	local pos <const> = win:getCursor()
 
 	local out: {string} = {}
+
 	if stl.isActive(winid) then
 		-- tabs/spaces info
 		if wid > minWid then
-			local expandtab = buf:getOption("expandtab")
-			local num: integer
-			if expandtab then
-				num = buf:getOption("shiftwidth")
-			else
-				num = buf:getOption("tabstop")
-			end
+			local expandtab <const> = buf:getOption("expandtab")
+			local num <const> = expandtab
+				and buf:getOption("shiftwidth")
+				or buf:getOption("tabstop")
 			tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 		end
 

@@ -1,138 +1,185 @@
 
 -- Colorscheme
 vim.g.colors_name = "euclidian"
-local p <const> = {
-	darkFg       = 0x817998,
-	fg           = 0xD8CEE4,
-	brightFg     = 0xEFEFEF,
+local enum Color
+	"fg"
+	"bg"
+	"gray"
+	"red"
+	"green"
+	"yellow"
+	"blue"
+	"purple"
+	"orange"
+end
+local type Palette = {Color:integer}
 
-	darkBg       = 0x16131F,
-	bg           = 0x181520,
-	brightBg     = 0x2B2735,
-
-	darkGray     = 0x332F3C,
-	gray         = 0x464252,
-	brightGray   = 0x817998,
-
-	darkRed      = 0x77405F,
-	red          = 0xD16161,
-	brightRed    = 0xE69090,
-
-	darkGreen    = 0x50D480,
-	green        = 0x62F5A2,
-	brightGreen  = 0xA8EBC5,
-
-	darkBlue     = 0x395081,
-	blue         = 0x799AE0,
-	brightBlue   = 0xAAC3FD,
-
-	darkYellow   = 0xA59844,
-	yellow       = 0xD5C876,
-	brightYellow = 0xF0E7AC,
-
-	darkPurple   = 0x6554A0,
-	purple       = 0x9876D9,
-	brightPurple = 0xC7B1F2,
-
-	darkOrange   = 0xB47B46,
-	orange       = 0xE8AB73,
-	brightOrange = 0xC3AA93,
+local normal <const>: Palette = {
+	bg     = 0x181520,
+	fg     = 0xD8CEE4,
+	blue   = 0x799AE0,
+	gray   = 0x464252,
+	green  = 0x62F5A2,
+	orange = 0xE8AB73,
+	purple = 0x9876D9,
+	red    = 0xD16161,
+	yellow = 0xD5C876,
 }
 
-local hi <const> = require("euclidian.lib.color").scheme.hi
+local dark <const>: Palette = {
+	bg     = 0x16131F,
+	fg     = 0x817998,
+	blue   = 0x395081,
+	gray   = 0x332F3C,
+	green  = 0x50D480,
+	orange = 0xB47B46,
+	purple = 0x6554A0,
+	red    = 0x77405F,
+	yellow = 0x7B7532,
+}
 
--- ui stuffs
-hi.Normal                  = { p.fg, p.bg }
-hi.Visual                  = { -1, p.darkGray }
-hi.ErrorMsg                = { nil, p.red }
-hi.Question                = { p.darkGreen }
-hi.Search                  = { p.darkGreen, hi.Visual[2], "bold" }
-hi.IncSearch               = hi.Search
+local bright <const>: Palette = {
+	bg     = 0x2B2735,
+	fg     = 0xEFEFEF,
+	blue   = 0xAAC3FD,
+	gray   = 0x817998,
+	green  = 0xA8EBC5,
+	orange = 0xC3AA93,
+	purple = 0xC7B1F2,
+	red    = 0xE69090,
+	yellow = 0xF0E7AC,
+}
 
-hi.VertSplit               = { nil, p.bg }
-hi.StatusLine              = { nil, p.brightGray }
-hi.TabLine                 = { nil, p.brightGray }
-hi.TabLineSel              = { nil, p.gray, "bold" }
-hi.TabLineFill             = { nil, p.darkGray }
-hi.Title                   = { p.green, nil, "bold" }
+local color <const> = require("euclidian.lib.color")
+local hi <const> = color.scheme.hi
 
--- hi.NormalFloat             = { p.darkFg, p.brightBg }
-hi.FloatBorder             = { p.darkFg, p.brightBg }
+local function applyHighlights(
+	primary: Color,
+	primaryComplement: Color,
+	secondary: Color,
+	secondaryComplement: Color
+)
+	primary = primary or "fg"
+	primaryComplement = primaryComplement or primary
+	secondary = secondary or primary
+	secondaryComplement = secondaryComplement or secondary
 
-hi.Pmenu                   = { p.fg, p.brightBg }
-hi.PmenuSel                = { nil,  p.gray }
-hi.PmenuSbar               = { nil,  p.brightGray }
-hi.PmenuThumb              = { nil,  p.gray }
+	hi.Normal                  = { normal.fg, normal.bg }
+	hi.Visual                  = { -1, dark.gray }
+	hi.ErrorMsg                = { nil, normal.red }
+	hi.Question                = { dark.green }
+	hi.Search                  = { dark.green, hi.Visual[2], "bold" }
+	hi.IncSearch               = hi.Search
 
-hi.CursorLine              = { nil, p.brightBg }
-hi.CursorColumn            = { nil, p.brightBg }
-hi.LineNr                  = { p.gray, p.darkBg }
-hi.CursorLineNr            = { nil, p.darkBg }
+	hi.VertSplit               = { nil, normal.bg }
+	hi.StatusLine              = { nil, bright.gray }
+	hi.TabLine                 = { nil, bright.gray }
+	hi.TabLineSel              = { nil, normal.gray, "bold" }
+	hi.TabLineFill             = { nil, dark.gray }
+	hi.Title                   = { normal.green, nil, "bold" }
 
-hi.Folded                  = { p.darkRed, nil, "bold" }
-hi.FoldColumn              = { p.darkRed, p.darkBg, "bold" }
-hi.SignColumn              = { p.brightBg, p.darkBg }
-hi.NonText                 = { p.brightBg }
-hi.MatchParen              = { p.red, p.darkRed, "bold" }
+	hi.FloatBorder             = { dark.fg, bright.bg }
 
--- syntax
-hi.Comment                 = { p.darkRed }
-hi.Constant                = { p.red }
+	hi.Pmenu                   = { normal.fg, bright.bg }
+	hi.PmenuSel                = { nil,  normal.gray }
+	hi.PmenuSbar               = { nil,  bright.gray }
+	hi.PmenuThumb              = { nil,  normal.gray }
 
-hi.Identifier              = { p.fg }
-hi.Function                = { p.brightBlue, nil, "bold" }
+	hi.CursorLine              = { nil, bright.bg }
+	hi.CursorColumn            = { nil, bright.bg }
+	hi.LineNr                  = { normal.gray, dark.bg }
+	hi.CursorLineNr            = { nil, dark.bg }
 
-hi.Statement               = { p.blue }
-hi.Operator                = { p.darkPurple }
+	hi.Folded                  = { dark[secondary], nil, "bold" }
+	hi.FoldColumn              = { dark[secondary], dark.bg, "bold" }
+	hi.SignColumn              = { bright.bg, dark.bg }
+	hi.NonText                 = { bright.bg }
+	hi.MatchParen              = { normal[secondary], dark[secondary], "bold" }
 
-hi.Type                    = { p.purple }
-hi.Structure               = { p.darkPurple }
-hi.StorageClass            = { p.brightPurple, nil, "bold" }
+	hi.Comment                 = { dark[secondary] }
+	hi.Constant                = { normal[secondary] }
 
-hi.Special                 = { p.brightRed }
-hi.Delimiter               = { p.brightGray, -1 }
+	hi.Identifier              = { normal.fg }
+	hi.Function                = { bright[primary], nil, "bold" }
 
-hi.PreProc                 = { p.brightRed }
+	hi.Statement               = { normal[primary] }
+	hi.Operator                = { normal[primaryComplement] }
 
-hi.Todo                    = { p.brightRed, nil, "bold" }
-hi.Error                   = { nil, p.red, "bold" }
+	hi.Type                    = { normal[primaryComplement] }
+	hi.Structure               = { dark[secondaryComplement] }
+	hi.StorageClass            = { bright[primaryComplement], nil, "bold" }
 
-hi.Underlined              = { nil, nil, "underline" }
+	hi.Special                 = { bright[secondary] }
+	hi.Delimiter               = { dark[primary], -1 }
 
--- Treesitter
-hi.TSConstructor           = {  }
-hi.TSParameter             = { p.orange }
-hi.TSParameterReference    = { p.orange }
-hi.TSAttribute             = { p.brightPurple }
-hi.TSConstBuiltin          = { p.red }
+	hi.PreProc                 = { bright[secondary] }
 
-hi.String                  = hi.Constant
-hi.Character               = hi.Constant
-hi.Number                  = hi.Constant
-hi.Boolean                 = hi.Constant
-hi.Float                   = hi.Constant
+	hi.Todo                    = { bright[secondary], nil, "bold" }
+	hi.Error                   = { nil, normal[secondary], "bold" }
 
-hi.Conditional             = hi.Statement
-hi.Repeat                  = hi.Statement
-hi.Label                   = hi.Statement
-hi.Keyword                 = hi.Statement
-hi.Exception               = hi.Statement
+	hi.Underlined              = { nil, nil, "underline" }
 
-hi.Typedef                 = hi.Type
+	hi.TSConstructor           = {  }
+	hi.TSParameter             = { normal[secondaryComplement] }
+	hi.TSParameterReference    = { normal[secondaryComplement] }
+	hi.TSAttribute             = { bright[primaryComplement] }
+	hi.TSConstBuiltin          = { normal[secondary] }
 
-hi.SpecialComment          = hi.Special
-hi.SpecialChar             = hi.Special
-hi.SpecialKey              = hi.Special
-hi.Tag                     = hi.Special
-hi.Debug                   = hi.Special
+	hi.String                  = hi.Constant
+	hi.Character               = hi.Constant
+	hi.Number                  = hi.Constant
+	hi.Boolean                 = hi.Constant
+	hi.Float                   = hi.Constant
 
-hi.PreCondit               = hi.PreProc
-hi.Include                 = hi.PreProc
-hi.Define                  = hi.PreProc
-hi.Macro                   = hi.PreProc
+	hi.Conditional             = hi.Statement
+	hi.Repeat                  = hi.Statement
+	hi.Label                   = hi.Statement
+	hi.Keyword                 = hi.Statement
+	hi.Exception               = hi.Statement
 
-hi.Directory               = { p.blue }
-hi.WarningMsg              = { nil, p.red }
-hi.WildMenu                = { p.bg, p.yellow }
+	hi.Typedef                 = hi.Type
 
-return p
+	hi.SpecialComment          = hi.Special
+	hi.SpecialChar             = hi.Special
+	hi.SpecialKey              = hi.Special
+	hi.Tag                     = hi.Special
+	hi.Debug                   = hi.Special
+
+	hi.PreCondit               = hi.PreProc
+	hi.Include                 = hi.PreProc
+	hi.Define                  = hi.PreProc
+	hi.Macro                   = hi.PreProc
+
+	hi.Directory               = { normal[primary] }
+	hi.WarningMsg              = { nil, normal.red }
+	hi.WildMenu                = { normal.bg, normal.yellow }
+end
+
+;(_G as {string:any})["applyHighlights"] = applyHighlights
+
+local function hex(col: integer): string
+	return ("#%06X"):format(col)
+end
+vim.g.terminal_color_0 = hex(normal.bg)
+vim.g.terminal_color_1 = hex(normal.red)
+vim.g.terminal_color_2 = hex(normal.green)
+vim.g.terminal_color_3 = hex(normal.yellow)
+vim.g.terminal_color_4 = hex(normal.blue)
+vim.g.terminal_color_5 = hex(normal.purple)
+vim.g.terminal_color_6 = "cyan3"
+vim.g.terminal_color_7 = "gray90"
+
+vim.g.terminal_color_8 = "gray50"
+vim.g.terminal_color_9 = hex(bright.red)
+vim.g.terminal_color_10 = hex(bright.green)
+vim.g.terminal_color_11 = hex(bright.yellow)
+vim.g.terminal_color_12 = hex(bright.blue)
+vim.g.terminal_color_13 = "magenta"
+vim.g.terminal_color_14 = "cyan"
+vim.g.terminal_color_15 = "white"
+
+return {
+	normal = normal,
+	dark = dark,
+	bright = bright,
+}

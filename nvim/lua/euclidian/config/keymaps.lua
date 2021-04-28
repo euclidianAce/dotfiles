@@ -6,10 +6,10 @@ local dialog = require("euclidian.lib.dialog")
 local a = vim.api
 local uv = vim.loop
 
-local function combinations(as, bs)
+local function combinations(xs, ys)
    return coroutine.wrap(function()
-      for _, x in ipairs(as) do
-         for _, y in ipairs(bs) do
+      for _, x in ipairs(xs) do
+         for _, y in ipairs(ys) do
             coroutine.yield(x, y)
          end
       end
@@ -32,9 +32,7 @@ local function map(m, lhs, rhs)
       nvim.setKeymap(mode, l, rhs, { noremap = true, silent = true })
    end
 end
-local function unmap(m, lhs)
-   nvim.delKeymap(m, lhs)
-end
+local unmap = nvim.delKeymap
 
 local function bufMap(bufid, m, lhs, rhs)
    local buf = nvim.Buffer(bufid)
@@ -44,8 +42,7 @@ local function bufMap(bufid, m, lhs, rhs)
 end
 
 map("n", "<leader>cc", function()
-   local cursorPos = a.nvim_win_get_cursor(0)
-   require("euclidian.lib.commenter").commentLine(0, cursorPos[1])
+   require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
 end)
 local OperatorfuncMode = {}
 
@@ -69,10 +66,7 @@ M._exports.commentVisualSelection = function()
 
 end
 
-map(
-"n", "<leader>c",
-[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
-
+map("n", "<leader>c", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
 
 local getchar = vim.fn.getchar
@@ -82,8 +76,8 @@ M._exports.appendMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
    append.toRange(
-   b:getMark('[')[1] - 1,
-   b:getMark(']')[1],
+   b:getMark("[")[1] - 1,
+   b:getMark("]")[1],
    string.char(getchar()),
    b.id)
 
@@ -91,8 +85,8 @@ end
 M._exports.appendToVisualSelection = function()
    local b = nvim.Buffer()
    append.toRange(
-   b:getMark('<')[1] - 1,
-   b:getMark('>')[1],
+   b:getMark("<")[1] - 1,
+   b:getMark(">")[1],
    string.char(getchar()),
    b.id)
 
@@ -188,7 +182,6 @@ do
    })
    local buf = d:ensureBuf()
 
-   local openTerm, hideTerm
    buf:setOption("modified", false)
    local bufOpenTerm = vim.schedule_wrap(function()
       vim.fn.termopen("bash")
@@ -206,14 +199,14 @@ do
       return true
    end
 
-   openTerm = function()
+   local function openTerm()
       if buf:getOption("buftype") ~= "terminal" then
          buf:call(bufOpenTerm)
       end
       d:show():win():setOption("winblend", 8)
    end
 
-   hideTerm = function()
+   local function hideTerm()
       d:hide()
       map("n", key, openTerm)
    end
@@ -227,7 +220,7 @@ do
 
 
    local input, result
-   local currentlyMatching
+   local currentlyMatching = false
    local function init()
       if not input then
          input = dialog.new({
@@ -385,12 +378,15 @@ do
 end
 
 
+local function getGuiFontInfo()
+   return (a.nvim_get_option("guifont")):match("^(.*:h)(%d+)$")
+end
 map("n", "<S-Up>", function()
-   local name, size = (a.nvim_get_option("guifont")):match("^(.*:h)(%d+)$")
+   local name, size = getGuiFontInfo()
    a.nvim_set_option("guifont", name .. tostring(tonumber(size) + 2))
 end)
 map("n", "<S-Down>", function()
-   local name, size = (a.nvim_get_option("guifont")):match("^(.*:h)(%d+)$")
+   local name, size = getGuiFontInfo()
    a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
 end)
 

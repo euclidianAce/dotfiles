@@ -9,7 +9,7 @@ end
 local record Buffer
 	type Id = integer
 	id: Id
-	call: function<T>(Buffer, function(): T): T
+	call: function(Buffer, function)
 	getOption: function(Buffer, StringOpt): string
 	getOption: function(Buffer, BooleanOpt): boolean
 	getOption: function(Buffer, IntegerOpt): integer
@@ -68,19 +68,6 @@ local record Buffer
 		"swapfile"
 		"undofile"
 	end
-	enum IntegerOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
 	enum StringOpt
 		"backupcopy"
 		"bufhidden"
@@ -131,6 +118,19 @@ local record Buffer
 		"thesaurus"
 		"varsofttabstop"
 		"vartabstop"
+	end
+	enum IntegerOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
 	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
@@ -216,17 +216,6 @@ local record Window
 		"winfixwidth"
 		"wrap"
 	end
-	enum IntegerOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"scrolloff"
-		"sidescrolloff"
-		"winblend"
-	end
 	enum StringOpt
 		"breakindentopt"
 		"colorcolumn"
@@ -243,6 +232,17 @@ local record Window
 		"signcolumn"
 		"statusline"
 		"winhighlight"
+	end
+	enum IntegerOpt
+		"conceallevel"
+		"foldlevel"
+		"foldminlines"
+		"foldnestmax"
+		"numberwidth"
+		"scroll"
+		"scrolloff"
+		"sidescrolloff"
+		"winblend"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

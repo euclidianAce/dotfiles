@@ -6,14 +6,14 @@ local dialog <const> = require("euclidian.lib.dialog")
 local a <const> = vim.api
 local uv <const> = vim.loop
 
-local function combinations<A, B>(as: {A}, bs: {B}): function(): A, B
-	return coroutine.wrap(function(): A, B
-		for _, x in ipairs(as) do
-			for _, y in ipairs(bs) do
+local function combinations<X, Y>(xs: {X}, ys: {Y}): function(): X, Y
+	return coroutine.wrap(function(): X, Y
+		for _, x in ipairs(xs) do
+			for _, y in ipairs(ys) do
 				coroutine.yield(x, y)
 			end
 		end
-	end) as function(): (A, B)
+	end) as function(): (X, Y)
 end
 
 local function ensure_array<T>(t: T | {T}): {T}
@@ -32,9 +32,7 @@ local function map(m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string
 		nvim.setKeymap(mode, l, rhs, {noremap = true, silent = true})
 	end
 end
-local function unmap(m: vim.Mode, lhs: string)
-	nvim.delKeymap(m, lhs)
-end
+local unmap <const> = nvim.delKeymap
 
 local function bufMap(bufid: integer, m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
 	local buf <const> = nvim.Buffer(bufid)
@@ -44,8 +42,7 @@ local function bufMap(bufid: integer, m: vim.Mode | {vim.Mode}, lhs: string | {s
 end
 
 map("n", "<leader>cc", function()
-	local cursorPos = a.nvim_win_get_cursor(0)
-	require("euclidian.lib.commenter").commentLine(0, cursorPos[1])
+	require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
 end)
 local enum OperatorfuncMode -- TODO: put this in the .d.tl
 	"line" "char" "block"
@@ -69,21 +66,18 @@ M._exports.commentVisualSelection = function()
 	)
 end
 
-map(
-	"n", "<leader>c",
-	[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]]
-)
+map("n", "<leader>c", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
 
-local getchar <const> = vim.fn.getchar as function(): number
+local getchar <const> = vim.fn.getchar as function(): integer
 local append <const> = require("euclidian.lib.append")
 
 M._exports.appendMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
 	local b <const> = nvim.Buffer()
 	append.toRange(
-		b:getMark('[')[1] - 1,
-		b:getMark(']')[1],
+		b:getMark("[")[1] - 1,
+		b:getMark("]")[1],
 		string.char(getchar()),
 		b.id
 	)
@@ -91,8 +85,8 @@ end
 M._exports.appendToVisualSelection = function()
 	local b <const> = nvim.Buffer()
 	append.toRange(
-		b:getMark('<')[1] - 1,
-		b:getMark('>')[1],
+		b:getMark("<")[1] - 1,
+		b:getMark(">")[1],
 		string.char(getchar()),
 		b.id
 	)
@@ -188,11 +182,10 @@ do -- floatterm
 	}
 	local buf <const> = d:ensureBuf()
 
-	local openTerm, hideTerm: function(), function()
 	buf:setOption("modified", false)
 	local bufOpenTerm <const> = vim.schedule_wrap(function()
 		vim.fn.termopen("bash")
-	end) as function(): nil
+	end)
 	local key <const> = ""
 
 	M._exports.getTermChannel = function(): integer
@@ -206,14 +199,14 @@ do -- floatterm
 		return true
 	end
 
-	openTerm = function()
+	local function openTerm()
 		if buf:getOption("buftype") ~= "terminal" then
 			buf:call(bufOpenTerm)
 		end
 		d:show():win():setOption("winblend", 8)
 	end
 
-	hideTerm = function()
+	local function hideTerm()
 		d:hide()
 		map("n", key, openTerm)
 	end
@@ -227,7 +220,7 @@ do -- cd dialog
 	-- TODO: dialog api should have some concept of a window/dialog group
 
 	local input, result: dialog.Dialog, dialog.Dialog
-	local currentlyMatching: boolean
+	local currentlyMatching = false
 	local function init()
 		if not input then
 			input = dialog.new{
@@ -385,12 +378,15 @@ do -- cd dialog
 end
 
 -- font resizing
+local function getGuiFontInfo(): string, string
+	return (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
+end
 map("n", "<S-Up>", function()
-	local name <const>, size <const> = (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
+	local name <const>, size <const> = getGuiFontInfo()
 	a.nvim_set_option("guifont", name .. tostring(tonumber(size) + 2))
 end)
 map("n", "<S-Down>", function()
-	local name <const>, size <const> = (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
+	local name <const>, size <const> = getGuiFontInfo()
 	a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
 end)
 

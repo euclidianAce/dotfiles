@@ -8,8 +8,8 @@ local loader <const> = {}
 -- Holy shit packadd is cursed
 
 local command <const> = vim.api.nvim_command
-local function packadd(package: string)
-	command(([[packadd %s]]):format(package))
+local function packadd(pkg: string)
+	command(([[packadd %s]]):format(pkg))
 end
 
 local function packaddSet(setname: string)

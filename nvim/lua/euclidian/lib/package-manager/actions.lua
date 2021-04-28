@@ -23,7 +23,11 @@ end
 
 local function createDialog(fn)
    return function()
-      local d = dialog.new({ wid = 35, hei = 17, centered = true })
+      local d = dialog.new({
+         wid = 35, hei = 17, centered = true,
+         interactive = true,
+         ephemeral = true,
+      })
       d:win():setOption("wrap", false)
       return z.async(fn, d)
    end
@@ -154,8 +158,63 @@ local function checklist(d, pre, opts)
 end
 
 do
+   local function getPkgNames(s)
+      local pkgNames = {}
+      for i, v in ipairs(s) do
+         pkgNames[i] = v:title()
+      end
+      return pkgNames
+   end
+
+   local function askForDependents(d, s, p)
+      if yesOrNo(d, "Does other packages depend on this package?") then
+         local deps = checklist(d, "Dependents:", getPkgNames(s))
+         for _, idx in ipairs(deps) do
+            table.insert(p.dependents, s[idx])
+         end
+      end
+   end
+
+   local function askForDependencies(d, s, p)
+      if yesOrNo(d, "Does this package depend on other packages?") then
+         local deps = checklist(d, "Dependencies:", getPkgNames())
+         for _, idx in ipairs(deps) do
+            if not s[idx].dependents then
+               s[idx].dependents = {}
+            end
+            table.insert(s[idx].dependents, p)
+         end
+      end
+   end
+
    local function addVimPlugPackage()
       print("Vim Plug Package: not yet implemented")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    end
    local function addPackerPackage()
       print("Packer Package: not yet implemented")
@@ -172,25 +231,19 @@ do
          dependents = {},
          repo = repo,
       }
-      if yesOrNo(d, "Does this package depend on other packages?") then
-         local deps = checklist(d, "Dependencies:", pkgNames)
-         for _, idx in ipairs(deps) do
-            if not s[idx].dependents then
-               s[idx].dependents = {}
-            end
-            table.insert(s[idx].dependents, p)
-         end
-      end
-      if yesOrNo(d, "Do other packages depend on this package?") then
-         local deps = checklist(d, "Dependents:", pkgNames)
-         for _, idx in ipairs(deps) do
-            table.insert(p.dependents, s[idx])
-         end
-      end
+      askForDependencies(d, s, p)
+      askForDependents(d, s, p)
       table.insert(s, p)
    end
-   local function addLocalPackage()
-      print("Local package: Not yet implemented")
+   local function addLocalPackage(d, s)
+      d:setLines({})
+      local path = prompt(d, "Path: ")
+      local p = {
+         kind = "local",
+         dependents = {},
+         path = path,
+      }
+      table.insert(s, p)
    end
    local handlers = {
       [1] = addVimPlugPackage,
@@ -208,7 +261,7 @@ do
          "  from Packer expression",
          "  git",
          "  local",
-      }):fitText():center()
+      }):fitText(35):center()
 
       local ln
       repeat

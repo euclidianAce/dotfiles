@@ -23,7 +23,11 @@ end
 
 local function createDialog(fn: function(Dialog)): function(): NilFrame
 	return function(): NilFrame
-		local d <const> = dialog.new{wid = 35, hei = 17, centered = true}
+		local d <const> = dialog.new{
+			wid = 35, hei = 17, centered = true,
+			interactive = true,
+			ephemeral = true,
+		}
 		d:win():setOption("wrap", false)
 		return z.async(fn as function, d) as NilFrame
 	end
@@ -154,8 +158,63 @@ local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
 end
 
 do
+	local function getPkgNames(s: {Spec}): {string}
+		local pkgNames <const> = {}
+		for i, v in ipairs(s) do
+			pkgNames[i] = v:title()
+		end
+		return pkgNames
+	end
+
+	local function askForDependents(d: Dialog, s: {Spec}, p: Spec)
+		if yesOrNo(d, "Does other packages depend on this package?") then
+			local deps <const> = checklist(d, "Dependents:", getPkgNames(s))
+			for _, idx in ipairs(deps) do
+				table.insert(p.dependents, s[idx])
+			end
+		end
+	end
+
+	local function askForDependencies(d: Dialog, s: {Spec}, p: Spec)
+		if yesOrNo(d, "Does this package depend on other packages?") then
+			local deps <const> = checklist(d, "Dependencies:", getPkgNames())
+			for _, idx in ipairs(deps) do
+				if not s[idx].dependents then
+					s[idx].dependents = {}
+				end
+				table.insert(s[idx].dependents, p)
+			end
+		end
+	end
+
 	local function addVimPlugPackage()
 		print("Vim Plug Package: not yet implemented")
+		-- local function parseVimPlug(str)
+		-- 	local expr = str:match("^%s*Plug%s+(.*)$")
+		-- 	if not expr then
+		-- 		return nil, "Expected 'Plug'"
+		-- 	end
+		-- 	local name, pos = expr:match("^(%b'')()")
+		-- 	if not name then
+		-- 		name, pos = expr:match("^(%b\"\")()")
+		-- 	end
+		-- 	if not name then
+		-- 		return nil, "Expected string literal after 'Plug'"
+		-- 	end
+		-- 
+		-- 	local val = { name = name }
+		-- 
+		-- 	local dictBody = expr:sub(pos):match("%s*,%s{%s*(.*)%s*}%s*$")
+		-- 	if dictBody then
+		-- 		print("[debug] ", dictBody)
+		-- 		for k, v in dictBody:gmatch("%s*(.-)%s*:%s*(.*)%s*") do
+		-- 			print(key, val)
+		-- 			val[k] = v
+		-- 		end
+		-- 	end
+		-- 
+		-- 	return val
+		-- end
 	end
 	local function addPackerPackage()
 		print("Packer Package: not yet implemented")
@@ -172,25 +231,19 @@ do
 			dependents = {},
 			repo = repo,
 		}
-		if yesOrNo(d, "Does this package depend on other packages?") then
-			local deps <const> = checklist(d, "Dependencies:", pkgNames)
-			for _, idx in ipairs(deps) do
-				if not s[idx].dependents then
-					s[idx].dependents = {}
-				end
-				table.insert(s[idx].dependents, p)
-			end
-		end
-		if yesOrNo(d, "Do other packages depend on this package?") then
-			local deps <const> = checklist(d, "Dependents:", pkgNames)
-			for _, idx in ipairs(deps) do
-				table.insert(p.dependents, s[idx])
-			end
-		end
+		askForDependencies(d, s, p)
+		askForDependents(d, s, p)
 		table.insert(s, p)
 	end
-	local function addLocalPackage()
-		print("Local package: Not yet implemented")
+	local function addLocalPackage(d: Dialog, s: {Spec})
+		d:setLines{}
+		local path <const> = prompt(d, "Path: ")
+		local p <const>: Spec = {
+			kind = "local",
+			dependents = {},
+			path = path,
+		}
+		table.insert(s, p)
 	end
 	local handlers <const>: {integer:function(Dialog, {Spec})} = {
 		[1] = addVimPlugPackage,
@@ -208,7 +261,7 @@ do
 			"  from Packer expression",
 			"  git",
 			"  local",
-		}:fitText():center()
+		}:fitText(35):center()
 
 		local ln: integer
 		repeat

@@ -8,8 +8,8 @@ local loader = {}
 
 
 local command = vim.api.nvim_command
-local function packadd(package)
-   command(([[packadd %s]]):format(package))
+local function packadd(pkg)
+   command(([[packadd %s]]):format(pkg))
 end
 
 local function packaddSet(setname)

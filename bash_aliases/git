@@ -6,7 +6,7 @@ alias gd="git diff"
 alias gdt="git difftool -y"
 
 function ga {
-	git add "$@"
+	git add $@
 	git status --short
 }
 alias gaa="git add -A; git status --short"

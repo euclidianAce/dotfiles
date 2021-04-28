@@ -1,6 +1,9 @@
 # vim: filetype=bash
 # actual "aliases"
-alias e=$EDITOR
+
+function e {
+	$EDITOR $@
+}
 alias v="vim"
 alias nv="nvim"
 

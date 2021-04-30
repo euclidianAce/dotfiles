@@ -26,7 +26,7 @@ local record Dialog
 		interactive: boolean
 		hidden: boolean
 		ephemeral: boolean
-		
+
 		record Center
 			horizontal: boolean
 			vertical: boolean
@@ -100,14 +100,14 @@ end
 
 local defaultBorderHighlight <const> = "Normal"
 local defaultBorder <const>: nvim.Window.Config.Border = {
-	{"╭", defaultBorderHighlight},
-	{"─", defaultBorderHighlight},
-	{"╮", defaultBorderHighlight},
-	{"│", defaultBorderHighlight},
-	{"╯", defaultBorderHighlight},
-	{"─", defaultBorderHighlight},
-	{"╰", defaultBorderHighlight},
-	{"│", defaultBorderHighlight},
+	{ "╭", defaultBorderHighlight },
+	{ "─", defaultBorderHighlight },
+	{ "╮", defaultBorderHighlight },
+	{ "│", defaultBorderHighlight },
+	{ "╯", defaultBorderHighlight },
+	{ "─", defaultBorderHighlight },
+	{ "╰", defaultBorderHighlight },
+	{ "│", defaultBorderHighlight },
 }
 
 local floor <const>, max <const>, min <const>
@@ -586,7 +586,7 @@ function TextRegion:set(s: string, clear: boolean): boolean
 
 		local currentLines <const> = buf:getLines(self.start.line, self.finish.line + 1, false)
 		if self.nlines > 0 then
-			currentLines[1] = currentLines[1]:sub(1, self.start.char) .. inputLns[1]
+			currentLines[1] = (currentLines[1] or ""):sub(1, self.start.char) .. inputLns[1]
 		end
 
 		local batchIncludesLastLine = true

@@ -586,7 +586,7 @@ function TextRegion:set(s, clear)
 
       local currentLines = buf:getLines(self.start.line, self.finish.line + 1, false)
       if self.nlines > 0 then
-         currentLines[1] = currentLines[1]:sub(1, self.start.char) .. inputLns[1]
+         currentLines[1] = (currentLines[1] or ""):sub(1, self.start.char) .. inputLns[1]
       end
 
       local batchIncludesLastLine = true

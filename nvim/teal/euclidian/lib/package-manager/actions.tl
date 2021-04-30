@@ -282,7 +282,7 @@ actions.update = createDialog(function(d: Dialog)
 
 	local lines <const> = {}
 	for i, pkg in ipairs(loaded) do
-		lines[i] = " " .. pkg:title() .. " "
+		lines[i] = " " .. pkg:title() .. (" "):rep(10)
 	end
 	d:setLines(lines):fitText(nvim.ui().width - 5, 14):center()
 

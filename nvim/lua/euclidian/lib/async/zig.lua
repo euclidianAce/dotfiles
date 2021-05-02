@@ -3,7 +3,9 @@
 
 
 
+
 local Frame = {}
+
 
 
 
@@ -12,24 +14,33 @@ local frames = setmetatable({}, { __mode = "k" })
 local suspendBlock = {}
 local status = coroutine.status
 
-local function errIf(cond, msg, lvl)
-   if cond then
-      error(msg, lvl + 1)
-   end
-end
-
 local function suspend(fn)
    coroutine.yield(fn and suspendBlock, fn)
 end
 
+local function isDead(frame)
+   return status(frame._t) == "dead"
+end
+
 local function internalResume(frame, ...)
-   errIf(status(frame._t) == "dead", "Resumed an async function which already returned", 2)
+   if isDead(frame) then
+      error("Resumed an async function which already returned", 3)
+   end
+
    local ok, val, fn = coroutine.resume(frame._t, ...)
-   errIf(not ok, val, 3)
+   if not ok then
+      error(val, 3)
+   end
    if val == suspendBlock then
       return fn(frame)
-   elseif status(frame._t) == "dead" then
+   elseif isDead(frame) then
       frame._v = val
+      if frame._awaiter then
+         ok, val = coroutine.resume(frame._awaiter)
+         if not ok then
+            error(val)
+         end
+      end
    end
 end
 local function resume(frame)
@@ -37,11 +48,12 @@ local function resume(frame)
 end
 
 local function await(frame)
-   while status(frame._t) ~= "dead" do
-      internalResume(frame)
-      if status(frame._t) ~= "dead" then
-         suspend()
-      end
+   if not isDead(frame) then
+      suspend(function(self)
+         assert(frame._awaiter == nil, "async function awaited twice")
+         frame._awaiter = self._t
+      end)
+      assert(isDead(frame), "awaiting function resumed")
    end
    return frame._v
 end
@@ -55,7 +67,9 @@ local function nosuspend(fn, ...)
    local frame = { _t = coroutine.create(fn) }
    frames[frame._t] = frame
    internalResume(frame, ...)
-   errIf(status(frame._t) ~= "dead", "Function suspended in a nosuspend", 2)
+   if not isDead(frame) then
+      error("Function suspended in a nosuspend", 2)
+   end
    return frame._v
 end
 

@@ -1,35 +1,46 @@
 
 -- An attempt to recreate Zig's 'colorless' async/await (+suspend/resume) on top of Lua's coroutines
 -- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines
--- honestly this is barely a wrapper and the only 'new' things are stuff like `nosuspend`
+-- honestly this is barely a wrapper and the only 'new' things are stuff like
+--    `nosuspend`, which is just an assertion that a coroutine doesn't yield to the running function
 
 local record Frame<T>
 	_t: thread
 	_v: T
+	_awaiter: thread
 end
 
 local frames <const>: table = setmetatable({}, { __mode = "k" })
 local suspendBlock <const> = {} -- This is just a dummy value to signal when a suspend has a block
 local status <const> = coroutine.status
 
-local function errIf(cond: boolean, msg: string, lvl: number)
-	if cond then
-		error(msg, lvl + 1)
-	end
-end
-
 local function suspend<T>(fn: function(Frame<T>))
 	coroutine.yield(fn and suspendBlock, fn)
 end
 
+local function isDead<T>(frame: Frame<T>): boolean
+	return status(frame._t) == "dead"
+end
+
 local function internalResume<T>(frame: Frame<T>, ...: any): any...
-	errIf(status(frame._t) == "dead", "Resumed an async function which already returned", 2)
+	if isDead(frame) then
+		error("Resumed an async function which already returned", 3)
+	end
+
 	local ok, val, fn = coroutine.resume(frame._t, ...) as (boolean, T, function(Frame<T>): any)
-	errIf(not ok, val as string, 3)
+	if not ok then
+		error(val, 3)
+	end
 	if val == suspendBlock then
 		return fn(frame)
-	elseif status(frame._t) == "dead" then
+	elseif isDead(frame) then
 		frame._v = val
+		if frame._awaiter then
+			ok, val = coroutine.resume(frame._awaiter) as (boolean, T)
+			if not ok then
+				error(val)
+			end
+		end
 	end
 end
 local function resume<T>(frame: Frame<T>)
@@ -37,11 +48,12 @@ local function resume<T>(frame: Frame<T>)
 end
 
 local function await<T>(frame: Frame<T>): T
-	while status(frame._t) ~= "dead" do
-		internalResume(frame)
-		if status(frame._t) ~= "dead" then
-			suspend()
-		end
+	if not isDead(frame) then
+		suspend(function(self: Frame<T>)
+			assert(frame._awaiter == nil, "async function awaited twice")
+			frame._awaiter = self._t
+		end)
+		assert(isDead(frame), "awaiting function resumed")
 	end
 	return frame._v
 end
@@ -52,10 +64,12 @@ local function currentFrame(): Frame<any>
 end
 
 local function nosuspend<T, K>(fn: function(...: K): (T), ...: K): T
-	local frame = { _t = coroutine.create(fn) } as Frame<T>
+	local frame <const> = { _t = coroutine.create(fn) } as Frame<T>
 	frames[frame._t] = frame
 	internalResume(frame, ...)
-	errIf(status(frame._t) ~= "dead", "Function suspended in a nosuspend", 2)
+	if not isDead(frame) then
+		error("Function suspended in a nosuspend", 2)
+	end
 	return frame._v
 end
 

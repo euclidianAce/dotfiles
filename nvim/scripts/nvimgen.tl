@@ -155,7 +155,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }
-	
+
 		win: Id
 		relative: Relativity
 		anchor: Anchor
@@ -264,8 +264,16 @@ for _, opt in pairs(opts) do
 end
 
 local function addOpts(ns: Namespace, o: {string:{string}})
+	local ordered <const> = {}
 	for t, vals in pairs(o) do
-		local out = {}
+		table.insert(ordered, {t, vals})
+	end
+	table.sort(ordered, function(a: {string, {string}}, b: {string, {string}}): boolean
+		return a[1] < b[1]
+	end)
+	for _, v in ipairs(ordered) do
+		local t <const>, vals <const> = v[1], v[2]
+		local out <const> = {}
 		for _, entry in ipairs(vals) do
 			ins(out, string.format("\t%q", entry))
 		end

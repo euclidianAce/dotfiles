@@ -68,6 +68,19 @@ local record Buffer
 		"swapfile"
 		"undofile"
 	end
+	enum IntegerOpt
+		"channel"
+		"iminsert"
+		"imsearch"
+		"scrollback"
+		"shiftwidth"
+		"softtabstop"
+		"synmaxcol"
+		"tabstop"
+		"textwidth"
+		"undolevels"
+		"wrapmargin"
+	end
 	enum StringOpt
 		"backupcopy"
 		"bufhidden"
@@ -119,19 +132,6 @@ local record Buffer
 		"varsofttabstop"
 		"vartabstop"
 	end
-	enum IntegerOpt
-		"channel"
-		"iminsert"
-		"imsearch"
-		"scrollback"
-		"shiftwidth"
-		"softtabstop"
-		"synmaxcol"
-		"tabstop"
-		"textwidth"
-		"undolevels"
-		"wrapmargin"
-	end
 	metamethod __call: function(Buffer, integer): Buffer
 	metamethod __eq: function(any, any): boolean
 end
@@ -155,7 +155,7 @@ local record Window
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }
-	
+
 		win: Id
 		relative: Relativity
 		anchor: Anchor
@@ -216,6 +216,17 @@ local record Window
 		"winfixwidth"
 		"wrap"
 	end
+	enum IntegerOpt
+		"conceallevel"
+		"foldlevel"
+		"foldminlines"
+		"foldnestmax"
+		"numberwidth"
+		"scroll"
+		"scrolloff"
+		"sidescrolloff"
+		"winblend"
+	end
 	enum StringOpt
 		"breakindentopt"
 		"colorcolumn"
@@ -232,17 +243,6 @@ local record Window
 		"signcolumn"
 		"statusline"
 		"winhighlight"
-	end
-	enum IntegerOpt
-		"conceallevel"
-		"foldlevel"
-		"foldminlines"
-		"foldnestmax"
-		"numberwidth"
-		"scroll"
-		"scrolloff"
-		"sidescrolloff"
-		"winblend"
 	end
 	metamethod __call: function(Window, integer): Window
 	metamethod __eq: function(any, any): boolean

@@ -27,32 +27,36 @@ local function internalResume(frame, ...)
       error("Resumed an async function which already returned", 3)
    end
 
-   local ok, val, fn = coroutine.resume(frame._t, ...)
+   local ok, val, fn =
+coroutine.resume(frame._t, ...)
    if not ok then
       error(val, 3)
    end
-   if val == suspendBlock then
-      return fn(frame)
-   elseif isDead(frame) then
+
+   if isDead(frame) then
       frame._v = val
       if frame._awaiter then
-         ok, val = coroutine.resume(frame._awaiter)
-         if not ok then
-            error(val)
+         local awaiterok, awaiterval = coroutine.resume(frame._awaiter)
+         if not awaiterok then
+            error(awaiterval, 3)
          end
       end
    end
+
+   if val == suspendBlock then
+      return fn(frame)
+   end
 end
+
 local function resume(frame)
    internalResume(frame)
 end
 
 local function await(frame)
    if not isDead(frame) then
-      suspend(function(self)
-         assert(frame._awaiter == nil, "async function awaited twice")
-         frame._awaiter = self._t
-      end)
+      assert(frame._awaiter == nil, "async function awaited twice")
+      frame._awaiter = coroutine.running()
+      coroutine.yield()
       assert(isDead(frame), "awaiting function resumed")
    end
    return frame._v

@@ -1,6 +1,6 @@
 
 -- An attempt to recreate Zig's 'colorless' async/await (+suspend/resume) on top of Lua's coroutines
--- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines
+-- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines (which are also pretty barebones)
 -- honestly this is barely a wrapper and the only 'new' things are stuff like
 --    `nosuspend`, which is just an assertion that a coroutine doesn't yield to the running function
 
@@ -27,32 +27,36 @@ local function internalResume<T>(frame: Frame<T>, ...: any): any...
 		error("Resumed an async function which already returned", 3)
 	end
 
-	local ok, val, fn = coroutine.resume(frame._t, ...) as (boolean, T, function(Frame<T>): any)
+	local ok <const>, val <const>, fn <const>
+		= coroutine.resume(frame._t, ...) as (boolean, T, function(Frame<T>): any)
 	if not ok then
 		error(val, 3)
 	end
-	if val == suspendBlock then
-		return fn(frame)
-	elseif isDead(frame) then
+
+	if isDead(frame) then
 		frame._v = val
 		if frame._awaiter then
-			ok, val = coroutine.resume(frame._awaiter) as (boolean, T)
-			if not ok then
-				error(val)
+			local awaiterok, awaiterval = coroutine.resume(frame._awaiter) as (boolean, T)
+			if not awaiterok then
+				error(awaiterval, 3)
 			end
 		end
 	end
+
+	if val == suspendBlock then
+		return fn(frame)
+	end
 end
+
 local function resume<T>(frame: Frame<T>)
 	internalResume(frame)
 end
 
 local function await<T>(frame: Frame<T>): T
 	if not isDead(frame) then
-		suspend(function(self: Frame<T>)
-			assert(frame._awaiter == nil, "async function awaited twice")
-			frame._awaiter = self._t
-		end)
+		assert(frame._awaiter == nil, "async function awaited twice")
+		frame._awaiter = coroutine.running()
+		coroutine.yield()
 		assert(isDead(frame), "awaiting function resumed")
 	end
 	return frame._v
@@ -73,7 +77,7 @@ local function nosuspend<T, K>(fn: function(...: K): (T), ...: K): T
 	return frame._v
 end
 
-local function async<T, K>(fn: function(...: K): (T), ...: K): Frame<T>
+local function async<T, K>(fn: (function(...: K): T), ...: K): Frame<T>
 	local co <const> = coroutine.create(fn)
 	local f <const> = { _t = co } as Frame<T>
 	frames[co] = f

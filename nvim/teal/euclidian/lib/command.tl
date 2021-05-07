@@ -1,4 +1,6 @@
 
+-- very simple libuv spawn wrapper with more convenient callbacks
+
 local uv <const> = vim.loop
 
 local record SpawnOptions
@@ -13,8 +15,7 @@ local record SpawnOptions
 	onExit: function(integer, integer)
 end
 
-local function reader(linecb: function(string)): function(string, string)
-	linecb = linecb or function() end
+local function lineReader(linecb: function(string)): function(string, string)
 	local lastChunk: string
 	return function(err: string, chunk: string)
 		assert(not err, err)
@@ -41,8 +42,11 @@ local function reader(linecb: function(string)): function(string, string)
 end
 
 local function spawn(opts: SpawnOptions): uv.Handle
+	assert(opts, "expected a table")
 	local handle: uv.Handle
-	local stdout <const>, stderr <const> = uv.new_pipe(false), uv.new_pipe(false)
+	local stdout <const> = opts.onStdoutLine and uv.new_pipe(false)
+	local stderr <const> = opts.onStderrLine and uv.new_pipe(false)
+
 	local closed = false
 
 	local timeoutTimer <const> = uv.new_timer()
@@ -51,8 +55,8 @@ local function spawn(opts: SpawnOptions): uv.Handle
 		closed = true
 
 		handle:close()
-		stdout:read_stop() stdout:close()
-		stderr:read_stop() stderr:close()
+		if stdout then stdout:read_stop() stdout:close() end
+		if stderr then stderr:read_stop() stderr:close() end
 		timeoutTimer:stop() timeoutTimer:close()
 
 		if opts.onExit then
@@ -65,11 +69,11 @@ local function spawn(opts: SpawnOptions): uv.Handle
 	handle = assert(uv.spawn(cmdName, {
 		args = args,
 		cwd = opts.cwd,
-		stdio = { nil, stdout, stderr }
+		stdio = { nil, stdout, stderr },
 	}, closer)) as uv.Handle
 
-	stdout:read_start(reader(opts.onStdoutLine))
-	stderr:read_start(reader(opts.onStderrLine))
+	if stdout then stdout:read_start(lineReader(opts.onStdoutLine)) end
+	if stderr then stderr:read_start(lineReader(opts.onStderrLine)) end
 
 	timeoutTimer:start(opts.timeout or 30e3, 0, closer)
 	return handle

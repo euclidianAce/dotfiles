@@ -19,7 +19,7 @@ hi = libreq "color" .scheme.hi
 palette = confreq "colors"
 
 -- applyHighlights("blue", "purple", "red", "orange")
-applyHighlights("red", "orange", "blue", "purple")
+palette.applyHighlights("red", "orange", "blue", "purple")
 
 libreq "printmode"
 	.set "inspect"

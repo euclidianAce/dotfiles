@@ -1,4 +1,6 @@
 
+
+
 local uv = vim.loop
 
 local SpawnOptions = {}
@@ -13,8 +15,7 @@ local SpawnOptions = {}
 
 
 
-local function reader(linecb)
-   linecb = linecb or function() end
+local function lineReader(linecb)
    local lastChunk
    return function(err, chunk)
       assert(not err, err)
@@ -41,8 +42,11 @@ local function reader(linecb)
 end
 
 local function spawn(opts)
+   assert(opts, "expected a table")
    local handle
-   local stdout, stderr = uv.new_pipe(false), uv.new_pipe(false)
+   local stdout = opts.onStdoutLine and uv.new_pipe(false)
+   local stderr = opts.onStderrLine and uv.new_pipe(false)
+
    local closed = false
 
    local timeoutTimer = uv.new_timer()
@@ -51,8 +55,8 @@ local function spawn(opts)
       closed = true
 
       handle:close()
-      stdout:read_stop(); stdout:close()
-      stderr:read_stop(); stderr:close()
+      if stdout then stdout:read_stop(); stdout:close() end
+      if stderr then stderr:read_stop(); stderr:close() end
       timeoutTimer:stop(); timeoutTimer:close()
 
       if opts.onExit then
@@ -68,8 +72,8 @@ local function spawn(opts)
       stdio = { nil, stdout, stderr },
    }, closer))
 
-   stdout:read_start(reader(opts.onStdoutLine))
-   stderr:read_start(reader(opts.onStderrLine))
+   if stdout then stdout:read_start(lineReader(opts.onStdoutLine)) end
+   if stderr then stderr:read_start(lineReader(opts.onStderrLine)) end
 
    timeoutTimer:start(opts.timeout or 30e3, 0, closer)
    return handle

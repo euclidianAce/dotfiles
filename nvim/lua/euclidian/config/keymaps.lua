@@ -69,37 +69,58 @@ end
 map("n", "<leader>c", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
 
-local getchar = vim.fn.getchar
+local function getchar()
+   return string.char(vim.fn.getchar())
+end
+local function getchars()
+   return vim.fn.input("Append Characters:")
+end
 local append = require("euclidian.lib.append")
 
-M._exports.appendMotion = function(kind)
+M._exports.appendCharMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
    append.toRange(
-   b:getMark("[")[1] - 1,
+   b:getMark("[")[1],
    b:getMark("]")[1],
-   string.char(getchar()),
+   getchar(),
    b.id)
 
 end
-M._exports.appendToVisualSelection = function()
+
+M._exports.appendCharsMotion = function(kind)
+   if kind ~= "line" then return end
    local b = nvim.Buffer()
    append.toRange(
-   b:getMark("<")[1] - 1,
-   b:getMark(">")[1],
-   string.char(getchar()),
+   b:getMark("[")[1],
+   b:getMark("]")[1],
+   getchars(),
    b.id)
 
 end
 
-map(
-"n", "<leader>a",
-[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendMotion")<cr>g@]])
+M._exports.appendToVisualSelection = function(multiple)
+   local b = nvim.Buffer()
+   local inputfn = multiple and getchars or getchar
+   append.toRange(
+   b:getMark("<")[1],
+   b:getMark(">")[1],
+   inputfn(),
+   b.id)
 
-map("n", "<leader>aa", function()
-   append.toCurrentLine(string.char(getchar()))
-end)
-map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection()<cr>]])
+end
+
+
+
+
+map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(false)<cr>]])
+map("v", "<leader>A", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(true)<cr>]])
+
+map("n", "<leader>a", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharMotion")<cr>g@]])
+map("n", "<leader>A", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharsMotion")<cr>g@]])
+
+map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
+map("n", "<leader>AA", function() append.toCurrentLine(getchars()) end)
 
 for _, v in ipairs({
       { "h", "<" },
@@ -129,6 +150,25 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 map("t", "<Esc>", "<C-\\><C-n>")
 
 do
+   local function execBuffer(b)
+      b = b or nvim.Buffer()
+      local lines = b:getLines(0, -1, false);
+      local txt = table.concat(lines, "\n")
+
+      local chunk, loaderr = loadstring(txt)
+      if not chunk then
+         a.nvim_err_writeln(loaderr)
+         return
+      end
+      local ok, err = pcall(chunk)
+      if not ok then
+         a.nvim_err_writeln(err)
+      end
+   end
+
+   map("n", "<leader>L", execBuffer)
+
+
    local d = dialog.new({
       wid = 75, hei = 30,
       centered = true,
@@ -144,20 +184,7 @@ do
       buf:setOption("shiftwidth", 3)
       buf:setKeymap(
       "n", "<cr>",
-      function()
-         local lines = d:getLines()
-         local txt = table.concat(lines, "\n")
-
-         local chunk, loaderr = loadstring(txt)
-         if not chunk then
-            a.nvim_err_writeln(loaderr)
-            return
-         end
-         local ok, err = pcall(chunk)
-         if not ok then
-            a.nvim_err_writeln(err)
-         end
-      end,
+      function() execBuffer(d:ensureBuf()) end,
       { silent = true, noremap = true })
 
       buf:setKeymap(
@@ -216,7 +243,6 @@ do
 end
 
 do
-
 
 
    local input, result

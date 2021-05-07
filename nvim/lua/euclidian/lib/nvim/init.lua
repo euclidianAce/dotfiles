@@ -78,6 +78,49 @@ genSetMetatable(auto.Buffer, "buf")
 genSetMetatable(auto.Window, "win")
 genSetMetatable(auto.Tab, "tab")
 
+local CommandOpts = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local AutocmdOpts = {}
 
 
@@ -91,6 +134,7 @@ local nvim = {
 
    UI = UI,
    MapOpts = auto.MapOpts,
+   CommandOpts = CommandOpts,
    AutocmdOpts = AutocmdOpts,
 
    _exports = {},
@@ -110,6 +154,78 @@ end
 
 function nvim.command(fmt, ...)
    a.nvim_command(string.format(fmt, ...))
+end
+
+function nvim.newCommand(opts)
+   local res = { "command" }
+   if opts.overwrite then
+      table.insert(res, "!")
+   end
+
+   if opts.nargs then
+      table.insert(res, " -nargs=")
+      table.insert(res, tostring(opts.nargs))
+   end
+
+   local compl = opts.complete
+   if type(compl) == "function" then
+      (_G)["__" .. opts.name .. "completefunc"] = failsafe(compl, "Error in completion function:")
+      table.insert(res, " -complete=custom,v:lua.__" .. opts.name .. "completefunc")
+   elseif compl then
+      table.insert(res, " -complete=" .. compl)
+   elseif opts.completelist then
+      (_G)["__" .. opts.name .. "completelistfunc"] = failsafe(opts.completelist, "Error in completion function:")
+      table.insert(res, " -complete=customlist,v:lua.__" .. opts.name .. "completelistfunc")
+   end
+
+
+   local range = opts.range
+   if range == true then
+      table.insert(res, " -range")
+   elseif range then
+      table.insert(res, " -range=")
+      table.insert(res, tostring(range))
+   elseif opts.count == true then
+      table.insert(res, " -count")
+   elseif opts.count then
+      table.insert(res, " -count=")
+      table.insert(res, tostring(opts.count))
+   end
+
+   if opts.addr then
+      table.insert(res, " -addr=")
+      table.insert(res, opts.addr)
+   end
+
+   if opts.bang then
+      table.insert(res, " -bang")
+   end
+
+   if opts.bar then
+      table.insert(res, " -bar")
+   end
+
+   if opts.register then
+      table.insert(res, " -register")
+   end
+
+   if opts.buffer then
+      table.insert(res, " -buffer")
+   end
+
+   table.insert(res, " ")
+   table.insert(res, opts.name)
+
+   table.insert(res, " ")
+   local body = assert(opts.body, "Command must have a body")
+   if type(body) == "string" then
+      table.insert(res, body)
+   else
+      table.insert(res, "echo TODO: <cmd>lua ...<cr>")
+   end
+
+   local txt = table.concat(res)
+   print("[TODO] :" .. txt)
 end
 
 local function toStrArr(s)

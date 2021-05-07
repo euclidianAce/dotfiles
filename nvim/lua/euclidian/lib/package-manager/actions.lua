@@ -218,6 +218,7 @@ do
    end
    local function addPackerPackage()
       print("Packer Package: not yet implemented")
+
    end
    local function addGitPackage(d, s)
       d:setLines({})
@@ -245,11 +246,16 @@ do
       }
       table.insert(s, p)
    end
+
+
+
+
    local handlers = {
       [1] = addVimPlugPackage,
       [2] = addPackerPackage,
       [3] = addGitPackage,
       [4] = addLocalPackage,
+
    }
 
    actions.add = createDialog(function(d)
@@ -261,6 +267,7 @@ do
          "  from Packer expression",
          "  git",
          "  local",
+
       }):fitText(35):center()
 
       local ln

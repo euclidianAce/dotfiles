@@ -36,10 +36,7 @@ coroutine.resume(frame._t, ...)
    if isDead(frame) then
       frame._v = val
       if frame._awaiter then
-         local awaiterok, awaiterval = coroutine.resume(frame._awaiter)
-         if not awaiterok then
-            error(awaiterval, 3)
-         end
+         internalResume(frame._awaiter)
       end
    end
 
@@ -52,19 +49,19 @@ local function resume(frame)
    internalResume(frame)
 end
 
+local function currentFrame()
+   local co = coroutine.running()
+   return frames[co]
+end
+
 local function await(frame)
    if not isDead(frame) then
       assert(frame._awaiter == nil, "async function awaited twice")
-      frame._awaiter = coroutine.running()
+      frame._awaiter = assert(currentFrame(), "Not running in an async function")
       coroutine.yield()
       assert(isDead(frame), "awaiting function resumed")
    end
    return frame._v
-end
-
-local function currentFrame()
-   local co = coroutine.running()
-   return frames[co]
 end
 
 local function nosuspend(fn, ...)

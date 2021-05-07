@@ -357,11 +357,6 @@ end
 function Dialog:setOpts(opts)
    return self:setWinConfig(dialog.optsToWinConfig(opts))
 end
-
-
-
-
-
 function Dialog:addKeymap(mode, lhs, rhs, opts)
    self:ensureBuf():setKeymap(mode, lhs, rhs, opts)
    return self

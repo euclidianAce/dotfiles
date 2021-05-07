@@ -153,9 +153,7 @@ local function applyHighlights(
    hi.Directory = { normal[primary] }
    hi.WarningMsg = { nil, normal.red }
    hi.WildMenu = { normal.bg, normal.yellow }
-end;
-
-(_G)["applyHighlights"] = applyHighlights
+end
 
 local function hex(col)
    return ("#%06X"):format(col)
@@ -167,9 +165,9 @@ vim.g.terminal_color_3 = hex(normal.yellow)
 vim.g.terminal_color_4 = hex(normal.blue)
 vim.g.terminal_color_5 = hex(normal.purple)
 vim.g.terminal_color_6 = "cyan3"
-vim.g.terminal_color_7 = "gray90"
+vim.g.terminal_color_7 = hex(normal.gray)
 
-vim.g.terminal_color_8 = "gray50"
+vim.g.terminal_color_8 = hex(bright.gray)
 vim.g.terminal_color_9 = hex(bright.red)
 vim.g.terminal_color_10 = hex(bright.green)
 vim.g.terminal_color_11 = hex(bright.yellow)
@@ -182,4 +180,5 @@ return {
    normal = normal,
    dark = dark,
    bright = bright,
+   applyHighlights = applyHighlights,
 }

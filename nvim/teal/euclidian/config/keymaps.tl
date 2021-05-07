@@ -69,37 +69,58 @@ end
 map("n", "<leader>c", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
 
-local getchar <const> = vim.fn.getchar as function(): integer
+local function getchar(): string
+	return string.char(vim.fn.getchar() as integer)
+end
+local function getchars(): string
+	return vim.fn.input("Append Characters:") as string
+end
 local append <const> = require("euclidian.lib.append")
 
-M._exports.appendMotion = function(kind: OperatorfuncMode)
+M._exports.appendCharMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
 	local b <const> = nvim.Buffer()
 	append.toRange(
-		b:getMark("[")[1] - 1,
+		b:getMark("[")[1],
 		b:getMark("]")[1],
-		string.char(getchar()),
-		b.id
-	)
-end
-M._exports.appendToVisualSelection = function()
-	local b <const> = nvim.Buffer()
-	append.toRange(
-		b:getMark("<")[1] - 1,
-		b:getMark(">")[1],
-		string.char(getchar()),
+		getchar(),
 		b.id
 	)
 end
 
-map(
-	"n", "<leader>a",
-	[[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendMotion")<cr>g@]]
-)
-map("n", "<leader>aa", function()
-	append.toCurrentLine(string.char(getchar()))
-end)
-map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection()<cr>]])
+M._exports.appendCharsMotion = function(kind: OperatorfuncMode)
+	if kind ~= "line" then return end
+	local b <const> = nvim.Buffer()
+	append.toRange(
+		b:getMark("[")[1],
+		b:getMark("]")[1],
+		getchars(),
+		b.id
+	)
+end
+
+M._exports.appendToVisualSelection = function(multiple: boolean)
+	local b <const> = nvim.Buffer()
+	local inputfn <const> = multiple and getchars or getchar
+	append.toRange(
+		b:getMark("<")[1],
+		b:getMark(">")[1],
+		inputfn(),
+		b.id
+	)
+end
+
+-- TODO: entering command mode here seems to be the most convenient way of
+-- updating the visual selection marks that these functions rely on. There
+-- doesn't seem to be a way to actually get the current visual selection
+map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(false)<cr>]])
+map("v", "<leader>A", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(true)<cr>]])
+
+map("n", "<leader>a", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharMotion")<cr>g@]])
+map("n", "<leader>A", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharsMotion")<cr>g@]])
+
+map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
+map("n", "<leader>AA", function() append.toCurrentLine(getchars()) end)
 
 for _, v in ipairs{
 	{"h", "<"},

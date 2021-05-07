@@ -9,7 +9,7 @@ local function set<T>(t: {T}): {T:boolean}
 	return s
 end
 
-local statusline <const> = { 
+local statusline <const> = {
 	higroup = "StatuslineModeText",
 	_funcs: {function(integer): string} = {},
 }
@@ -194,4 +194,3 @@ statusline.setActive()
 statusline.updateAllWindows()
 
 return statusline
-

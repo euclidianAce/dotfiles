@@ -189,35 +189,36 @@ do
 
 	local function addVimPlugPackage()
 		print("Vim Plug Package: not yet implemented")
-		-- local function parseVimPlug(str)
-		-- 	local expr = str:match("^%s*Plug%s+(.*)$")
-		-- 	if not expr then
-		-- 		return nil, "Expected 'Plug'"
-		-- 	end
-		-- 	local name, pos = expr:match("^(%b'')()")
-		-- 	if not name then
-		-- 		name, pos = expr:match("^(%b\"\")()")
-		-- 	end
-		-- 	if not name then
-		-- 		return nil, "Expected string literal after 'Plug'"
-		-- 	end
-		-- 
-		-- 	local val = { name = name }
-		-- 
-		-- 	local dictBody = expr:sub(pos):match("%s*,%s{%s*(.*)%s*}%s*$")
-		-- 	if dictBody then
-		-- 		print("[debug] ", dictBody)
-		-- 		for k, v in dictBody:gmatch("%s*(.-)%s*:%s*(.*)%s*") do
-		-- 			print(key, val)
-		-- 			val[k] = v
-		-- 		end
-		-- 	end
-		-- 
-		-- 	return val
-		-- end
+		--local function parseVimPlug(str)
+		--	local expr = str:match("^%s*Plug%s+(.*)$")
+		--	if not expr then
+		--		return nil, "Expected 'Plug'"
+		--	end
+		--	local name, pos = expr:match("^(%b'')()")
+		--	if not name then
+		--		name, pos = expr:match("^(%b\"\")()")
+		--	end
+		--	if not name then
+		--		return nil, "Expected string literal after 'Plug'"
+		--	end
+		--
+		--	local val = { name = name }
+		--
+		--	local dictBody = expr:sub(pos):match("%s*,%s{%s*(.*)%s*}%s*$")
+		--	if dictBody then
+		--		print("[debug] ", dictBody)
+		--		for k, v in dictBody:gmatch("%s*(.-)%s*:%s*(.*)%s*") do
+		--			print(key, val)
+		--			val[k] = v
+		--		end
+		--	end
+		--
+		--	return val
+		--end
 	end
 	local function addPackerPackage()
 		print("Packer Package: not yet implemented")
+		-- define a "use" function and just run it
 	end
 	local function addGitPackage(d: Dialog, s: {Spec})
 		d:setLines{}
@@ -245,11 +246,16 @@ do
 		}
 		table.insert(s, p)
 	end
+	-- local function addLuaRock(d: Dialog, s: Spec)
+		-- d:setLines{}
+		-- local name <const> = prompt(d, "Name: ")
+	-- end
 	local handlers <const>: {integer:function(Dialog, {Spec})} = {
 		[1] = addVimPlugPackage,
 		[2] = addPackerPackage,
 		[3] = addGitPackage,
 		[4] = addLocalPackage,
+		-- [5] = addLuaRock,
 	}
 
 	actions.add = createDialog(function(d: Dialog)
@@ -261,6 +267,7 @@ do
 			"  from Packer expression",
 			"  git",
 			"  local",
+			-- "  lua rock",
 		}:fitText(35):center()
 
 		local ln: integer

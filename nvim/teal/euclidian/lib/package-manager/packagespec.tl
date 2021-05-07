@@ -3,7 +3,8 @@ local tree <const> = require("euclidian.lib.package-manager.tree")
 local uv <const> = vim.loop
 
 local enum Kind
-	"git" "local"
+	"git"
+	"local"
 end
 
 local record Spec

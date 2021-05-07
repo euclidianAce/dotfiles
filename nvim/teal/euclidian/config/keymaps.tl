@@ -149,7 +149,26 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
-do -- floating buffer to execute some lua
+do
+	local function execBuffer(b: nvim.Buffer)
+		b = b or nvim.Buffer()
+		local lines <const> = b:getLines(0, -1, false);
+		local txt <const> = table.concat(lines, "\n")
+
+		local chunk <const>, loaderr <const> = loadstring(txt)
+		if not chunk then
+			a.nvim_err_writeln(loaderr)
+			return
+		end
+		local ok <const>, err <const> = pcall(chunk) as (boolean, string)
+		if not ok then
+			a.nvim_err_writeln(err)
+		end
+	end
+
+	map("n", "<leader>L", execBuffer)
+
+	-- floating buffer to execute some lua
 	local d <const> = dialog.new{
 		wid = 75, hei = 30,
 		centered = true,
@@ -165,20 +184,7 @@ do -- floating buffer to execute some lua
 		buf:setOption("shiftwidth", 3)
 		buf:setKeymap(
 			"n", "<cr>",
-			function()
-				local lines <const> = d:getLines()
-				local txt <const> = table.concat(lines, "\n")
-
-				local chunk <const>, loaderr <const> = loadstring(txt)
-				if not chunk then
-					a.nvim_err_writeln(loaderr)
-					return
-				end
-				local ok <const>, err <const> = pcall(chunk) as (boolean, string)
-				if not ok then
-					a.nvim_err_writeln(err)
-				end
-			end,
+			function() execBuffer(d:ensureBuf()) end,
 			{ silent = true, noremap = true }
 		)
 		buf:setKeymap(
@@ -238,7 +244,6 @@ end
 
 do -- cd dialog
 	-- TODO: turn this into a telescope lens
-	-- TODO: dialog api should have some concept of a window/dialog group
 
 	local input, result: dialog.Dialog, dialog.Dialog
 	local currentlyMatching = false
@@ -270,8 +275,8 @@ do -- cd dialog
 	end
 
 	local function ls(dirname: string): {string}
-		local res = {}
-		local scanner = uv.fs_scandir(dirname)
+		local res <const> = {}
+		local scanner <const> = uv.fs_scandir(dirname)
 		if scanner then
 			for f in uv.fs_scandir_next, scanner do
 				table.insert(res, f)

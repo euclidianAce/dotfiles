@@ -40,48 +40,44 @@ local function runCmd(cmd: string, max_log_lines: integer): {string}
 	return res
 end
 
-local function exec()
-	local nvim_cmd <const> = "/usr/local/bin/nvim"
-	local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/nvimgen.lua")
-	local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
-	if scriptUpdated then
-		log.warn(src:tostring(), " is newer than ", target:tostring(), ". Attempting to update...")
-		if not os.execute(("cyan gen %s -o %s"):format(src:to_real_path(), target:to_real_path())) then
-			log.err("Failed to update nvimgen script")
-			return
-		end
+local nvim_cmd <const> = "/usr/local/bin/nvim"
+local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/nvimgen.lua")
+local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
+if scriptUpdated then
+	log.warn(src:tostring(), " is newer than ", target:tostring(), ". Attempting to update...")
+	if not os.execute(("cyan gen %s -o %s"):format(src:to_real_path(), target:to_real_path())) then
+		log.err("Failed to update nvimgen script")
+		return
 	end
-
-	local last <const> = fs.read(".last_nvim_commit")
-
-	local current <const> = runCmd(("%s --version"):format(nvim_cmd), 2)[1]
-	if not scriptUpdated then
-		if last then
-			if current == last then
-				info("Neovim api definitions up to date")
-				return
-			end
-			info("Neovim api definitions not up to date:\n",
-				"      last: ", tostring(last), "\n",
-				"   current: ", current)
-		else
-			info("Neovim api definitions not up to date:\n",
-				"      last: ", last or "(none)", "\n",
-				"   current: ", current
-			)
-		end
-	end
-
-	runCmd(("%s --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'"):format(nvim_cmd))
-
-	local f = io.open(".last_nvim_commit", "w")
-	f:write(current)
-	f:close()
-
-	info("Updated Neovim api type definitions for commit: ", current)
 end
 
-return {
-	run_on = { "build:pre" },
-	exec = exec,
-}
+local last <const> = fs.read(".last_nvim_commit")
+
+local current <const> = runCmd(("%s --version"):format(nvim_cmd), 2)[1]
+if not scriptUpdated then
+	if last then
+		if current == last then
+			info("Neovim api definitions up to date")
+			return
+		end
+		info(
+			"Neovim api definitions not up to date:\n",
+			"      last: ", tostring(last), "\n",
+			"   current: ", current
+		)
+	else
+		info(
+			"Neovim api definitions not up to date:\n",
+			"      last: ", last or "(none)", "\n",
+			"   current: ", current
+		)
+	end
+end
+
+runCmd(("%s --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'"):format(nvim_cmd))
+
+local f = io.open(".last_nvim_commit", "w")
+f:write(current)
+f:close()
+
+info("Updated Neovim api type definitions for commit: ", current)

@@ -41,7 +41,7 @@ end
 
 local bufs <const>: {Dialog:nvim.Buffer} = setmetatable({}, { __mode = "k", __index = function(): nvim.Buffer return nvim.Buffer(-1) end })
 local wins <const>: {Dialog:nvim.Window} = setmetatable({}, { __mode = "k", __index = function(): nvim.Window return nvim.Window(-1) end })
-local links <const>: {Dialog:{Dialog}} = setmetatable({}, { __mode = "k" , __index = function(self: {Dialog:{Dialog}}, k: Dialog): {Dialog}
+local links <const>: {Dialog:{Dialog}} = setmetatable({}, { __mode = "k", __index = function(self: {Dialog:{Dialog}}, k: Dialog): {Dialog}
 	local t = {}
 	rawset(self, k, t)
 	return t
@@ -357,11 +357,6 @@ end
 function Dialog:setOpts(opts: Dialog.Opts): Dialog
 	return self:setWinConfig(dialog.optsToWinConfig(opts))
 end
--- function Dialog:center(width: integer, height: integer): Dialog
-	-- local c = self:ensureWin():getConfig()
-	-- self:setWinConfig
-	-- return self:setOpts(dialog.centeredOpts(width, height))
--- end
 function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: nvim.MapOpts): Dialog
 	self:ensureBuf():setKeymap(mode, lhs, rhs, opts)
 	return self
@@ -478,12 +473,12 @@ function Dialog:close()
 	end
 end
 
-local linkedFns: {string:boolean} = {
+local linkedFns <const>: {string:boolean} = {
 	hide = true,
 	close = true,
 	show = true,
 }
-local _Dialog = Dialog as {string:function(...: any): any...}
+local _Dialog <const> = Dialog as {string:function(...: any): any...}
 for k in pairs(linkedFns) do
 	local oldFn <const> = _Dialog[k]
 	_Dialog[k] = function(self: Dialog, ...: any): any...

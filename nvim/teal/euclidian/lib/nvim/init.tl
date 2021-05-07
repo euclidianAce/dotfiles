@@ -78,6 +78,49 @@ genSetMetatable(auto.Buffer, "buf")
 genSetMetatable(auto.Window, "win")
 genSetMetatable(auto.Tab, "tab")
 
+local record CommandOpts
+	name: string
+	body: string | function
+
+	enum ArgumentOpt
+		"*" "?" "+"
+	end
+	nargs: integer | ArgumentOpt
+
+	enum CompleteOpt
+		"arglist" "augroup" "buffer" "behave"
+		"color" "command" "compiler" "cscope"
+		"dir" "environment" "event" "expression"
+		"file" "file_in_path" "filetype" "function"
+		"help" "highlight" "history" "locale"
+		"mapclear" "mapping" "menu" "messages"
+		"option" "packadd" "shellcmd" "sign"
+		"syntax" "syntime" "tag" "tag_listfiles"
+		"user" "var"
+	end
+	type CompleteFunc = function(string, string, integer): string
+	type CompleteListFunc = function(string, string, integer): {string}
+	complete: CompleteOpt | CompleteFunc
+	completelist: CompleteListFunc
+
+	range: string | integer | boolean
+	count: integer | boolean
+
+	enum AddrOpt
+		"lines" "arguments" "buffers"
+		"loaded_buffers" "windows" "tabs"
+		"quickfix" "other"
+	end
+	addr: AddrOpt
+
+	bang: boolean
+	bar: boolean
+	register: boolean
+	buffer: boolean
+
+	overwrite: boolean
+end
+
 local record AutocmdOpts
 	buffer: boolean | integer
 	once: boolean
@@ -91,6 +134,7 @@ local nvim <const> = {
 
 	UI = UI,
 	MapOpts = auto.MapOpts,
+	CommandOpts = CommandOpts,
 	AutocmdOpts = AutocmdOpts,
 
 	_exports: {string:function} = {},
@@ -110,6 +154,78 @@ end
 
 function nvim.command(fmt: string, ...: any)
 	a.nvim_command(string.format(fmt, ...))
+end
+
+function nvim.newCommand(opts: CommandOpts)
+	local res <const>: {string} = { "command" }
+	if opts.overwrite then
+		table.insert(res, "!")
+	end
+
+	if opts.nargs then
+		table.insert(res, " -nargs=")
+		table.insert(res, tostring(opts.nargs))
+	end
+
+	local compl <const> = opts.complete
+	if compl is CommandOpts.CompleteFunc then
+		(_G as {string:function})["__" .. opts.name .. "completefunc"] = failsafe(compl, "Error in completion function:")
+		table.insert(res, " -complete=custom,v:lua.__" .. opts.name .. "completefunc")
+	elseif compl then
+		table.insert(res, " -complete=" .. compl)
+	elseif opts.completelist then
+		(_G as {string:function})["__" .. opts.name .. "completelistfunc"] = failsafe(opts.completelist, "Error in completion function:")
+		table.insert(res, " -complete=customlist,v:lua.__" .. opts.name .. "completelistfunc")
+	end
+
+	-- TODO: range and count are mutually exclusive
+	local range <const> = opts.range
+	if range == true then
+		table.insert(res, " -range")
+	elseif range then
+		table.insert(res, " -range=")
+		table.insert(res, tostring(range))
+	elseif opts.count == true then
+		table.insert(res, " -count")
+	elseif opts.count then
+		table.insert(res, " -count=")
+		table.insert(res, tostring(opts.count))
+	end
+
+	if opts.addr then
+		table.insert(res, " -addr=")
+		table.insert(res, opts.addr)
+	end
+
+	if opts.bang then
+		table.insert(res, " -bang")
+	end
+
+	if opts.bar then
+		table.insert(res, " -bar")
+	end
+
+	if opts.register then
+		table.insert(res, " -register")
+	end
+
+	if opts.buffer then
+		table.insert(res, " -buffer")
+	end
+
+	table.insert(res, " ")
+	table.insert(res, opts.name)
+
+	table.insert(res, " ")
+	local body <const> = assert(opts.body, "Command must have a body")
+	if body is string then
+		table.insert(res, body)
+	else
+		table.insert(res, "echo TODO: <cmd>lua ...<cr>")
+	end
+
+	local txt <const> = table.concat(res)
+	print("[TODO] :" .. txt)
 end
 
 local function toStrArr(s: string | {string}): {string}
@@ -203,4 +319,3 @@ nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string)
 end
 
 return nvim
-

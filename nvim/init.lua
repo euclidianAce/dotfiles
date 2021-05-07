@@ -2,10 +2,16 @@
 -- trick the teal compat code
 bit32 = require("bit")
 
-function confreq(lib)
+function unload(lib)
+	package.loaded[lib] = nil
+end
+
+function confreq(lib, reload)
+	if reload then unload(lib) end
 	return require("euclidian.config." .. lib)
 end
-function libreq(lib)
+function libreq(lib, reload)
+	if reload then unload(lib) end
 	return require("euclidian.lib." .. lib)
 end
 
@@ -77,7 +83,6 @@ nvim.augroup("Custom", {
 		buf:setOption("shiftwidth", 4)
 		buf:setOption("tabstop", 4)
 		buf:setOption("commentstring", "// %s")
-
 	end },
 
 	{ "TextYankPost", "*", function()
@@ -110,7 +115,7 @@ nvim.command [[set undofile]]
 set(vim.o, {
 	-- guicursor = "a:block",
 	-- guicursor = "n:hor10",
-	-- guicursor = "n:hor10,i:ver10",
+	guicursor = "i:ver20",
 
 	mouse = "nv",
 	termguicolors = true,
@@ -161,9 +166,9 @@ if not lspconfig.teal then
 				"teal-language-server",
 				-- "logging=on",
 			},
-			filetypes = { "teal", "lua" };
+			filetypes = { "teal", "lua" },
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
-			settings = {};
+			settings = {},
 		},
 	}
 end
@@ -171,7 +176,7 @@ lspconfig.teal.setup{}
 lspconfig.clangd.setup{}
 
 function req(lib)
-	package.loaded[lib] = nil
+	unload(lib)
 	return require(lib)
 end
 

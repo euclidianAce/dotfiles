@@ -7,7 +7,7 @@
 local record Frame<T>
 	_t: thread
 	_v: T
-	_awaiter: thread
+	_awaiter: Frame<any>
 end
 
 local frames <const>: table = setmetatable({}, { __mode = "k" })
@@ -36,10 +36,7 @@ local function internalResume<T>(frame: Frame<T>, ...: any): any...
 	if isDead(frame) then
 		frame._v = val
 		if frame._awaiter then
-			local awaiterok, awaiterval = coroutine.resume(frame._awaiter) as (boolean, T)
-			if not awaiterok then
-				error(awaiterval, 3)
-			end
+			internalResume(frame._awaiter as Frame<T>)
 		end
 	end
 
@@ -52,19 +49,19 @@ local function resume<T>(frame: Frame<T>)
 	internalResume(frame)
 end
 
+local function currentFrame(): Frame<any>
+	local co <const> = coroutine.running()
+	return frames[co] as Frame<any>
+end
+
 local function await<T>(frame: Frame<T>): T
 	if not isDead(frame) then
 		assert(frame._awaiter == nil, "async function awaited twice")
-		frame._awaiter = coroutine.running()
+		frame._awaiter = assert(currentFrame(), "Not running in an async function")
 		coroutine.yield()
 		assert(isDead(frame), "awaiting function resumed")
 	end
 	return frame._v
-end
-
-local function currentFrame(): Frame<any>
-	local co <const> = coroutine.running()
-	return frames[co] as Frame<any>
 end
 
 local function nosuspend<T, K>(fn: function(...: K): (T), ...: K): T
@@ -79,7 +76,7 @@ end
 
 local function async<T, K>(fn: (function(...: K): T), ...: K): Frame<T>
 	local co <const> = coroutine.create(fn)
-	local f <const> = { _t = co } as Frame<T>
+	local f <const>: Frame<T> = { _t = co }
 	frames[co] = f
 	internalResume(f, ...)
 	return f

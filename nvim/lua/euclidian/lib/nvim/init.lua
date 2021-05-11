@@ -4,13 +4,16 @@ local a = vim.api
 local function failsafe(f, err_prefix)
    local ok = true
    local err
-   return function()
+   return function(...)
       if ok then
-         ok, err = pcall(f)
+         local res = { pcall(f, ...) }
+         ok = table.remove(res, 1)
+         if ok then
+            return unpack(res)
+         end
+         err = res[1]
       end
-      if not ok then
-         a.nvim_err_writeln((err_prefix or "") .. err)
-      end
+      a.nvim_err_writeln((err_prefix or "") .. err)
    end
 end
 
@@ -168,6 +171,7 @@ function nvim.newCommand(opts)
    end
 
    local compl = opts.complete
+
    if type(compl) == "function" then
       (_G)["__" .. opts.name .. "completefunc"] = failsafe(compl, "Error in completion function:")
       table.insert(res, " -complete=custom,v:lua.__" .. opts.name .. "completefunc")
@@ -178,18 +182,21 @@ function nvim.newCommand(opts)
       table.insert(res, " -complete=customlist,v:lua.__" .. opts.name .. "completelistfunc")
    end
 
-
    local range = opts.range
+   local count = opts.count
+
+   assert(not (range and count), "range and count are mutually exclusive options")
+
    if range == true then
       table.insert(res, " -range")
    elseif range then
       table.insert(res, " -range=")
       table.insert(res, tostring(range))
-   elseif opts.count == true then
+   elseif count == true then
       table.insert(res, " -count")
-   elseif opts.count then
+   elseif count then
       table.insert(res, " -count=")
-      table.insert(res, tostring(opts.count))
+      table.insert(res, tostring(count))
    end
 
    if opts.addr then
@@ -197,21 +204,10 @@ function nvim.newCommand(opts)
       table.insert(res, opts.addr)
    end
 
-   if opts.bang then
-      table.insert(res, " -bang")
-   end
-
-   if opts.bar then
-      table.insert(res, " -bar")
-   end
-
-   if opts.register then
-      table.insert(res, " -register")
-   end
-
-   if opts.buffer then
-      table.insert(res, " -buffer")
-   end
+   if opts.bang then table.insert(res, " -bang") end
+   if opts.bar then table.insert(res, " -bar") end
+   if opts.register then table.insert(res, " -register") end
+   if opts.buffer then table.insert(res, " -buffer") end
 
    table.insert(res, " ")
    table.insert(res, opts.name)
@@ -221,11 +217,12 @@ function nvim.newCommand(opts)
    if type(body) == "string" then
       table.insert(res, body)
    else
-      table.insert(res, "echo TODO: <cmd>lua ...<cr>")
+      local key = "usercmd" .. opts.name
+      nvim._exports[key] = body
+      table.insert(res, ([=[call luaeval('require("euclidian.lib.nvim")._exports[%q](unpack(_A))', [<f-args>])]=]):format(key))
    end
 
-   local txt = table.concat(res)
-   print("[TODO] :" .. txt)
+   a.nvim_command(table.concat(res))
 end
 
 local function toStrArr(s)
@@ -278,11 +275,19 @@ function nvim.augroup(name, lst, clear)
    nvim.command("augroup END")
 end
 
+local function getKeymapKey(mode, lhs, prefix)
+   return (prefix or "") ..
+   "keymap:" ..
+   mode ..
+   ":" ..
+   a.nvim_replace_termcodes(lhs, true, true, true)
+end
+
 function nvim.setKeymap(mode, lhs, rhs, userSettings)
    if type(rhs) == "string" then
       a.nvim_set_keymap(mode, lhs, rhs, userSettings)
    else
-      local key = "keymap" .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
+      local key = getKeymapKey(mode, lhs)
       nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
       a.nvim_set_keymap(
       mode,
@@ -301,7 +306,7 @@ nvim.Buffer.setKeymap = function(self, mode, lhs, rhs, userSettings)
    if type(rhs) == "string" then
       a.nvim_buf_set_keymap(self.id, mode, lhs, rhs, userSettings)
    else
-      local key = "bufkeymap" .. tostring(self.id) .. mode .. a.nvim_replace_termcodes(lhs, true, true, true)
+      local key = getKeymapKey(mode, lhs, "buf" .. tostring(self.id))
       nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
       a.nvim_buf_set_keymap(
       self.id,

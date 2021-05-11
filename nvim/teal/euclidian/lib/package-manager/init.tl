@@ -37,12 +37,15 @@ end
 return setmetatable(packagemanager, {
 	__call = function(_: packagemanager, opts: packagemanager.SetupOptions)
 
-		-- TODO: I think the issue with v:lua.require here is the hyphen in the name...
 		nvim.newCommand{
 			name = "PackageManager",
 			nargs = 1,
 			completelist = getCommandCompletion,
 			body = function(cmd: string)
+				if not packagemanager.commands[cmd] then
+					vim.api.nvim_err_writeln("Not a PackageManager command: " .. tostring(cmd))
+					return
+				end
 				packagemanager.commands[cmd]()
 			end,
 

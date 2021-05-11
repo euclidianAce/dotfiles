@@ -43,8 +43,11 @@ libreq "package-manager" {
 	maxConcurrentJobs = 6,
 }
 
-require "telescope"
-	.setup{ defaults = { layout_strategy = "vertical" } }
+-- require("telescope").setup{
+	-- defaults = {
+		-- layout_strategy = "vertical",
+	-- }
+-- }
 
 local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp" }
 require("nvim-treesitter.configs").setup{

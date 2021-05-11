@@ -37,19 +37,23 @@ end
 local function waitForKey(d: Dialog, ...: string): string
 	local keys <const> = {...}
 	local function delKeymaps()
-		for _, key in ipairs(keys) do
-			d:delKeymap("n", key)
-		end
+		vim.schedule(function()
+			for _, key in ipairs(keys) do
+				d:delKeymap("n", key)
+			end
+		end)
 	end
 	local pressed: string
 	local me <const> = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
-	for _, key in ipairs(keys) do
-		d:addKeymap("n", key, function()
-			pressed = key
-			delKeymaps()
-			z.resume(me)
-		end, { noremap = true, silent = true })
-	end
+	vim.schedule(function()
+		for _, key in ipairs(keys) do
+			d:addKeymap("n", key, function()
+				pressed = key
+				delKeymaps()
+				z.resume(me)
+			end, { noremap = true, silent = true })
+		end
+	end)
 	z.suspend()
 	return pressed
 end
@@ -366,17 +370,19 @@ actions.install = createDialog(function(d: Dialog)
 	for i, pkg in ipairs(loaded) do
 		if not pkg:isInstalled() then
 			if pkg.kind == "git" then
-				local updateTxt <const> = vim.schedule_wrap(function(ln: string)
-					-- TODO: do some fancier setText things
 
-					d:setLine(i-1, " " .. pkg:title() .. ": " .. ln)
-					 :fitText():center()
+				local r <const> = d:claimRegion(
+					{ line = i-1, char = #pkg:title() + 4 },
+					1, 0
+				)
+				local updateTxt <const> = vim.schedule_wrap(function(ln: string)
+					r:set(ln, true)
 				end) as function(string)
 
 				table.insert(jobqueue, function()
 					running = running + 1
 					command.spawn{
-						command = { "git", "clone", "https://github.com/" .. pkg.repo, pkg:location() },
+						command = pkg:installCmd(),
 						onStdoutLine = updateTxt,
 						onStderrLine = updateTxt,
 						onExit = onCmdExit,

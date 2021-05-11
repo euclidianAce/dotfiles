@@ -37,12 +37,15 @@ end
 return setmetatable(packagemanager, {
    __call = function(_, opts)
 
-
       nvim.newCommand({
          name = "PackageManager",
          nargs = 1,
          completelist = getCommandCompletion,
          body = function(cmd)
+            if not packagemanager.commands[cmd] then
+               vim.api.nvim_err_writeln("Not a PackageManager command: " .. tostring(cmd))
+               return
+            end
             packagemanager.commands[cmd]()
          end,
 

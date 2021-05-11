@@ -66,7 +66,7 @@ end
 
 function Spec:installCmd(): {string}
 	if self.kind == "git" then
-		return { "git", "clone", "https://github.com/" .. self.repo, self:location() }
+		return { "git", "clone", "--progress", "https://github.com/" .. self.repo, self:location() }
 	end
 end
 

@@ -9,6 +9,7 @@ local z <const> = require("euclidian.lib.async.zig")
 local type NilFrame = z.Frame<nil>
 
 local actions <const> = {
+	maxConcurrentJobs = 2,
 	listSets: function(): NilFrame = nil,
 	update: function(): NilFrame = nil,
 	install: function(): NilFrame = nil,
@@ -283,7 +284,6 @@ do
 	end)
 end
 
-local maxConcurrent <const> = 2
 actions.update = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
 
@@ -332,7 +332,7 @@ actions.update = createDialog(function(d: Dialog)
 	end
 
 	while jobsleft > 0 do
-		while running < maxConcurrent and #jobqueue > 0 do
+		while running < actions.maxConcurrentJobs and #jobqueue > 0 do
 			table.remove(jobqueue, math.random(1, #jobqueue))()
 		end
 		z.suspend()
@@ -393,7 +393,7 @@ actions.install = createDialog(function(d: Dialog)
 	end
 
 	while jobsleft > 0 do
-		while running < maxConcurrent and #jobqueue > 0 do
+		while running < actions.maxConcurrentJobs and #jobqueue > 0 do
 			table.remove(jobqueue, math.random(1, #jobqueue))()
 		end
 		z.suspend()

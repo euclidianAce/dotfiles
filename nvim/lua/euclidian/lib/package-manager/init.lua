@@ -9,6 +9,8 @@ local packagemanager = {SetupOptions = {}, }
 
 
 
+
+local nvim = require("euclidian.lib.nvim")
 local loader = require("euclidian.lib.package-manager.loader")
 local actions = require("euclidian.lib.package-manager.actions")
 
@@ -19,7 +21,8 @@ packagemanager.commands = {
    View = actions.listSets,
 }
 
-function packagemanager.getCommandCompletion(arglead)
+local function getCommandCompletion(arglead)
+   arglead = arglead or ""
    local keys = {}
    local len = #arglead
    for k in pairs(packagemanager.commands) do
@@ -34,12 +37,23 @@ end
 return setmetatable(packagemanager, {
    __call = function(_, opts)
 
-      (_G)["__package_manager_cmpl"] = packagemanager.getCommandCompletion
 
+      nvim.newCommand({
+         name = "PackageManager",
+         nargs = 1,
+         completelist = getCommandCompletion,
+         body = function(cmd)
+            packagemanager.commands[cmd]()
+         end,
 
-      vim.cmd([[ command -complete=customlist,v:lua.__package_manager_cmpl -nargs=1 PackageManager lua require'euclidian.lib.package-manager'.commands['<args>']() ]])
+         overwrite = true,
+      })
 
       if not opts then return end
+      if opts.maxConcurrentJobs then
+         actions.maxConcurrentJobs = opts.maxConcurrentJobs
+      end
+
       for _, s in ipairs(opts.enable or {}) do
          loader.enableSet(s)
       end

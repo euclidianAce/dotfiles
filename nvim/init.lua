@@ -6,6 +6,11 @@ function unload(lib)
 	package.loaded[lib] = nil
 end
 
+function req(lib)
+	unload(lib)
+	return require(lib)
+end
+
 function confreq(lib, reload)
 	if reload then unload(lib) end
 	return require("euclidian.config." .. lib)
@@ -34,13 +39,14 @@ hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
 libreq "package-manager" {
-	enable = {
-		"World",
-		"TSPlayground",
-	}
+	enable = { "World", "TSPlayground" },
+	maxConcurrentJobs = 6,
 }
 
-local tsLangs = { "teal", "lua", "nix", "javascript", "c", "query", "cpp" }
+require "telescope"
+	.setup{ defaults = { layout_strategy = "vertical" } }
+
+local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp" }
 require("nvim-treesitter.configs").setup{
 	ensure_installed = tsLangs,
 	highlight = { enable = tsLangs },
@@ -175,11 +181,6 @@ end
 lspconfig.teal.setup{}
 lspconfig.clangd.setup{}
 
-function req(lib)
-	unload(lib)
-	return require(lib)
-end
-
 confreq "statusline"
 confreq "keymaps"
 
@@ -196,6 +197,9 @@ euclidian = {
 	lib = requirer("euclidian.lib"),
 	config = requirer("euclidian.config"),
 }
+e = euclidian
+e.l = euclidian.lib
+e.c = euclidian.config
 
 confreq "luasearch"
 

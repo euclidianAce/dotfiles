@@ -2,6 +2,7 @@
 local record packagemanager
 	record SetupOptions
 		enable: {string}
+		maxConcurrentJobs: integer
 	end
 
 	commands: {string:function}
@@ -9,6 +10,7 @@ local record packagemanager
 	metamethod __call: function(any, SetupOptions)
 end
 
+local nvim <const> = require("euclidian.lib.nvim")
 local loader <const> = require("euclidian.lib.package-manager.loader")
 local actions <const> = require("euclidian.lib.package-manager.actions")
 
@@ -19,7 +21,8 @@ packagemanager.commands = {
 	View = actions.listSets,
 }
 
-function packagemanager.getCommandCompletion(arglead: string): {string}
+local function getCommandCompletion(arglead: string): {string}
+	arglead = arglead or ""
 	local keys <const> = {}
 	local len <const> = #arglead
 	for k in pairs(packagemanager.commands) do
@@ -34,12 +37,23 @@ end
 return setmetatable(packagemanager, {
 	__call = function(_: packagemanager, opts: packagemanager.SetupOptions)
 
-		(_G as table)["__package_manager_cmpl"] = packagemanager.getCommandCompletion
-
 		-- TODO: I think the issue with v:lua.require here is the hyphen in the name...
-		vim.cmd[[ command -complete=customlist,v:lua.__package_manager_cmpl -nargs=1 PackageManager lua require'euclidian.lib.package-manager'.commands['<args>']() ]]
+		nvim.newCommand{
+			name = "PackageManager",
+			nargs = 1,
+			completelist = getCommandCompletion,
+			body = function(cmd: string)
+				packagemanager.commands[cmd]()
+			end,
+
+			overwrite = true,
+		}
 
 		if not opts then return end
+		if opts.maxConcurrentJobs then
+			actions.maxConcurrentJobs = opts.maxConcurrentJobs
+		end
+
 		for _, s in ipairs(opts.enable or {}) do
 			loader.enableSet(s)
 		end

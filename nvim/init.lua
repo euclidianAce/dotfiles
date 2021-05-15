@@ -1,3 +1,4 @@
+local windows = vim.fn.has("win32") == 1
 
 -- trick the teal compat code
 bit32 = require("bit")
@@ -49,13 +50,20 @@ libreq "package-manager" {
 	-- }
 -- }
 
-local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp" }
-require("nvim-treesitter.configs").setup{
-	ensure_installed = tsLangs,
-	highlight = { enable = tsLangs },
-}
+if not windows then
+	-- Treesitter is finicky on windows
+	local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp" }
+	require("nvim-treesitter.configs").setup{
+		ensure_installed = tsLangs,
+		highlight = { enable = tsLangs },
+	}
+end
 
-if vim.fn.executable("clang-format") == 1 then
+local function isExecutable(name)
+	return vim.fn.executable(name) == 1
+end
+
+if isExecutable("clang-format") then
 	nvim.augroup("ClangFormatOnSave", {
 		{ "BufWritePre", { "*.hpp", "*.cpp" }, function()
 			local win = nvim.Window()
@@ -168,7 +176,7 @@ set(vim.wo, {
 
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH
-if not lspconfig.teal then
+if not lspconfig.teal and isExecutable("teal-language-server") then
 	configs.teal = {
 		default_config = {
 			cmd = {
@@ -180,8 +188,8 @@ if not lspconfig.teal then
 			settings = {},
 		},
 	}
+	lspconfig.teal.setup{}
 end
-lspconfig.teal.setup{}
 lspconfig.clangd.setup{}
 
 confreq "statusline"

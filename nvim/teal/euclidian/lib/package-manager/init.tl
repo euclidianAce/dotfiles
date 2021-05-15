@@ -54,11 +54,17 @@ return setmetatable(packagemanager, {
 
 		if not opts then return end
 		if opts.maxConcurrentJobs then
-			actions.maxConcurrentJobs = opts.maxConcurrentJobs
+			if opts.maxConcurrentJobs <= 0 then
+				vim.api.nvim_err_writeln("PackageManager: maxConcurrentJobs should be a positive integer (got " .. tostring(opts.maxConcurrentJobs) .. ")")
+			else
+				actions.maxConcurrentJobs = opts.maxConcurrentJobs
+			end
 		end
 
-		for _, s in ipairs(opts.enable or {}) do
-			loader.enableSet(s)
+		if opts.enable then
+			for _, s in ipairs(opts.enable) do
+				loader.enableSet(s)
+			end
 		end
 	end
 })

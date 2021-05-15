@@ -288,123 +288,131 @@ do
    end)
 end
 
-actions.update = createDialog(function(d)
-   local loaded = chooseAndLoadSet(d)
 
-   local lines = {}
-   for i, pkg in ipairs(loaded) do
-      lines[i] = " " .. pkg:title() .. (" "):rep(10)
-   end
-   d:setLines(lines):fitText(nvim.ui().width - 5, 14):center()
 
-   local main = z.currentFrame()
 
-   local jobsleft = #loaded
-   local running = 0
 
-   local onCmdExit = vim.schedule_wrap(function()
-      jobsleft = jobsleft - 1
-      running = running - 1
-      z.resume(main)
-   end)
+
+
+
+
+
+
+
+
+
+
+
+local titleWidth = 35
+local scheduleWrap = vim.schedule_wrap
+
+local function runCmdForEachPkg(d, getcmd, loaded)
+   local mainTask = z.currentFrame()
 
    local jobqueue = {}
+   local running = 0
+
    for i, pkg in ipairs(loaded) do
-      if pkg.kind == "git" then
+      local cmd = getcmd(pkg)
+      if cmd then
          local r = d:claimRegion(
-         { line = i - 1, char = #pkg:title() + 4 },
+         { line = i - 1, char = titleWidth + 1 },
          1, 0)
 
-         local updateTxt = vim.schedule_wrap(function(ln)
-            r:set(ln, true)
+
+         local updateTxt = scheduleWrap(function(ln)
+            if #ln > 0 then
+               r:set(ln, true)
+            end
          end)
 
          table.insert(jobqueue, function()
             running = running + 1
             command.spawn({
-               command = { "git", "pull" },
-               cwd = pkg:location(),
+               command = cmd,
+
+
                onStdoutLine = updateTxt,
                onStderrLine = updateTxt,
-               onExit = onCmdExit,
+               onExit = function()
+                  running = running - 1
+                  z.resume(mainTask)
+               end,
             })
          end)
       else
-         jobsleft = jobsleft - 1
-         d:setLine(i - 1, pkg:title() .. ": not a git package :D")
+         d:setLine(i - 1, pkg:title() .. ": nothing to be done")
       end
    end
 
-   while jobsleft > 0 do
-      while running < actions.maxConcurrentJobs and #jobqueue > 0 do
-         table.remove(jobqueue, math.random(1, #jobqueue))()
+   local function spawnJob()
+      assert(table.remove(jobqueue, math.random(1, #jobqueue)))()
+   end
+
+   while next(jobqueue) or running > 0 do
+      while running < actions.maxConcurrentJobs and next(jobqueue) do
+         spawnJob()
       end
       z.suspend()
    end
 
+   assert(running == 0, "mainTask finished with jobs still running")
+   assert(not next(jobqueue), "mainTask finished with jobs still queued")
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function longestInList(list)
+   local len = 0
+   for _, v in ipairs(list) do
+      local itemLen = #v
+      if itemLen > len then
+         len = itemLen
+      end
+   end
+   return len
+end
+
+local function applyPadding(s, len)
+   if #s > titleWidth then
+      s = s:sub(1, 35)
+   end
+   return (" "):rep(len - #s) .. s .. " "
+end
+
+local function showTitles(d, loaded)
+   local lines = {}
+   local titles = vim.tbl_map(function(p) return p:title() end, loaded)
+   local longest = longestInList(titles)
+   for i, title in ipairs(titles) do
+      lines[i] = applyPadding(title, longest + 1)
+   end
+   d:setLines(lines):fitText(nvim.ui().width - 20, 14):center()
+end
+
+actions.update = createDialog(function(d)
+   local loaded = chooseAndLoadSet(d)
+   showTitles(d, loaded)
+   runCmdForEachPkg(d, Spec.updateCmd, loaded)
    waitForKey(d, "<cr>")
    d:close()
 end)
 
 actions.install = createDialog(function(d)
    local loaded = chooseAndLoadSet(d)
-
-   local lines = {}
-   for i, pkg in ipairs(loaded) do
-      lines[i] = " " .. pkg:title() .. " "
-   end
-   d:setLines(lines):fitText()
-
-   local main = z.currentFrame()
-
-   local jobsleft = #loaded
-   local running = 0
-
-   local onCmdExit = vim.schedule_wrap(function()
-      jobsleft = jobsleft - 1
-      running = running - 1
-      z.resume(main)
-   end)
-
-   local jobqueue = {}
-   for i, pkg in ipairs(loaded) do
-      if not pkg:isInstalled() then
-         if pkg.kind == "git" then
-
-            local r = d:claimRegion(
-            { line = i - 1, char = #pkg:title() + 4 },
-            1, 0)
-
-            local updateTxt = vim.schedule_wrap(function(ln)
-               r:set(ln, true)
-            end)
-
-            table.insert(jobqueue, function()
-               running = running + 1
-               command.spawn({
-                  command = pkg:installCmd(),
-                  onStdoutLine = updateTxt,
-                  onStderrLine = updateTxt,
-                  onExit = onCmdExit,
-               })
-            end)
-         else
-            jobsleft = jobsleft - 1
-            d:setLine(i - 1, pkg:title() .. ": not a git package :D")
-         end
-      else
-         jobsleft = jobsleft - 1
-         d:setLine(i - 1, pkg:title() .. ": already installed")
-      end
-   end
-
-   while jobsleft > 0 do
-      while running < actions.maxConcurrentJobs and #jobqueue > 0 do
-         table.remove(jobqueue, math.random(1, #jobqueue))()
-      end
-      z.suspend()
-   end
-
+   showTitles(d, loaded)
+   runCmdForEachPkg(d, Spec.installCmd, loaded)
    waitForKey(d, "<cr>")
    d:close()
 end)

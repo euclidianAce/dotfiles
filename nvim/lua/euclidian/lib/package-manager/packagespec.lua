@@ -70,6 +70,12 @@ function Spec:installCmd()
    end
 end
 
+function Spec:updateCmd()
+   if self.kind == "git" then
+      return { "git", "-C", self:location(), "pull" }
+   end
+end
+
 local function fileExists(fname)
    return uv.fs_stat(fname) ~= nil
 end

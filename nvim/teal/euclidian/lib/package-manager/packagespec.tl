@@ -11,7 +11,7 @@ local record Spec
 	opt: boolean
 
 	id: integer
-	dependents: {number|Spec}
+	dependents: {integer | Spec}
 
 	kind: Kind
 
@@ -67,6 +67,12 @@ end
 function Spec:installCmd(): {string}
 	if self.kind == "git" then
 		return { "git", "clone", "--progress", "https://github.com/" .. self.repo, self:location() }
+	end
+end
+
+function Spec:updateCmd(): {string}
+	if self.kind == "git" then
+		return { "git", "-C", self:location(), "pull" }
 	end
 end
 

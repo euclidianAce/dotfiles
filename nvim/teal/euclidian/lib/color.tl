@@ -1,21 +1,22 @@
 
 local nvim <const> = require("euclidian.lib.nvim")
 
-local record color
-	type Color = {integer, integer, string}
-	record scheme
-		hi: {string:Color}
-		groups: function(): (function(): string, integer, integer, string)
-	end
-end
-color.scheme.hi = {}
-local type Color = color.Color
+local type Color = {integer, integer, string}
+local color <const> = {
+	Color = Color,
+	scheme = {
+		hi: {string:Color} = {},
+		groups: function(): (function(): string, integer, integer, string) = nil,
+	},
+}
 
 local function tiFmt(t: {string}, fmt: string, ...: any)
 	table.insert(t, string.format(fmt, ...))
 end
+
+-- TODO: is it worth it to use nvim_set_hl? probably
 local function updateHiGroup(group: string, fg: integer, bg: integer, ex: string)
-	local out = { "hi", group }
+	local out <const> = { "hi", group }
 	if fg then
 		tiFmt(out, "guifg=#%06x", fg)
 	elseif fg ~= -1 then
@@ -34,8 +35,8 @@ local function updateHiGroup(group: string, fg: integer, bg: integer, ex: string
 	nvim.command(table.concat(out, " "))
 end
 
-local groups: {Color:string} = {}
-local actualHi: {string:Color} = {}
+local groups <const>: {Color:string} = {}
+local actualHi <const>: {string:Color} = {}
 
 setmetatable(color.scheme.hi, {
 	__index = function(_self: {string:Color}, key: string): Color
@@ -59,7 +60,7 @@ setmetatable(color.scheme.hi, {
 	end,
 })
 
-function color.scheme.groups(): function(): (string, integer, integer, string)
+color.scheme.groups = function(): function(): (string, integer, integer, string)
 	local idx: string
 	local val: Color
 	return function(): (string, integer, integer, string)

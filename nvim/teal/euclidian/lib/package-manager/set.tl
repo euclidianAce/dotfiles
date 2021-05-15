@@ -142,7 +142,9 @@ function set.load(name: string): {Spec}
 end
 
 function set.save(name: string, s: {Spec})
-	assert(name, "Can't save a set without a name") assert(s, "No set to save")
+	assert(name, "Can't save a set without a name")
+	assert(s, "No set to save")
+
 	local fh <const> = assert(io.open(tree.set .. "/" .. name, "w"))
 	fh:write(set.serialize(s), "\n")
 	fh:close()
@@ -150,10 +152,13 @@ function set.save(name: string, s: {Spec})
 end
 
 function set.list(): {string}
-	local list: {string} = {}
-	for name in uv.fs_scandir_next, uv.fs_scandir(tree.set) do
-		if name:sub(1, 1) ~= "." then
-			table.insert(list, name)
+	local list <const> = {}
+	local scanner <const> = uv.fs_scandir(tree.set)
+	if scanner then
+		for name in uv.fs_scandir_next, scanner do
+			if name:sub(1, 1) ~= "." then
+				table.insert(list, name)
+			end
 		end
 	end
 	return list

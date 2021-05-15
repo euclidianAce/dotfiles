@@ -1,19 +1,20 @@
 
 local nvim = require("euclidian.lib.nvim")
 
-local color = {scheme = {}, }
-
-
-
-
-
-
-color.scheme.hi = {}
-local Color = color.Color
+local Color = {}
+local color = {
+   Color = Color,
+   scheme = {
+      hi = {},
+      groups = nil,
+   },
+}
 
 local function tiFmt(t, fmt, ...)
    table.insert(t, string.format(fmt, ...))
 end
+
+
 local function updateHiGroup(group, fg, bg, ex)
    local out = { "hi", group }
    if fg then
@@ -59,7 +60,7 @@ setmetatable(color.scheme.hi, {
    end,
 })
 
-function color.scheme.groups()
+color.scheme.groups = function()
    local idx
    local val
    return function()

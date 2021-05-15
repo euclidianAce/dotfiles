@@ -64,8 +64,9 @@ local function await<T>(frame: Frame<T>): T
 	return frame._v
 end
 
-local function nosuspend<T, K>(fn: function(...: K): (T), ...: K): T
-	local frame <const> = { _t = coroutine.create(fn) } as Frame<T>
+-- TODO: use the fancy new variadic type vars once the don't send the complier into an infinite loop
+local function nosuspend<Ret, Args>(fn: (function(...: Args): Ret), ...: Args): Ret
+	local frame <const> = { _t = coroutine.create(fn) } as Frame<Ret>
 	frames[frame._t] = frame
 	internalResume(frame, ...)
 	if not isDead(frame) then
@@ -74,9 +75,9 @@ local function nosuspend<T, K>(fn: function(...: K): (T), ...: K): T
 	return frame._v
 end
 
-local function async<T, K>(fn: (function(...: K): T), ...: K): Frame<T>
+local function async<Ret, Args>(fn: (function(...: Args): Ret), ...: Args): Frame<Ret>
 	local co <const> = coroutine.create(fn)
-	local f <const>: Frame<T> = { _t = co }
+	local f <const>: Frame<Ret> = { _t = co }
 	frames[co] = f
 	internalResume(f, ...)
 	return f

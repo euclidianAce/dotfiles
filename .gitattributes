@@ -1,1 +1,2 @@
 *.tl linguist-language=Lua
+*.lua linguist-generated

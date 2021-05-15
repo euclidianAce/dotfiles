@@ -115,7 +115,15 @@ local namespaces: {NamespaceName:Namespace} = {
 			setKeymap = true,
 		},
 		entries = {
-			"call: function(Buffer, function)",
+			"call: function(Buffer, function())",
+			"call: function<A>(Buffer, function(): A): A",
+			"call: function<A, B>(Buffer, (function(): A, B)): A, B",
+			"call: function<A, B, C>(Buffer, (function(): A, B, C)): A, B, C",
+			"call: function<A, B, C, D>(Buffer, (function(): A, B, C)): A, B, C, D",
+
+			-- TODO: in the current branch, this causes an infinite loop in the compiler
+			--       but is the correct definition, but the above works fine
+			-- "call: function<Rets...>(Buffer, function(): Rets): Rets",
 
 			"getOption: function(Buffer, StringOpt): string",
 			"getOption: function(Buffer, BooleanOpt): boolean",

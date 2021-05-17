@@ -80,4 +80,3 @@ function color.rgbToHex(r: integer, g: integer, b: integer): integer
 end
 
 return color
-

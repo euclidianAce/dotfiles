@@ -138,6 +138,8 @@ end
 
 local checkKey = "a"
 local function checklist(d, pre, opts)
+   d:buf():setOption("number", true)
+   d:buf():setOption("relativenumber", true)
    local lines = {}
    for i, v in ipairs(opts) do
       lines[i] = "[ ] " .. v
@@ -159,6 +161,8 @@ local function checklist(d, pre, opts)
          table.insert(selected, i)
       end
    end
+   d:buf():setOption("number", false)
+   d:buf():setOption("relativenumber", false)
    return selected
 end
 
@@ -305,6 +309,7 @@ end
 
 local titleWidth = 35
 local scheduleWrap = vim.schedule_wrap
+
 
 local function runCmdForEachPkg(d, getcmd, loaded)
    local mainTask = z.currentFrame()

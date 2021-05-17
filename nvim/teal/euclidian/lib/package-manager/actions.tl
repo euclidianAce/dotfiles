@@ -138,6 +138,8 @@ end
 
 local checkKey <const> = "a"
 local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
+	d:buf():setOption("number", true)
+	d:buf():setOption("relativenumber", true)
 	local lines <const> = {}
 	for i, v in ipairs(opts) do
 		lines[i] = "[ ] " .. v
@@ -159,6 +161,8 @@ local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
 			table.insert(selected, i)
 		end
 	end
+	d:buf():setOption("number", false)
+	d:buf():setOption("relativenumber", false)
 	return selected
 end
 
@@ -282,7 +286,7 @@ do
 		until ln > 1
 
 		set.save("." .. name .. "__bak", loaded)
-		handlers[ln-1](d, loaded)
+		handlers[ln - 1](d, loaded)
 		set.save(name, loaded)
 		d:close()
 	end)
@@ -304,7 +308,8 @@ end
 -- end
 
 local titleWidth <const> = 35
-local scheduleWrap <const> = vim.schedule_wrap as function<Args..., Rets...>(function(Args): Rets): function(Args)
+local scheduleWrap <const> = vim.schedule_wrap
+	as function<Args..., Rets...>(function(Args): Rets): function(Args)
 
 local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), loaded: {Spec})
 	local mainTask <const> = z.currentFrame()

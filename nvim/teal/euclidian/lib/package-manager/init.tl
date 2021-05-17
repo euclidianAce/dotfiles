@@ -1,4 +1,3 @@
-
 local record packagemanager
 	record SetupOptions
 		enable: {string}
@@ -19,7 +18,12 @@ packagemanager.commands = {
 	Install = actions.install,
 	Update = actions.update,
 	View = actions.listSets,
+	Remove = actions.remove,
 }
+
+local function writeMsg(str: string, ...: any)
+	print("PackageManager:", string.format(str, ...))
+end
 
 local function writeErr(str: string, ...: any)
 	vim.api.nvim_err_write("PackageManager: ")
@@ -39,8 +43,49 @@ local function getCommandCompletion(arglead: string): {string}
 	return keys
 end
 
+local function copyOpts(opts: packagemanager.SetupOptions): packagemanager.SetupOptions
+	return {
+		enable = { unpack(opts.enable or {}) },
+		maxConcurrentJobs = opts.maxConcurrentJobs,
+	}
+end
+
+local loadedWith: packagemanager.SetupOptions
+
+function packagemanager._reload()
+	local req <const> = require
+
+	writeMsg("recompiling...")
+	local command <const> = require("euclidian.lib.command")
+	local err <const> = {}
+	command.spawn{
+		command = { "cyan", "build" },
+		cwd = os.getenv("DOTFILE_DIR") .. "/nvim",
+		onStderrLine = function(line: string)
+			table.insert(err, line)
+		end,
+		onExit = vim.schedule_wrap(function(code: integer)
+			if code ~= 0 then
+				writeErr("cyan build exited with code %d, did not reload", code)
+				require("euclidian.lib.printmode").printfn("buffer")(unpack(err))
+				return
+			end
+
+			writeMsg("reloading...")
+			for name in pairs(package.loaded) do
+				if name:match("^euclidian%.lib%.package%-manager") then
+					package.loaded[name] = nil
+				end
+			end
+			;(req "euclidian.lib.package-manager" as function)(loadedWith)
+			writeMsg("reloaded!")
+		end),
+	}
+end
+
 return setmetatable(packagemanager, {
 	__call = function(_: packagemanager, opts: packagemanager.SetupOptions)
+		loadedWith = copyOpts(opts)
 
 		nvim.newCommand{
 			name = "PackageManager",

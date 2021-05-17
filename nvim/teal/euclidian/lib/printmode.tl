@@ -12,7 +12,7 @@ end
 
 local printDialog <const> = dialog.new{
 	row = 4, col = -65,
-	wid = 50, hei = .75,
+	wid = 50, hei = 0.75,
 	hidden = true,
 }
 printDialog:setLines{"=== print buffer ==="}
@@ -66,7 +66,9 @@ function printmode.printfn(mode: Mode): function(...: any)
 end
 
 function printmode.clearBuffer()
-	vim.schedule(function() printDialog:setLines{} end)
+	vim.schedule(function()
+		printDialog:setLines{"=== print buffer ==="}
+	end)
 end
 
 function printmode.set(newMode: Mode): printmode
@@ -94,4 +96,3 @@ function printmode.default(): function(...: any)
 end
 
 return printmode
-

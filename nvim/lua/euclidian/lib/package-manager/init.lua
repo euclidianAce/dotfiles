@@ -21,6 +21,11 @@ packagemanager.commands = {
    View = actions.listSets,
 }
 
+local function writeErr(str, ...)
+   vim.api.nvim_err_write("PackageManager: ")
+   vim.api.nvim_err_writeln(string.format(str, ...))
+end
+
 local function getCommandCompletion(arglead)
    arglead = arglead or ""
    local keys = {}
@@ -43,7 +48,7 @@ return setmetatable(packagemanager, {
          completelist = getCommandCompletion,
          body = function(cmd)
             if not packagemanager.commands[cmd] then
-               vim.api.nvim_err_writeln("Not a PackageManager command: " .. tostring(cmd))
+               writeErr("Not a command: %s", tostring(cmd))
                return
             end
             packagemanager.commands[cmd]()
@@ -55,7 +60,7 @@ return setmetatable(packagemanager, {
       if not opts then return end
       if opts.maxConcurrentJobs then
          if opts.maxConcurrentJobs <= 0 then
-            vim.api.nvim_err_writeln("PackageManager: maxConcurrentJobs should be a positive integer (got " .. tostring(opts.maxConcurrentJobs) .. ")")
+            writeErr("maxConcurrentJobs should be a positive integer, got %s", tostring(opts.maxConcurrentJobs))
          else
             actions.maxConcurrentJobs = opts.maxConcurrentJobs
          end

@@ -1,4 +1,3 @@
-
 local nvim = require("euclidian.lib.nvim")
 
 local TextRegion = {Position = {}, }

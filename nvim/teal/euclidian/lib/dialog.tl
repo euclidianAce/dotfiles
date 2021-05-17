@@ -1,4 +1,3 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 
 local record TextRegion

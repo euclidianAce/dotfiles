@@ -21,17 +21,17 @@ function libreq(lib, reload)
 	return require("euclidian.lib." .. lib)
 end
 
-hi = libreq "color" .scheme.hi
+hi = libreq("color").scheme.hi
 palette = confreq "colors"
 
--- applyHighlights("blue", "purple", "red", "orange")
-palette.applyHighlights("red", "orange", "blue", "purple")
+palette.applyHighlights("blue", "purple", "red", "orange")
+-- palette.applyHighlights("red", "orange", "blue", "purple")
 
-libreq "printmode"
-	.set "inspect"
+libreq("printmode")
+	.set("inspect")
 	.override()
 
-local nvim = libreq "nvim"
+local nvim = libreq("nvim")
 
 nvim.command[[filetype indent on]]
 nvim.command[[syntax enable]]
@@ -43,12 +43,6 @@ libreq "package-manager" {
 	enable = { "World", "TSPlayground" },
 	maxConcurrentJobs = 6,
 }
-
--- require("telescope").setup{
-	-- defaults = {
-		-- layout_strategy = "vertical",
-	-- }
--- }
 
 if not windows then
 	-- Treesitter is finicky on windows
@@ -69,6 +63,17 @@ if isExecutable("clang-format") then
 			local win = nvim.Window()
 			local cursor = win:getCursor()
 			nvim.command [[%%!clang-format]]
+			win:setCursor(cursor)
+		end }
+	})
+end
+
+if isExecutable("rustfmt") then
+	nvim.augroup("RustFormatOnSave", {
+		{ "BufWritePre", "*.rs", function()
+			local win = nvim.Window()
+			local cursor = win:getCursor()
+			nvim.command [[%%!rustfmt]]
 			win:setCursor(cursor)
 		end }
 	})
@@ -130,9 +135,9 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.o, {
-	-- guicursor = "a:block",
+	guicursor = "a:block",
 	-- guicursor = "n:hor10",
-	guicursor = "i:ver20",
+	-- guicursor = "i:ver20",
 
 	mouse = "nv",
 	termguicolors = true,
@@ -192,8 +197,8 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 end
 lspconfig.clangd.setup{}
 
-confreq "statusline"
-confreq "keymaps"
+confreq("statusline")
+confreq("keymaps")
 
 local function requirer(str)
 	return setmetatable({}, {
@@ -212,7 +217,7 @@ e = euclidian
 e.l = euclidian.lib
 e.c = euclidian.config
 
-confreq "luasearch"
+confreq("luasearch")
 
 if vim.fn.exists(":GuiRenderLigatures") == 2 then
 	nvim.command[[GuiRenderLigatures 1]]

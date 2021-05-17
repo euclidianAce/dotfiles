@@ -56,18 +56,21 @@ function packagemanager._reload()
    local req = require
 
    writeMsg("recompiling...")
-   local command = require("euclidian.lib.command")
+
    local err = {}
-   command.spawn({
+   require("euclidian.lib.command").spawn({
       command = { "cyan", "build" },
       cwd = os.getenv("DOTFILE_DIR") .. "/nvim",
       onStderrLine = function(line)
          table.insert(err, line)
       end,
       onExit = vim.schedule_wrap(function(code)
-         if code ~= 0 then
-            writeErr("cyan build exited with code %d, did not reload", code)
-            require("euclidian.lib.printmode").printfn("buffer")(unpack(err))
+         if not code or code ~= 0 then
+            writeErr("cyan build exited with code %s, did not reload", tostring(code))
+            local p = require("euclidian.lib.printmode").printfn("buffer")
+            for _, ln in ipairs(err) do
+               p((ln:gsub(string.char(27) .. "%[%d+m", "")))
+            end
             return
          end
 
@@ -82,6 +85,8 @@ function packagemanager._reload()
       end),
    })
 end
+
+packagemanager.commands._Reload = packagemanager._reload
 
 return setmetatable(packagemanager, {
    __call = function(_, opts)

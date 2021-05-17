@@ -127,19 +127,21 @@ local function yesOrNo(d: Dialog, pre: string, affirm: string, deny: string): bo
 		pre,
 		affirm,
 		deny,
-	}
+	}:fitText():center()
+	d:win():setOption("cursorline", true)
 	local ln: integer
 	repeat
 		waitForKey(d, "<cr>")
 		ln = d:getCursor()
 	until ln > 1
+	d:win():setOption("cursorline", false)
 	return ln == 2
 end
 
 local checkKey <const> = "a"
 local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
-	d:buf():setOption("number", true)
-	d:buf():setOption("relativenumber", true)
+	d:win():setOption("number", true)
+	d:win():setOption("relativenumber", true)
 	local lines <const> = {}
 	for i, v in ipairs(opts) do
 		lines[i] = "[ ] " .. v
@@ -161,8 +163,8 @@ local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
 			table.insert(selected, i)
 		end
 	end
-	d:buf():setOption("number", false)
-	d:buf():setOption("relativenumber", false)
+	d:win():setOption("number", false)
+	d:win():setOption("relativenumber", false)
 	return selected
 end
 
@@ -176,7 +178,7 @@ do
 	end
 
 	local function askForDependents(d: Dialog, s: {Spec}, p: Spec)
-		if yesOrNo(d, "Does other packages depend on this package?") then
+		if yesOrNo(d, "Do any other packages depend on this package?") then
 			local deps <const> = checklist(d, "Dependents:", getPkgNames(s))
 			for _, idx in ipairs(deps) do
 				table.insert(p.dependents, s[idx])
@@ -186,7 +188,7 @@ do
 
 	local function askForDependencies(d: Dialog, s: {Spec}, p: Spec)
 		if yesOrNo(d, "Does this package depend on other packages?") then
-			local deps <const> = checklist(d, "Dependencies:", getPkgNames())
+			local deps <const> = checklist(d, "Dependencies:", getPkgNames(s))
 			for _, idx in ipairs(deps) do
 				if not s[idx].dependents then
 					s[idx].dependents = {}
@@ -229,7 +231,7 @@ do
 		print("Packer Package: not yet implemented")
 		-- define a "use" function and just run it
 	end
-	local function addGitPackage(d: Dialog, s: {Spec})
+	local function addGitHubPackage(d: Dialog, s: {Spec})
 		d:setLines{}
 		local repo <const> = prompt(d, "Repo: ")
 		local pkgNames <const> = {}
@@ -260,22 +262,22 @@ do
 		-- local name <const> = prompt(d, "Name: ")
 	-- end
 	local handlers <const>: {integer:function(Dialog, {Spec})} = {
-		[1] = addVimPlugPackage,
-		[2] = addPackerPackage,
-		[3] = addGitPackage,
-		[4] = addLocalPackage,
-		-- [5] = addLuaRock,
+		addGitHubPackage,
+		addLocalPackage,
+		addVimPlugPackage,
+		addPackerPackage,
+		-- addLuaRock,
 	}
 
 	actions.add = createDialog(function(d: Dialog)
 		local loaded <const>, name <const> = chooseAndLoadSet(d)
 
 		d:setLines{
-			"Add new package:",
-			"  from Vim-Plug expression",
-			"  from Packer expression",
-			"  git",
-			"  local",
+			"Add new package from:",
+			"  Github",
+			"  Local directory",
+			"  Vim-Plug expression",
+			"  Packer expression",
 			-- "  lua rock",
 		}:fitText(35):center()
 

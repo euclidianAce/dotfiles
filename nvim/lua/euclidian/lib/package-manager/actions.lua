@@ -127,19 +127,21 @@ local function yesOrNo(d, pre, affirm, deny)
       pre,
       affirm,
       deny,
-   })
+   }):fitText():center()
+   d:win():setOption("cursorline", true)
    local ln
    repeat
       waitForKey(d, "<cr>")
       ln = d:getCursor()
    until ln > 1
+   d:win():setOption("cursorline", false)
    return ln == 2
 end
 
 local checkKey = "a"
 local function checklist(d, pre, opts)
-   d:buf():setOption("number", true)
-   d:buf():setOption("relativenumber", true)
+   d:win():setOption("number", true)
+   d:win():setOption("relativenumber", true)
    local lines = {}
    for i, v in ipairs(opts) do
       lines[i] = "[ ] " .. v
@@ -161,8 +163,8 @@ local function checklist(d, pre, opts)
          table.insert(selected, i)
       end
    end
-   d:buf():setOption("number", false)
-   d:buf():setOption("relativenumber", false)
+   d:win():setOption("number", false)
+   d:win():setOption("relativenumber", false)
    return selected
 end
 
@@ -176,7 +178,7 @@ do
    end
 
    local function askForDependents(d, s, p)
-      if yesOrNo(d, "Does other packages depend on this package?") then
+      if yesOrNo(d, "Do any other packages depend on this package?") then
          local deps = checklist(d, "Dependents:", getPkgNames(s))
          for _, idx in ipairs(deps) do
             table.insert(p.dependents, s[idx])
@@ -186,7 +188,7 @@ do
 
    local function askForDependencies(d, s, p)
       if yesOrNo(d, "Does this package depend on other packages?") then
-         local deps = checklist(d, "Dependencies:", getPkgNames())
+         local deps = checklist(d, "Dependencies:", getPkgNames(s))
          for _, idx in ipairs(deps) do
             if not s[idx].dependents then
                s[idx].dependents = {}
@@ -229,7 +231,7 @@ do
       print("Packer Package: not yet implemented")
 
    end
-   local function addGitPackage(d, s)
+   local function addGitHubPackage(d, s)
       d:setLines({})
       local repo = prompt(d, "Repo: ")
       local pkgNames = {}
@@ -260,10 +262,10 @@ do
 
 
    local handlers = {
-      [1] = addVimPlugPackage,
-      [2] = addPackerPackage,
-      [3] = addGitPackage,
-      [4] = addLocalPackage,
+      addGitHubPackage,
+      addLocalPackage,
+      addVimPlugPackage,
+      addPackerPackage,
 
    }
 
@@ -271,11 +273,11 @@ do
       local loaded, name = chooseAndLoadSet(d)
 
       d:setLines({
-         "Add new package:",
-         "  from Vim-Plug expression",
-         "  from Packer expression",
-         "  git",
-         "  local",
+         "Add new package from:",
+         "  Github",
+         "  Local directory",
+         "  Vim-Plug expression",
+         "  Packer expression",
 
       }):fitText(35):center()
 

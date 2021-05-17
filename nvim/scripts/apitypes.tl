@@ -41,7 +41,7 @@ local function runCmd(cmd: string, max_log_lines: integer): {string}
 end
 
 local nvim_cmd <const> = "/usr/local/bin/nvim"
-local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/nvimgen.lua")
+local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/.nvimgen.lua")
 local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
 if scriptUpdated then
 	log.warn(src:tostring(), " is newer than ", target:tostring(), ". Attempting to update...")
@@ -74,7 +74,7 @@ if not scriptUpdated then
 	end
 end
 
-runCmd(("%s --headless -u NORC '+luafile scripts/nvimgen.lua' '+q'"):format(nvim_cmd))
+runCmd(("%s --headless -u NORC '+luafile %s' '+q'"):format(nvim_cmd, target:to_real_path()))
 
 local f = io.open(".last_nvim_commit", "w")
 f:write(current)

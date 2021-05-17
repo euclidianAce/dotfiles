@@ -13,11 +13,11 @@ function req(lib)
 end
 
 function confreq(lib, reload)
-	if reload then unload(lib) end
+	if reload then unload("euclidian.config." .. lib) end
 	return require("euclidian.config." .. lib)
 end
 function libreq(lib, reload)
-	if reload then unload(lib) end
+	if reload then unload("euclidian.lib." .. lib) end
 	return require("euclidian.lib." .. lib)
 end
 

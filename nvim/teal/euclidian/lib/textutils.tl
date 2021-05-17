@@ -9,4 +9,10 @@ function textutils.insertFormatted(list: {string}, fmt: string, ...: any)
 	table.insert(list, string.format(fmt, ...))
 end
 
+function textutils.limit(str: string, len: integer, showTail: boolean): string
+	return showTail
+		and string.sub(str, -len)
+		or string.sub(str, 1, len)
+end
+
 return textutils

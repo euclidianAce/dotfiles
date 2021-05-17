@@ -11,7 +11,7 @@ local printmode = {}
 
 
 local printDialog = dialog.new({
-   row = 4, col = -65,
+   centered = true,
    wid = 50, hei = 0.75,
    hidden = true,
 })

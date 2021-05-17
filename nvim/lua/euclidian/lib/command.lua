@@ -30,7 +30,7 @@ local function lineReader(linecb)
             end
             lastIdx = n
          end
-         if lastIdx < #chunk then
+         if lastIdx and lastIdx < #chunk then
             lastChunk = chunk:sub(lastIdx, -1)
          else
             lastChunk = nil

@@ -121,5 +121,6 @@ return setmetatable(packagemanager, {
 				loader.enableSet(s)
 			end
 		end
+		nvim.command("packloadall")
 	end
 })

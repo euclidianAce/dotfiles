@@ -41,27 +41,36 @@ do -- git stuffs
 		return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
 	end
 
-	local filesChanged, insertions, deletions = "0", "0", "0"
+	local filesChanged, insertions, deletions = "?", "?", "?"
 	nvim.autocmd("VimEnter,BufWritePost", "*", function()
 		local b = nvim.Buffer()
 		if b:getOption("buftype") == "nofile" then
 			return
 		end
+		local function oneshot<T...>(fn: function(T)): function(T)
+			local execd = false
+			return function(...: T)
+				if not execd then
+					fn(...)
+					execd = true
+				end
+			end
+		end
 		command.spawn{
 			command = { "git", "diff", "--shortstat" },
 			cwd = vim.loop.cwd(),
-			onStdoutLine = function(ln: string)
+			onStdoutLine = oneshot(function(ln: string)
 				filesChanged, insertions, deletions = parseDiff(ln)
 				vim.schedule(stl.updateWindow)
-			end,
+			end),
 		}
 		command.spawn{
 			command = { "git", "branch", "--show-current" },
 			cwd = vim.loop.cwd(),
-			onStdoutLine = function(ln: string)
+			onStdoutLine = oneshot(function(ln: string)
 				currentBranch = ln
 				vim.schedule(stl.updateWindow)
-			end,
+			end),
 		}
 	end)
 
@@ -71,7 +80,7 @@ do -- git stuffs
 	end, "STLGit", true)
 	stl.add(gitActive, gitInactive, function(): string
 		if currentBranch == "" then return "" end
-		return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
+		return (" ~%s +%s -%s "):format(filesChanged or "?", insertions or "?", deletions or "?")
 	end, "STLGit", true)
 
 	stl.toggleTag("Git")

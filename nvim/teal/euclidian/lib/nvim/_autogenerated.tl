@@ -9,11 +9,7 @@ end
 local record Buffer
 	type Id = integer
 	id: Id
-	call: function(Buffer, function())
-	call: function<A>(Buffer, function(): A): A
-	call: function<A, B>(Buffer, (function(): A, B)): A, B
-	call: function<A, B, C>(Buffer, (function(): A, B, C)): A, B, C
-	call: function<A, B, C, D>(Buffer, (function(): A, B, C)): A, B, C, D
+	call: function<Rets...>(Buffer, function(): Rets): Rets
 	getOption: function(Buffer, StringOpt): string
 	getOption: function(Buffer, BooleanOpt): boolean
 	getOption: function(Buffer, IntegerOpt): integer

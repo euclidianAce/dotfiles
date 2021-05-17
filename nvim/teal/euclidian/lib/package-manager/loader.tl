@@ -2,6 +2,8 @@
 local set <const> = require("euclidian.lib.package-manager.set")
 local loader <const> = {}
 
+-- TODO: packages need to be loaded before their dependents
+
 -- TODO: ideally, we'd have a custom install location
 -- and we just add each path to rtp, but for now, just :packadd
 

@@ -7,6 +7,8 @@ local loader = {}
 
 
 
+
+
 local command = vim.api.nvim_command
 local function packadd(pkg)
    command(([[packadd %s]]):format(pkg))

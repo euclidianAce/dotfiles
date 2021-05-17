@@ -24,6 +24,9 @@ local Spec = {}
 
 
 
+
+
+
 local packagespec = {
    Spec = Spec,
    Kind = Kind,
@@ -33,7 +36,12 @@ local packagespec = {
    },
 }
 
-local spec_mt = { __index = Spec }
+local spec_mt = {
+   __index = Spec,
+   __lt = function(a, b)
+      return a:title() < b:title()
+   end,
+}
 function packagespec.new(p)
    return setmetatable(p, spec_mt)
 end

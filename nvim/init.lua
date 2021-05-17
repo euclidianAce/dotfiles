@@ -40,7 +40,7 @@ hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
 libreq "package-manager" {
-	enable = { "World", "TSPlayground" },
+	enable = { "World", "Treesitter" },
 	maxConcurrentJobs = 6,
 }
 

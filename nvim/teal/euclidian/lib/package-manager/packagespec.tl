@@ -22,6 +22,9 @@ local record Spec
 
 	-- local
 	path: string
+
+	title: function(Spec): string
+	metamethod __lt: function(Spec, Spec): boolean
 end
 
 local packagespec <const> = {
@@ -33,7 +36,12 @@ local packagespec <const> = {
 	},
 }
 
-local spec_mt <const> = { __index = Spec } as metatable<Spec>
+local spec_mt <const>: metatable<Spec> = {
+	__index = Spec,
+	__lt = function(a: Spec, b: Spec): boolean
+		return a:title() < b:title()
+	end
+}
 function packagespec.new(p: Spec): Spec
 	return setmetatable(p, spec_mt)
 end

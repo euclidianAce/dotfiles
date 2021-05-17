@@ -4,16 +4,20 @@ local command <const> = require("euclidian.lib.command")
 local dialog <const> = require("euclidian.lib.dialog")
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
 local set <const> = require("euclidian.lib.package-manager.set")
+local tu <const> = require("euclidian.lib.textutils")
 local z <const> = require("euclidian.lib.async.zig")
 
 local type NilFrame = z.Frame<nil>
+local type Action = function(): NilFrame
 
 local actions <const> = {
 	maxConcurrentJobs = 2,
-	listSets: function(): NilFrame = nil,
-	update: function(): NilFrame = nil,
-	install: function(): NilFrame = nil,
-	add: function(): NilFrame = nil,
+
+	listSets: Action = nil,
+	update: Action = nil,
+	install: Action = nil,
+	add: Action = nil,
+	remove: Action = nil,
 }
 
 local type Spec = packagespec.Spec
@@ -30,7 +34,7 @@ local function createDialog(fn: function(Dialog)): function(): NilFrame
 			ephemeral = true,
 		}
 		d:win():setOption("wrap", false)
-		return z.async(fn as function, d) as NilFrame
+		return z.async(fn, d) as NilFrame
 	end
 end
 
@@ -121,8 +125,8 @@ local function prompt(d: Dialog, promptText: string): string
 end
 
 local function yesOrNo(d: Dialog, pre: string, affirm: string, deny: string): boolean
-	affirm = affirm or "yes"
-	deny = deny or "no"
+	affirm = affirm or "Yes"
+	deny = deny or "No"
 	d:setLines{
 		pre,
 		affirm,
@@ -391,26 +395,61 @@ local function longestInList(list: {string}): integer
 	return len
 end
 
-local function applyPadding(s: string, len: integer): string
-	if #s > titleWidth then
-		s = s:sub(1, 35)
-	end
-	return (" "):rep(len - #s) .. s .. " "
-end
-
-local function showTitles(d: Dialog, loaded: {Spec})
+local function showTitles(d: Dialog, loaded: {Spec}, rightAlign: boolean)
 	local lines <const> = {}
 	local titles <const> = vim.tbl_map(function(p: Spec): string return p:title() end, loaded) as {string}
 	local longest <const> = longestInList(titles)
 	for i, title in ipairs(titles) do
-		lines[i] = applyPadding(title, longest + 1)
+		local limited = tu.limit(title, 35, true)
+		if rightAlign then
+			limited = tu.rightAlign(limited, longest + 1)
+		end
+		lines[i] = limited .. " "
 	end
 	d:setLines(lines):fitText(nvim.ui().width - 20, 14):center()
 end
 
+actions.remove = createDialog(function(d: Dialog)
+	local loaded <const>, name <const> = chooseAndLoadSet(d)
+	table.sort(loaded)
+
+	showTitles(d, loaded)
+
+	-- TODO: this should probably be a checklist
+	waitForKey(d, "<cr>")
+	local ln <const> = d:getCursor()
+	local selected <const> = loaded[ln]
+
+	if next(selected.dependents or {}) then
+		local lns <const> = { "Selected package: " .. selected:title() .. " is a dependency for:" }
+		for _, p in ipairs(selected.dependents) do
+			table.insert(lns, "   " .. assert(p is Spec and p):title())
+		end
+		d:setLines(lns)
+		waitForKey(d, "<cr>")
+		d:close()
+		return
+	end
+
+	table.remove(loaded, ln)
+	local ok <const>, err <const> = set.save(name, loaded)
+
+	if ok then
+		d:setLines{ "Removed package: " .. selected:title() }:fitText():center()
+	else
+		d:setLines{
+			"Unable to remove package: " .. selected:title(),
+			err
+		}:fitText():center()
+	end
+
+	waitForKey(d, "<cr>")
+	d:close()
+end)
+
 actions.update = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
-	showTitles(d, loaded)
+	showTitles(d, loaded, true)
 	runCmdForEachPkg(d, Spec.updateCmd, loaded)
 	waitForKey(d, "<cr>")
 	d:close()
@@ -418,7 +457,7 @@ end)
 
 actions.install = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
-	showTitles(d, loaded)
+	showTitles(d, loaded, true)
 	runCmdForEachPkg(d, Spec.installCmd, loaded)
 	waitForKey(d, "<cr>")
 	d:close()

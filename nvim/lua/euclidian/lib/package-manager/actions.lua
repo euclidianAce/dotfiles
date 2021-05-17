@@ -4,16 +4,20 @@ local command = require("euclidian.lib.command")
 local dialog = require("euclidian.lib.dialog")
 local packagespec = require("euclidian.lib.package-manager.packagespec")
 local set = require("euclidian.lib.package-manager.set")
+local tu = require("euclidian.lib.textutils")
 local z = require("euclidian.lib.async.zig")
 
 local NilFrame = {}
+local Action = {}
 
 local actions = {
    maxConcurrentJobs = 2,
+
    listSets = nil,
    update = nil,
    install = nil,
    add = nil,
+   remove = nil,
 }
 
 local Spec = packagespec.Spec
@@ -121,8 +125,8 @@ local function prompt(d, promptText)
 end
 
 local function yesOrNo(d, pre, affirm, deny)
-   affirm = affirm or "yes"
-   deny = deny or "no"
+   affirm = affirm or "Yes"
+   deny = deny or "No"
    d:setLines({
       pre,
       affirm,
@@ -391,26 +395,61 @@ local function longestInList(list)
    return len
 end
 
-local function applyPadding(s, len)
-   if #s > titleWidth then
-      s = s:sub(1, 35)
-   end
-   return (" "):rep(len - #s) .. s .. " "
-end
-
-local function showTitles(d, loaded)
+local function showTitles(d, loaded, rightAlign)
    local lines = {}
    local titles = vim.tbl_map(function(p) return p:title() end, loaded)
    local longest = longestInList(titles)
    for i, title in ipairs(titles) do
-      lines[i] = applyPadding(title, longest + 1)
+      local limited = tu.limit(title, 35, true)
+      if rightAlign then
+         limited = tu.rightAlign(limited, longest + 1)
+      end
+      lines[i] = limited .. " "
    end
    d:setLines(lines):fitText(nvim.ui().width - 20, 14):center()
 end
 
+actions.remove = createDialog(function(d)
+   local loaded, name = chooseAndLoadSet(d)
+   table.sort(loaded)
+
+   showTitles(d, loaded)
+
+
+   waitForKey(d, "<cr>")
+   local ln = d:getCursor()
+   local selected = loaded[ln]
+
+   if next(selected.dependents or {}) then
+      local lns = { "Selected package: " .. selected:title() .. " is a dependency for:" }
+      for _, p in ipairs(selected.dependents) do
+         table.insert(lns, "   " .. assert(type(p) == "table" and p):title())
+      end
+      d:setLines(lns)
+      waitForKey(d, "<cr>")
+      d:close()
+      return
+   end
+
+   table.remove(loaded, ln)
+   local ok, err = set.save(name, loaded)
+
+   if ok then
+      d:setLines({ "Removed package: " .. selected:title() }):fitText():center()
+   else
+      d:setLines({
+         "Unable to remove package: " .. selected:title(),
+         err,
+      }):fitText():center()
+   end
+
+   waitForKey(d, "<cr>")
+   d:close()
+end)
+
 actions.update = createDialog(function(d)
    local loaded = chooseAndLoadSet(d)
-   showTitles(d, loaded)
+   showTitles(d, loaded, true)
    runCmdForEachPkg(d, Spec.updateCmd, loaded)
    waitForKey(d, "<cr>")
    d:close()
@@ -418,7 +457,7 @@ end)
 
 actions.install = createDialog(function(d)
    local loaded = chooseAndLoadSet(d)
-   showTitles(d, loaded)
+   showTitles(d, loaded, true)
    runCmdForEachPkg(d, Spec.installCmd, loaded)
    waitForKey(d, "<cr>")
    d:close()

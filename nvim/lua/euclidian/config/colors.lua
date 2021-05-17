@@ -53,6 +53,24 @@ local bright = {
 local color = require("euclidian.lib.color")
 local hi = color.scheme.hi
 
+local min, max = math.min, math.max
+local function clamp(n, a, b)
+   return min(max(n, a), b)
+end
+
+local darkenFactor = 128
+local function invert(fgColor)
+   local r, g, b = color.hexToRgb(fgColor)
+   return {
+      color.rgbToHex(
+      r - clamp(darkenFactor, r * 0.16, r * 0.90),
+      g - clamp(darkenFactor, g * 0.16, g * 0.90),
+      b - clamp(darkenFactor, b * 0.16, b * 0.90)),
+
+      fgColor,
+   }
+end
+
 local function applyHighlights(
    primary,
    primaryComplement,
@@ -71,8 +89,10 @@ local function applyHighlights(
    hi.Search = { dark.green, hi.Visual[2], "bold" }
    hi.IncSearch = hi.Search
 
+   hi.StatusLine = invert(dark[secondary])
+   hi.StatusLineNC = invert(normal.gray)
+
    hi.VertSplit = { nil, normal.bg }
-   hi.StatusLine = { nil, bright.gray }
    hi.TabLine = { nil, bright.gray }
    hi.TabLineSel = { nil, normal.gray, "bold" }
    hi.TabLineFill = { nil, dark.gray }
@@ -153,6 +173,20 @@ local function applyHighlights(
    hi.Directory = { normal[primary] }
    hi.WarningMsg = { nil, normal.red }
    hi.WildMenu = { normal.bg, normal.yellow }
+
+
+
+   hi.STLBufferInfo = invert(dark[secondary])
+   hi.STLGit = invert(dark.green)
+   hi.STLFname = invert(bright.gray)
+
+   hi.STLNormal = invert(normal[primary])
+   hi.STLInsert = invert(normal[primaryComplement])
+   hi.STLCommand = invert(normal[secondary])
+   hi.STLVisual = invert(normal[secondaryComplement])
+
+   hi.STLReplace = invert(normal.red)
+   hi.STLTerminal = invert(normal.orange)
 end
 
 local function hex(col)

@@ -1,41 +1,8 @@
 
-local color <const> = require("euclidian.lib.color")
 local command <const> = require("euclidian.lib.command")
 local nvim <const> = require("euclidian.lib.nvim")
-local p <const> = require("euclidian.config.colors")
 local stl <const> = require("euclidian.lib.statusline")
-
-local hi <const> = color.scheme.hi
-local min <const>, max <const> = math.min, math.max
-local function clamp<T>(n: T, a: number, b: number): T
-	return min(max(n, a), b) as T
-end
-
-local darkenFactor <const> = 128
-local function invert(fgColor: integer): color.Color
-	local r, g, b = color.hexToRgb(fgColor)
-	return {
-		color.rgbToHex(
-			r - clamp(darkenFactor, r * 0.16, r * 0.90),
-			g - clamp(darkenFactor, g * 0.16, g * 0.90),
-			b - clamp(darkenFactor, b * 0.16, b * 0.90)
-		),
-		fgColor
-	}
-end
-
-hi.STLBufferInfo  = invert(hi.Comment[1])
-hi.STLGit         = invert(p.dark.green)
-hi.STLFname       = invert(p.bright.gray)
-hi.STLNormal      = invert(p.normal.blue)
-hi.STLInsert      = invert(p.normal.green)
-hi.STLCommand     = invert(p.normal.purple)
-hi.STLReplace     = invert(p.normal.red)
-hi.STLVisual      = invert(p.normal.yellow)
-hi.STLTerminal    = invert(p.normal.orange)
-
-hi.StatusLine     = hi.STLBufferInfo
-hi.StatusLineNC   = invert(p.normal.gray)
+local tu <const> = require("euclidian.lib.textutils")
 
 stl.mode("n", "Normal", "STLNormal")
 stl.mode("i", "Insert", "STLInsert")
@@ -52,21 +19,17 @@ local active <const> = {"Active"}
 local inactive <const> = {"Inactive"}
 local empty <const> = {}
 
-local ti <const> = table.insert
-local sf <const> = string.format
-local function tiFmt(t: {string}, fmt: string, ...: any)
-	ti(t, sf(fmt, ...))
-end
-
 stl.add(alwaysActive, empty, function(winid: integer): string
 	local win <const> = nvim.Window(winid)
-	local spaces <const> = win:getOption("numberwidth") + 1
-	return (" "):rep(spaces) .. nvim.Window(winid):getBuf() .. " "
+	-- make buffer number section line up with line number column
+	local spaces <const> = win:getOption("numberwidth")
+		+ tonumber(win:getOption("signcolumn"):match("yes:(%d+)")) as integer or 0
+	return tu.rightAlign(tostring(win:getBuf()), spaces) .. " "
 end, "STLBufferInfo", true)
+
 stl.add(active, inactive, function(): string
 	return " " .. stl.getModeText() .. " "
 end, stl.higroup)
-
 
 do -- git stuffs
 	local gitActive <const>, gitInactive <const> = {"Git"}, {"Inactive"}
@@ -126,6 +89,7 @@ end, "STLFname", true)
 stl.add(active, inactive, " %= ", "StatusLine")
 stl.add(inactive, active, " %= ", "StatusLineNC")
 
+local insFmt <const> = tu.insertFormatted
 local minWid <const> = 100
 stl.add(alwaysActive, empty, function(winid: integer): string
 	local win <const> = nvim.Window(winid)
@@ -134,7 +98,7 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 	local wid <const> = win:getWidth()
 	local pos <const> = win:getCursor()
 
-	local out: {string} = {}
+	local out <const>: {string} = {}
 
 	if stl.isActive(winid) then
 		-- tabs/spaces info
@@ -143,20 +107,20 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 			local num <const> = expandtab
 				and buf:getOption("shiftwidth")
 				or buf:getOption("tabstop")
-			tiFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
+			insFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
 		end
 
 		-- line info
 		local totalLines <const> = #buf:getLines(0, -1, false)
 		if wid > minWid then
-			tiFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
-			tiFmt(out, "Col: %3d", pos[2] + 1)
-			tiFmt(out, "%3d%%", pos[1] / totalLines * 100)
+			insFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
+			insFmt(out, "Col: %3d", pos[2] + 1)
+			insFmt(out, "%3d%%", pos[1] / totalLines * 100)
 		else
-			tiFmt(out, "Ln:%d C:%d", pos[1], pos[2])
+			insFmt(out, "Ln:%d C:%d", pos[1], pos[2])
 		end
 	else
-		tiFmt(out, "Ln: %3d", pos[1])
+		insFmt(out, "Ln: %3d", pos[1])
 	end
 	if #out > 1 then
 		return "│ " .. table.concat(out, " │ ") .. "  "
@@ -164,4 +128,3 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 		return "  " .. out[1] .. "  "
 	end
 end, "STLBufferInfo")
-

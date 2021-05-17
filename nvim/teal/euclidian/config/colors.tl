@@ -53,6 +53,24 @@ local bright <const>: Palette = {
 local color <const> = require("euclidian.lib.color")
 local hi <const> = color.scheme.hi
 
+local min <const>, max <const> = math.min, math.max
+local function clamp<T>(n: T, a: number, b: number): T
+	return min(max(n, a), b) as T
+end
+
+local darkenFactor <const> = 128
+local function invert(fgColor: integer): color.Color
+	local r <const>, g <const>, b <const> = color.hexToRgb(fgColor)
+	return {
+		color.rgbToHex(
+			r - clamp(darkenFactor, r * 0.16, r * 0.90),
+			g - clamp(darkenFactor, g * 0.16, g * 0.90),
+			b - clamp(darkenFactor, b * 0.16, b * 0.90)
+		),
+		fgColor
+	}
+end
+
 local function applyHighlights(
 	primary: Color,
 	primaryComplement: Color,
@@ -71,8 +89,10 @@ local function applyHighlights(
 	hi.Search                  = { dark.green, hi.Visual[2], "bold" }
 	hi.IncSearch               = hi.Search
 
+	hi.StatusLine              = invert(dark[secondary])
+	hi.StatusLineNC            = invert(normal.gray)
+
 	hi.VertSplit               = { nil, normal.bg }
-	hi.StatusLine              = { nil, bright.gray }
 	hi.TabLine                 = { nil, bright.gray }
 	hi.TabLineSel              = { nil, normal.gray, "bold" }
 	hi.TabLineFill             = { nil, dark.gray }
@@ -153,6 +173,20 @@ local function applyHighlights(
 	hi.Directory               = { normal[primary] }
 	hi.WarningMsg              = { nil, normal.red }
 	hi.WildMenu                = { normal.bg, normal.yellow }
+
+
+	-- Custom Statusline Groups
+	hi.STLBufferInfo           = invert(dark[secondary])
+	hi.STLGit                  = invert(dark.green)
+	hi.STLFname                = invert(bright.gray)
+
+	hi.STLNormal               = invert(normal[primary])
+	hi.STLInsert               = invert(normal[primaryComplement])
+	hi.STLCommand              = invert(normal[secondary])
+	hi.STLVisual               = invert(normal[secondaryComplement])
+
+	hi.STLReplace              = invert(normal.red)
+	hi.STLTerminal             = invert(normal.orange)
 end
 
 local function hex(col: integer): string

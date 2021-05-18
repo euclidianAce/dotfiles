@@ -1,12 +1,12 @@
-
 local uv <const> = vim.loop
 
 local stdpath <const> = vim.fn.stdpath as function(string): string
 local dataPath <const> = stdpath("data")
+local configPath <const> = stdpath("config")
 local tree <const> = {
 	neovim = dataPath .. "/site/pack/package-manager/opt",
 	luarocks = dataPath .. "/site/pack/package-manager/luarocks",
-	set = stdpath("config") .. "/sets",
+	set = configPath .. "/sets",
 }
 
 local function mkdirp(path: string)
@@ -27,4 +27,3 @@ for _, path in pairs(tree as {string:string}) do
 end
 
 return tree
-

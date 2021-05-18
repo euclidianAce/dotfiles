@@ -1,5 +1,6 @@
 
 local nvim <const> = require("euclidian.lib.nvim")
+local configure <const> = require("euclidian.lib.package-manager.configure")
 local command <const> = require("euclidian.lib.command")
 local dialog <const> = require("euclidian.lib.dialog")
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
@@ -18,6 +19,7 @@ local actions <const> = {
 	install: Action = nil,
 	add: Action = nil,
 	remove: Action = nil,
+	configure: Action = nil,
 }
 
 local type Spec = packagespec.Spec
@@ -460,6 +462,106 @@ actions.install = createDialog(function(d: Dialog)
 	showTitles(d, loaded, true)
 	runCmdForEachPkg(d, Spec.installCmd, loaded)
 	waitForKey(d, "<cr>")
+	d:close()
+end)
+
+actions.configure = createDialog(function(d: Dialog)
+	local cfg <const>, err <const> = configure.load()
+	if err then
+		-- TODO: allow some sort of recovery
+		d:setLines{ "There was an error loading your config:", err }
+		waitForKey(d, "<cr>")
+		d:close()
+		return
+	end
+
+	local addLine: function(string, ...: any)
+	local addHandler: function(function)
+	local getHandler: function(integer): function
+	local show: function()
+	local clear: function()
+	do
+		-- latest line that handles the option -> the function that updates that option
+		local handlers <const>: {integer:function} = {}
+		local txt: {string} = {}
+
+		addLine = function(fmt: string, ...: any)
+			tu.insertFormatted(txt, fmt, ...)
+		end
+		addHandler = function(fn: function)
+			handlers[#txt] = fn
+		end
+		getHandler = function(ln: integer): function
+			for i = ln, #txt do
+				if handlers[i] then
+					return handlers[i]
+				end
+			end
+		end
+		show = function()
+			d:setLines(txt):fitText(35, 17):center()
+		end
+		clear = function()
+			txt = {}
+			d:setLines{}
+		end
+	end
+
+	local function updateUintOptHandler(prefix: string, field: string): function()
+		return function()
+			clear()
+			local result <const> = prompt(d, prefix)
+			local numResult <const> = tonumber(result)
+			if not numResult then
+				print("expected a number")
+				return
+			end
+			if numResult <= 0 or math.floor(numResult) ~= numResult then
+				print("expected a positive integer")
+				return
+			end
+			;(cfg as table)[field] = numResult as integer
+		end
+	end
+
+	local function appendToStringListHandler(prefix: string, field: string): function()
+		return function()
+			clear()
+			local result <const> = prompt(d, prefix)
+			if result ~= "" then
+				table.insert((cfg as {string:{string}})[field], result)
+			end
+		end
+	end
+
+	local function fillDialog()
+		clear()
+		addLine("Enabled Sets:")
+		table.sort(cfg.enable)
+		for _, s in ipairs(cfg.enable) do
+			addLine("   %s", s)
+		end
+		addHandler(appendToStringListHandler("Add Set: ", "enable"))
+
+		addLine("Max Concurrent Jobs: %d", cfg.maxConcurrentJobs)
+		addHandler(updateUintOptHandler("Max Concurrent Jobs: ", "maxConcurrentJobs"))
+	end
+
+	fillDialog()
+	show()
+
+	while waitForKey(d, "<cr>", "<bs>") == "<cr>" do
+		local ln <const>, col <const> = d:getCursor()
+		local handler <const> = getHandler(ln)
+		if handler then
+			handler()
+			fillDialog()
+			show()
+			d:setCursor(ln, col)
+		end
+	end
+
+	configure.save(cfg)
 	d:close()
 end)
 

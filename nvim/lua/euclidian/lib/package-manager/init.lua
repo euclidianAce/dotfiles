@@ -1,24 +1,17 @@
-local packagemanager = {SetupOptions = {}, }
-
-
-
-
-
-
-
-
-
-
+local configure = require("euclidian.lib.package-manager.configure")
 local nvim = require("euclidian.lib.nvim")
 local loader = require("euclidian.lib.package-manager.loader")
 local actions = require("euclidian.lib.package-manager.actions")
 
-packagemanager.commands = {
-   Add = actions.add,
-   Install = actions.install,
-   Update = actions.update,
-   View = actions.listSets,
-   Remove = actions.remove,
+local packagemanager = {
+   commands = {
+      Add = actions.add,
+      Install = actions.install,
+      Update = actions.update,
+      View = actions.listSets,
+      Remove = actions.remove,
+      Configure = actions.configure,
+   },
 }
 
 local function writeMsg(str, ...)
@@ -43,21 +36,13 @@ local function getCommandCompletion(arglead)
    return keys
 end
 
-local function copyOpts(opts)
-   return {
-      enable = { unpack(opts.enable or {}) },
-      maxConcurrentJobs = opts.maxConcurrentJobs,
-   }
-end
-
-local loadedWith
-
 function packagemanager._reload()
    local req = require
 
    writeMsg("recompiling...")
 
    local err = {}
+   local done = false
    require("euclidian.lib.command").spawn({
       command = { "cyan", "build" },
       cwd = os.getenv("DOTFILE_DIR") .. "/nvim",
@@ -79,48 +64,43 @@ function packagemanager._reload()
             if name:match("^euclidian%.lib%.package%-manager") then
                package.loaded[name] = nil
             end
-         end;
-         (req("euclidian.lib.package-manager"))(loadedWith)
+         end
+         req("euclidian.lib.package-manager")
          writeMsg("reloaded!")
+         done = true
       end),
    })
+   repeat vim.wait(10)
+   until done
 end
 
-packagemanager.commands._Reload = packagemanager._reload
+local cmds = packagemanager.commands
+cmds._Reload = packagemanager._reload
 
-return setmetatable(packagemanager, {
-   __call = function(_, opts)
-      loadedWith = copyOpts(opts)
-
-      nvim.newCommand({
-         name = "PackageManager",
-         nargs = 1,
-         completelist = getCommandCompletion,
-         body = function(cmd)
-            if not packagemanager.commands[cmd] then
-               writeErr("Not a command: %s", tostring(cmd))
-               return
-            end
-            packagemanager.commands[cmd]()
-         end,
-
-         overwrite = true,
-      })
-
-      if not opts then return end
-      if opts.maxConcurrentJobs then
-         if opts.maxConcurrentJobs <= 0 then
-            writeErr("maxConcurrentJobs should be a positive integer, got %s", tostring(opts.maxConcurrentJobs))
-         else
-            actions.maxConcurrentJobs = opts.maxConcurrentJobs
-         end
+nvim.newCommand({
+   name = "PackageManager",
+   nargs = 1,
+   completelist = getCommandCompletion,
+   body = function(cmd)
+      if not cmds[cmd] then
+         writeErr("Not a command: %s", tostring(cmd))
+         return
       end
-
-      if opts.enable then
-         for _, s in ipairs(opts.enable) do
-            loader.enableSet(s)
-         end
-      end
-      nvim.command("packloadall")
+      cmds[cmd]()
    end,
+   bar = true,
+
+   overwrite = true,
 })
+
+local cfg = assert(configure.load())
+
+if cfg.maxConcurrentJobs then
+   actions.maxConcurrentJobs = cfg.maxConcurrentJobs
+end
+
+for _, s in ipairs(cfg.enable) do
+   loader.enableSet(s)
+end
+
+nvim.command("packloadall")

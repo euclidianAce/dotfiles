@@ -1,24 +1,17 @@
-local record packagemanager
-	record SetupOptions
-		enable: {string}
-		maxConcurrentJobs: integer
-	end
-
-	commands: {string:function}
-
-	metamethod __call: function(any, SetupOptions)
-end
-
+local configure <const> = require("euclidian.lib.package-manager.configure")
 local nvim <const> = require("euclidian.lib.nvim")
 local loader <const> = require("euclidian.lib.package-manager.loader")
 local actions <const> = require("euclidian.lib.package-manager.actions")
 
-packagemanager.commands = {
-	Add = actions.add,
-	Install = actions.install,
-	Update = actions.update,
-	View = actions.listSets,
-	Remove = actions.remove,
+local packagemanager <const> = {
+	commands = {
+		Add = actions.add,
+		Install = actions.install,
+		Update = actions.update,
+		View = actions.listSets,
+		Remove = actions.remove,
+		Configure = actions.configure,
+	},
 }
 
 local function writeMsg(str: string, ...: any)
@@ -34,7 +27,7 @@ local function getCommandCompletion(arglead: string): {string}
 	arglead = arglead or ""
 	local keys <const> = {}
 	local len <const> = #arglead
-	for k in pairs(packagemanager.commands) do
+	for k in pairs(packagemanager.commands as {string:function()}) do
 		if k:sub(1, len):lower() == arglead:lower() then
 			table.insert(keys, k)
 		end
@@ -43,21 +36,13 @@ local function getCommandCompletion(arglead: string): {string}
 	return keys
 end
 
-local function copyOpts(opts: packagemanager.SetupOptions): packagemanager.SetupOptions
-	return {
-		enable = { unpack(opts.enable or {}) },
-		maxConcurrentJobs = opts.maxConcurrentJobs,
-	}
-end
-
-local loadedWith: packagemanager.SetupOptions
-
 function packagemanager._reload()
 	local req <const> = require
 
 	writeMsg("recompiling...")
 
 	local err <const> = {}
+	local done = false
 	require("euclidian.lib.command").spawn{
 		command = { "cyan", "build" },
 		cwd = os.getenv("DOTFILE_DIR") .. "/nvim",
@@ -80,47 +65,42 @@ function packagemanager._reload()
 					package.loaded[name] = nil
 				end
 			end
-			;(req "euclidian.lib.package-manager" as function)(loadedWith)
+			req "euclidian.lib.package-manager"
 			writeMsg("reloaded!")
+			done = true
 		end),
 	}
+	repeat vim.wait(10)
+	until done
 end
 
-packagemanager.commands._Reload = packagemanager._reload
+local cmds <const> = packagemanager.commands as {string:function}
+cmds._Reload = packagemanager._reload
 
-return setmetatable(packagemanager, {
-	__call = function(_: packagemanager, opts: packagemanager.SetupOptions)
-		loadedWith = copyOpts(opts)
-
-		nvim.newCommand{
-			name = "PackageManager",
-			nargs = 1,
-			completelist = getCommandCompletion,
-			body = function(cmd: string)
-				if not packagemanager.commands[cmd] then
-					writeErr("Not a command: %s", tostring(cmd))
-					return
-				end
-				packagemanager.commands[cmd]()
-			end,
-
-			overwrite = true,
-		}
-
-		if not opts then return end
-		if opts.maxConcurrentJobs then
-			if opts.maxConcurrentJobs <= 0 then
-				writeErr("maxConcurrentJobs should be a positive integer, got %s", tostring(opts.maxConcurrentJobs))
-			else
-				actions.maxConcurrentJobs = opts.maxConcurrentJobs
-			end
+nvim.newCommand{
+	name = "PackageManager",
+	nargs = 1,
+	completelist = getCommandCompletion,
+	body = function(cmd: string)
+		if not cmds[cmd] then
+			writeErr("Not a command: %s", tostring(cmd))
+			return
 		end
+		cmds[cmd]()
+	end,
+	bar = true,
 
-		if opts.enable then
-			for _, s in ipairs(opts.enable) do
-				loader.enableSet(s)
-			end
-		end
-		nvim.command("packloadall")
-	end
-})
+	overwrite = true,
+}
+
+local cfg <const> = assert(configure.load())
+
+if cfg.maxConcurrentJobs then
+	actions.maxConcurrentJobs = cfg.maxConcurrentJobs
+end
+
+for _, s in ipairs(cfg.enable) do
+	loader.enableSet(s)
+end
+
+nvim.command("packloadall")

@@ -39,10 +39,7 @@ nvim.command[[syntax enable]]
 hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
-libreq "package-manager" {
-	enable = { "World", "Treesitter" },
-	maxConcurrentJobs = 6,
-}
+libreq "package-manager"
 
 if not windows then
 	-- Treesitter is finicky on windows

@@ -1,12 +1,12 @@
-
 local uv = vim.loop
 
 local stdpath = vim.fn.stdpath
 local dataPath = stdpath("data")
+local configPath = stdpath("config")
 local tree = {
    neovim = dataPath .. "/site/pack/package-manager/opt",
    luarocks = dataPath .. "/site/pack/package-manager/luarocks",
-   set = stdpath("config") .. "/sets",
+   set = configPath .. "/sets",
 }
 
 local function mkdirp(path)

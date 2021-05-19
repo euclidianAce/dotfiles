@@ -1,11 +1,11 @@
 
 local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
 local set <const> = require("euclidian.lib.package-manager.set")
+local report <const> = require("euclidian.lib.package-manager.report")
+
 local loader <const> = {}
 
 local type Spec = packagespec.Spec
-
--- TODO: packages need to be loaded before their dependents
 
 -- TODO: ideally, we'd have a custom install location
 -- and we just add each path to rtp, but for now, just :packadd
@@ -59,7 +59,11 @@ end
 
 local function packaddSet(setname: string)
 	local pre <const>, post <const> = {}, {}
-	local ps <const> = getLoadOrder(set.load(setname))
+	local loaded <const>, err <const> = set.load(setname)
+	if not loaded then
+		report.err("Unable to load set %s: %s", setname, err)
+	end
+	local ps <const> = getLoadOrder(loaded)
 	for _, pkg in ipairs(ps) do
 		if pkg:isInstalled() then
 			if pkg.kind == "git" then

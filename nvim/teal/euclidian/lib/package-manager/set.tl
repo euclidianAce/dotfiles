@@ -128,15 +128,22 @@ end
 -- TODO: use luv to do the file reads/writes
 
 local function loadSet(name: string): {Spec}, string
-	local fh <const> = assert(io.open(tree.set .. "/" .. name, "r"))
+	local fh <const>, err <const> = io.open(tree.set .. "/" .. name, "r")
+	if not fh then
+		return nil, err
+	end
 	local content <const> = fh:read("*a")
 	fh:close()
 	return set.deserialize(content)
 end
 
-function set.load(name: string): {Spec}
+function set.load(name: string): {Spec}, string
 	if not set.loaded[name] then
-		set.loaded[name] = loadSet(name)
+		local s <const>, err <const> = loadSet(name)
+		if not s then
+			return nil, err
+		end
+		set.loaded[name] = s
 	end
 	return set.loaded[name]
 end

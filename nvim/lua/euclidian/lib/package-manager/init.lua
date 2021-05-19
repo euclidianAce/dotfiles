@@ -1,7 +1,8 @@
-local configure = require("euclidian.lib.package-manager.configure")
-local nvim = require("euclidian.lib.nvim")
-local loader = require("euclidian.lib.package-manager.loader")
 local actions = require("euclidian.lib.package-manager.actions")
+local configure = require("euclidian.lib.package-manager.configure")
+local loader = require("euclidian.lib.package-manager.loader")
+local nvim = require("euclidian.lib.nvim")
+local report = require("euclidian.lib.package-manager.report")
 
 local packagemanager = {
    commands = {
@@ -13,15 +14,6 @@ local packagemanager = {
       Configure = actions.configure,
    },
 }
-
-local function writeMsg(str, ...)
-   print("PackageManager:", string.format(str, ...))
-end
-
-local function writeErr(str, ...)
-   vim.api.nvim_err_write("PackageManager: ")
-   vim.api.nvim_err_writeln(string.format(str, ...))
-end
 
 local function getCommandCompletion(arglead)
    arglead = arglead or ""
@@ -39,7 +31,7 @@ end
 function packagemanager._reload()
    local req = require
 
-   writeMsg("recompiling...")
+   report.msg("recompiling...")
 
    local err = {}
    local done = false
@@ -51,7 +43,7 @@ function packagemanager._reload()
       end,
       onExit = vim.schedule_wrap(function(code)
          if not code or code ~= 0 then
-            writeErr("cyan build exited with code %s, did not reload", tostring(code))
+            report.err("cyan build exited with code %s, did not reload", tostring(code))
             local p = require("euclidian.lib.printmode").printfn("buffer")
             for _, ln in ipairs(err) do
                p((ln:gsub(string.char(27) .. "%[%d+m", "")))
@@ -59,14 +51,14 @@ function packagemanager._reload()
             return
          end
 
-         writeMsg("reloading...")
+         report.msg("reloading...")
          for name in pairs(package.loaded) do
             if name:match("^euclidian%.lib%.package%-manager") then
                package.loaded[name] = nil
             end
          end
          req("euclidian.lib.package-manager")
-         writeMsg("reloaded!")
+         report.msg("reloaded!")
          done = true
       end),
    })
@@ -74,19 +66,18 @@ function packagemanager._reload()
    until done
 end
 
-local cmds = packagemanager.commands
-cmds._Reload = packagemanager._reload
+packagemanager.commands._Reload = packagemanager._reload
 
 nvim.newCommand({
    name = "PackageManager",
    nargs = 1,
    completelist = getCommandCompletion,
    body = function(cmd)
-      if not cmds[cmd] then
-         writeErr("Not a command: %s", tostring(cmd))
+      if not packagemanager.commands[cmd] then
+         report.err("Not a command: %s", tostring(cmd))
          return
       end
-      cmds[cmd]()
+      packagemanager.commands[cmd]()
    end,
    bar = true,
 

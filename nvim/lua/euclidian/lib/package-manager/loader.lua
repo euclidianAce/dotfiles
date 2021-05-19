@@ -1,11 +1,11 @@
 
 local packagespec = require("euclidian.lib.package-manager.packagespec")
 local set = require("euclidian.lib.package-manager.set")
+local report = require("euclidian.lib.package-manager.report")
+
 local loader = {}
 
 local Spec = packagespec.Spec
-
-
 
 
 
@@ -59,7 +59,11 @@ end
 
 local function packaddSet(setname)
    local pre, post = {}, {}
-   local ps = getLoadOrder(set.load(setname))
+   local loaded, err = set.load(setname)
+   if not loaded then
+      report.err("Unable to load set %s: %s", setname, err)
+   end
+   local ps = getLoadOrder(loaded)
    for _, pkg in ipairs(ps) do
       if pkg:isInstalled() then
          if pkg.kind == "git" then

@@ -1,9 +1,9 @@
-
-local nvim = require("euclidian.lib.nvim")
-local configure = require("euclidian.lib.package-manager.configure")
 local command = require("euclidian.lib.command")
+local configure = require("euclidian.lib.package-manager.configure")
 local dialog = require("euclidian.lib.dialog")
+local nvim = require("euclidian.lib.nvim")
 local packagespec = require("euclidian.lib.package-manager.packagespec")
+local report = require("euclidian.lib.package-manager.report")
 local set = require("euclidian.lib.package-manager.set")
 local tu = require("euclidian.lib.textutils")
 local z = require("euclidian.lib.async.zig")
@@ -562,6 +562,7 @@ actions.configure = createDialog(function(d)
    end
 
    configure.save(cfg)
+   report.msg("Configuration saved!")
    d:close()
 end)
 

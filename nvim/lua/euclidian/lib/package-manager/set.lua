@@ -128,7 +128,10 @@ end
 
 
 local function loadSet(name)
-   local fh = assert(io.open(tree.set .. "/" .. name, "r"))
+   local fh, err = io.open(tree.set .. "/" .. name, "r")
+   if not fh then
+      return nil, err
+   end
    local content = fh:read("*a")
    fh:close()
    return set.deserialize(content)
@@ -136,7 +139,11 @@ end
 
 function set.load(name)
    if not set.loaded[name] then
-      set.loaded[name] = loadSet(name)
+      local s, err = loadSet(name)
+      if not s then
+         return nil, err
+      end
+      set.loaded[name] = s
    end
    return set.loaded[name]
 end

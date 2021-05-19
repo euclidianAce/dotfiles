@@ -20,7 +20,7 @@ local function getCommandCompletion(arglead: string): {string}
 	local keys <const> = {}
 	local len <const> = #arglead
 	for k in pairs(packagemanager.commands) do
-		if k:sub(1, len):lower() == arglead:lower() then
+		if k:sub(1, 1) ~= "_" and k:sub(1, len):lower() == arglead:lower() then
 			table.insert(keys, k)
 		end
 	end

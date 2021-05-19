@@ -166,12 +166,9 @@ function statusline.setActive(winId)
 end
 
 function statusline.toggleTag(name)
-   if type(name) == "string" then
-      currentTags[name] = not currentTags[name]
-   else
-      for _, v in ipairs(name) do
-         currentTags[v] = not currentTags[v]
-      end
+
+   for _, v in ipairs(type(name) == "table" and assert(name) or { name }) do
+      currentTags[v] = not currentTags[v]
    end
    statusline.updateAllWindows()
 end

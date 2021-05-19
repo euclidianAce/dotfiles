@@ -166,12 +166,9 @@ function statusline.setActive(winId: integer)
 end
 
 function statusline.toggleTag(name: string | {string})
-	if name is string then
-		currentTags[name] = not currentTags[name]
-	else
-		for _, v in ipairs(name) do
-			currentTags[v] = not currentTags[v]
-		end
+	-- TODO: `is` should tell the compiler the var is non-nil if the rhs is not `nil`
+	for _, v in ipairs(name is {string} and assert(name) or {name}) do
+		currentTags[v] = not currentTags[v]
 	end
 	statusline.updateAllWindows()
 end

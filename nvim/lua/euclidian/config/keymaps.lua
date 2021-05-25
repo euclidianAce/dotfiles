@@ -34,12 +34,12 @@ local function map(m, lhs, rhs)
 end
 local unmap = nvim.delKeymap
 
-local function bufMap(bufid, m, lhs, rhs)
-   local buf = nvim.Buffer(bufid)
-   for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
-      buf:setKeymap(mode, l, rhs, { noremap = true, silent = true })
-   end
-end
+
+
+
+
+
+
 
 map("n", "<leader>cc", function()
    require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
@@ -201,35 +201,17 @@ do
 end
 
 do
+   local key = ""
    local d = dialog.new({
       wid = 0.9, hei = 0.85,
       centered = true,
       interactive = true,
       hidden = true,
    })
-   local buf = d:ensureBuf()
-
-   buf:setOption("modified", false)
-   local bufOpenTerm = vim.schedule_wrap(function()
-      vim.fn.termopen("bash")
-   end)
-   local key = ""
-
-   M._exports.getTermChannel = function()
-      return buf:getOption("channel")
-   end
-   M._exports.termSend = function(s)
-      if not buf:isValid() then
-         return false
-      end
-      a.nvim_chan_send(buf:getOption("channel"), s)
-      return true
-   end
+   local getBuf
 
    local function openTerm()
-      if buf:getOption("buftype") ~= "terminal" then
-         buf:call(bufOpenTerm)
-      end
+      getBuf()
       d:show():win():setOption("winblend", 8)
    end
 
@@ -238,8 +220,54 @@ do
       map("n", key, openTerm)
    end
 
-   bufMap(buf.id, { "t", "n" }, key, hideTerm)
+   getBuf = function()
+      if not d:buf() then
+         local buf = d:ensureBuf()
+         if buf:getOption("buftype") ~= "terminal" then
+            buf:setOption("modified", false)
+            buf:call(function() vim.fn.termopen("bash") end)
+         end
+         map("n", key, hideTerm)
+         map("t", key, hideTerm)
+      end
+      return d:buf()
+   end
+
+   M._exports.getTermChannel = function()
+      return getBuf():getOption("channel")
+   end
+   M._exports.termSend = function(s)
+      local buf = getBuf()
+      if not buf:isValid() then
+         return false
+      end
+      vim.schedule(function()
+         local channel = getBuf():getOption("channel")
+         a.nvim_chan_send(channel, s)
+      end)
+      return true
+   end
+
    map("n", key, openTerm)
+
+   nvim.newCommand({
+      name = "FloatingTerminal",
+      body = openTerm,
+      nargs = 0,
+      bar = true,
+   })
+
+   local chansend = a.nvim_chan_send
+   nvim.newCommand({
+      name = "FloatingTerminalSend",
+      body = function(...)
+         local buf = getBuf()
+         local channel = buf:getOption("channel")
+         chansend(channel, table.concat({ ... }, " "))
+         chansend(channel, "\n")
+      end,
+      nargs = "+",
+   })
 end
 
 do

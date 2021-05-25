@@ -173,7 +173,6 @@ set(vim.wo, {
 	numberwidth = 4,
 	number = true,
 	relativenumber = true,
-	-- cursorline = true,
 })
 
 local lspconfig = require("lspconfig")

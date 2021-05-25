@@ -239,7 +239,7 @@ do
    end
    local function addGitHubPackage(d, s)
       d:setLines({})
-      local repo = prompt(d, "Repo: ")
+      local repo = prompt(d, "Repo: https://github.com/")
       local pkgNames = {}
       for i, v in ipairs(s) do
          pkgNames[i] = v:title()

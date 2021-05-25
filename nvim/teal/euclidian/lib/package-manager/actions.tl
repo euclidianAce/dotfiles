@@ -239,7 +239,7 @@ do
 	end
 	local function addGitHubPackage(d: Dialog, s: {Spec})
 		d:setLines{}
-		local repo <const> = prompt(d, "Repo: ")
+		local repo <const> = prompt(d, "Repo: https://github.com/")
 		local pkgNames <const> = {}
 		for i, v in ipairs(s) do
 			pkgNames[i] = v:title()

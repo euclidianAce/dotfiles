@@ -221,15 +221,13 @@ do
    end
 
    getBuf = function()
-      if not d:buf() then
-         local buf = d:ensureBuf()
-         if buf:getOption("buftype") ~= "terminal" then
-            buf:setOption("modified", false)
-            buf:call(function() vim.fn.termopen("bash") end)
-         end
-         map("n", key, hideTerm)
-         map("t", key, hideTerm)
+      local buf = d:ensureBuf()
+      buf:setOption("modified", false)
+      if buf:getOption("buftype") ~= "terminal" then
+         buf:call(function() vim.fn.termopen("bash") end)
       end
+      map("n", key, hideTerm)
+      map("t", key, hideTerm)
       return d:buf()
    end
 

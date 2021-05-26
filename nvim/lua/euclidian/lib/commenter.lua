@@ -1,12 +1,10 @@
 
 
+local commenter = {}
 
 local nvim = require("euclidian.lib.nvim")
 
 local trim = vim.trim
-
-local commenter = {}
-
 local escapeStr = vim.pesc
 
 local function split(str, delimiter)
@@ -29,7 +27,7 @@ end
 
 local function isCommented(csPre, csPost, str)
    local commented = str:match("^%s*" .. escapeStr(csPre) .. " ?.-" .. escapeStr(csPost) .. "$")
-   return commented
+   return commented ~= nil
 end
 
 local function commentStr(pre, post, str)

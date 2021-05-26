@@ -1,16 +1,14 @@
 
 -- A cheap lua implementation of vim-commentary
+local commenter <const> = {}
 
 local nvim <const> = require("euclidian.lib.nvim")
 
 local trim <const> = vim.trim
-
-local commenter <const> = {}
-
 local escapeStr <const> = vim.pesc
 
 local function split(str: string, delimiter: string): string, string
-	local found = str:find(delimiter, 1, true)
+	local found <const> = str:find(delimiter, 1, true)
 	if not found then
 		return str, ""
 	end
@@ -18,18 +16,18 @@ local function split(str: string, delimiter: string): string, string
 end
 
 local function getCommentString(buf: integer): string, string
-	local c = nvim.Buffer(buf):getOption("commentstring")
+	local c <const> = nvim.Buffer(buf):getOption("commentstring")
 	if not c then
 		print("[commenter] Couldn't get commentstring")
 		return
 	end
-	local pre, post = split(c, "%s")
+	local pre <const>, post <const> = split(c, "%s")
 	return trim(pre), trim(post)
 end
 
 local function isCommented(csPre: string, csPost: string, str: string): boolean
-	local commented = str:match("^%s*" .. escapeStr(csPre) .. " ?.-" .. escapeStr(csPost) .. "$")
-	return commented as boolean
+	local commented <const> = str:match("^%s*" .. escapeStr(csPre) .. " ?.-" .. escapeStr(csPost) .. "$")
+	return commented ~= nil
 end
 
 local function commentStr(pre: string, post: string, str: string): string
@@ -45,12 +43,12 @@ local function commentStr(pre: string, post: string, str: string): string
 	post = trim(post)
 
 	-- str is uncommented, comment it
-	local leadingWs, rest = str:match("^(%s*)(.*)$")
+	local leadingWs <const>, rest <const> = str:match("^(%s*)(.*)$")
 	return leadingWs .. pre .. " " .. rest .. (#post > 0 and " " .. post or "")
 end
 
 function commenter.commentLine(buf: integer, lineNum: integer)
-	local pre, post = getCommentString(buf)
+	local pre <const>, post <const> = getCommentString(buf)
 
 	if not pre then
 		return
@@ -75,7 +73,7 @@ function commenter.commentRange(buf: integer, start: integer, finish: integer)
 	if not lines[1] then
 		return
 	end
-	local pre, post = getCommentString(buf)
+	local pre <const>, post <const> = getCommentString(buf)
 	local shouldBeCommented <const> = not isCommented(pre, post, lines[1])
 
 	lines[1] = commentStr(pre, post, lines[1])
@@ -88,4 +86,3 @@ function commenter.commentRange(buf: integer, start: integer, finish: integer)
 end
 
 return commenter
-

@@ -85,7 +85,7 @@ function notification.create(txt: string, opts: Opts)
 		interactive = false,
 	}
 
-	local n = lastNode()
+	local n <const> = lastNode()
 	if n.d then
 		local conf <const> = n.d:win():getConfig()
 		dOpts.row = (conf.row as {boolean:integer})[false] - dOpts.hei - borderOffset

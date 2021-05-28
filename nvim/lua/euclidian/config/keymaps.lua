@@ -200,7 +200,7 @@ do
    end)
 end
 
-require("euclidian.lib.floatterm").setup({ toggle = "" })
+require("euclidian.plug.floatterm").setup({ toggle = "" })
 
 do
 

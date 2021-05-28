@@ -200,73 +200,7 @@ do
    end)
 end
 
-do
-   local key = ""
-   local d = dialog.new({
-      wid = 0.9, hei = 0.85,
-      centered = true,
-      interactive = true,
-      hidden = true,
-   })
-   local getBuf
-
-   local function openTerm()
-      getBuf()
-      d:show():win():setOption("winblend", 8)
-   end
-
-   local function hideTerm()
-      d:hide()
-      map("n", key, openTerm)
-   end
-
-   getBuf = function()
-      local buf = d:ensureBuf()
-      buf:setOption("modified", false)
-      if buf:getOption("buftype") ~= "terminal" then
-         buf:call(function() vim.fn.termopen("bash") end)
-      end
-      map("n", key, hideTerm)
-      map("t", key, hideTerm)
-      return d:buf()
-   end
-
-   M._exports.getTermChannel = function()
-      return getBuf():getOption("channel")
-   end
-   M._exports.termSend = function(s)
-      local buf = getBuf()
-      if not buf:isValid() then
-         return false
-      end
-      vim.schedule(function()
-         local channel = getBuf():getOption("channel")
-         a.nvim_chan_send(channel, s)
-      end)
-      return true
-   end
-
-   map("n", key, openTerm)
-
-   nvim.newCommand({
-      name = "FloatingTerminal",
-      body = openTerm,
-      nargs = 0,
-      bar = true,
-   })
-
-   local chansend = a.nvim_chan_send
-   nvim.newCommand({
-      name = "FloatingTerminalSend",
-      body = function(...)
-         local buf = getBuf()
-         local channel = buf:getOption("channel")
-         chansend(channel, table.concat({ ... }, " "))
-         chansend(channel, "\n")
-      end,
-      nargs = "+",
-   })
-end
+require("euclidian.lib.floatterm").setup({ toggle = "" })
 
 do
 

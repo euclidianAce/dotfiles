@@ -72,7 +72,6 @@ local function exec()
    d:setModifiable(true)
 end
 
-
 nvim.newCommand({
    name = "LuaSearch",
    body = exec,

@@ -81,7 +81,6 @@ nvim.augroup("Custom", {
 		local buf = nvim.Buffer()
 		local win = nvim.Window()
 		win:setOption("foldmethod", "expr")
-		win:setOption("foldexpr", "nvim_treesitter#foldexpr()")
 
 		buf:setOption("shiftwidth", 3)
 		buf:setOption("tabstop", 3)
@@ -184,7 +183,10 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 				"teal-language-server",
 				-- "logging=on",
 			},
-			filetypes = { "teal", "lua" },
+			filetypes = {
+				"teal",
+				-- "lua"
+			},
 			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
 			settings = {},
 		},

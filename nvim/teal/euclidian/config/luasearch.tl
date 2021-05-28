@@ -72,7 +72,6 @@ local function exec()
 	d:setModifiable(true)
 end
 
--- nvim.command [[command! LuaSearch lua require"euclidian.config.luasearch"()]]
 nvim.newCommand{
 	name = "LuaSearch",
 	body = exec,

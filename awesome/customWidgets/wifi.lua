@@ -32,7 +32,10 @@ if fh then
 		table.insert(menuitems, {
 			name,
 			function()
-				naughty.notify{ title = "selected:", text = wpacmd:format("select_network " .. num) }
+				naughty.notify{
+					title = "selected:",
+					text = name, --wpacmd:format("select_network " .. num)
+				}
 
 				-- TODO: im like 90% sure theres a way to asynchronously spawn a shell with awesome,
 				-- but this shouldn't block for like any amount of time so :P

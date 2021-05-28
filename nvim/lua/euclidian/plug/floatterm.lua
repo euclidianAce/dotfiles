@@ -19,6 +19,7 @@ local function addMappings()
    if d:win():isValid() then
 
       d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
+      d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
    else
 
       nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })

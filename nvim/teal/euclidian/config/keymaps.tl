@@ -16,7 +16,7 @@ local function combinations<X, Y>(xs: {X}, ys: {Y}): function(): X, Y
 	end) as function(): (X, Y)
 end
 
-local function ensure_array<T>(t: T | {T}): {T}
+local function ensureArray<T>(t: T | {T}): {T}
 	-- for generics `t is T` always compiles to type(t) == "table"
 	if type(t) ~= "table" then
 		return {t as T}
@@ -28,7 +28,7 @@ local function ensure_array<T>(t: T | {T}): {T}
 end
 
 local function map(m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
-	for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+	for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
 		nvim.setKeymap(mode, l, rhs, {noremap = true, silent = true})
 	end
 end
@@ -36,7 +36,7 @@ local unmap <const> = nvim.delKeymap
 
 -- local function bufMap(bufid: integer, m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
 	-- local buf <const> = nvim.Buffer(bufid)
-	-- for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+	-- for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
 		-- buf:setKeymap(mode, l, rhs, {noremap = true, silent = true})
 	-- end
 -- end

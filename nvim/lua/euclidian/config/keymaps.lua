@@ -16,7 +16,7 @@ local function combinations(xs, ys)
    end)
 end
 
-local function ensure_array(t)
+local function ensureArray(t)
 
    if type(t) ~= "table" then
       return { t }
@@ -28,7 +28,7 @@ local function ensure_array(t)
 end
 
 local function map(m, lhs, rhs)
-   for mode, l in combinations(ensure_array(m), ensure_array(lhs)) do
+   for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
       nvim.setKeymap(mode, l, rhs, { noremap = true, silent = true })
    end
 end

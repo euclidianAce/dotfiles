@@ -19,6 +19,7 @@ local function addMappings()
 	if d:win():isValid() then
 		-- window is visible, add mappings to hide it
 		d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
+		d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
 	else
 		-- window is not visible, add mappings to show it
 		nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })

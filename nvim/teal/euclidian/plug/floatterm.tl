@@ -4,14 +4,24 @@ local dialog <const> = require("euclidian.lib.dialog")
 local a <const> = vim.api
 
 local key = ""
-local record FloatTermSetupOpts
-	toggle: string
-end
-local floatterm <const> = {
-	FloatTermSetupOpts = FloatTermSetupOpts,
-}
+local type Dialog = dialog.Dialog
+local record floatterm
+	record SetupOpts
+		toggle: string
 
-local d: dialog.Dialog
+		wid: number
+		hei: number
+		row: number
+		col: number
+
+		centered: boolean | Dialog.Opts.Center
+		border: nvim.Window.Config.Border
+	end
+
+	metamethod __call: function(floatterm, floatterm.SetupOpts): floatterm
+end
+
+local d: Dialog
 local openTerm: function()
 local hideTerm: function()
 
@@ -60,42 +70,52 @@ function floatterm.send(s: string): boolean
 	if not buf:isValid() then
 		return false
 	end
-	local channel <const> = getBuf():getOption("channel")
+	local channel <const> = buf:getOption("channel")
 	chansend(channel, s)
 	return true
 end
 
-function floatterm.setup(opts: FloatTermSetupOpts)
-	opts = opts or {}
+return setmetatable(floatterm, {
+	__call = function(self: floatterm, opts: floatterm.SetupOpts): floatterm
+		opts = opts or {}
 
-	d = dialog.new{
-		wid = 0.9, hei = 0.85,
-		centered = true,
-		interactive = true,
-		hidden = true,
-	}
+		if d then
+			d:close()
+			d = nil
+		end
 
-	addMappings()
+		d = dialog.new{
+			wid = opts.wid or 0.9, hei = opts.hei or 0.85,
+			row = opts.row, col = opts.col,
+			centered = opts.centered or true,
+			border = opts.border,
 
-	nvim.newCommand{
-		name = "FloatingTerminal",
-		body = openTerm,
-		nargs = 0,
-		bar = true,
-		overwrite = true,
-	}
+			interactive = true,
+			hidden = true,
+		}
 
-	nvim.newCommand{
-		name = "FloatingTerminalSend",
-		body = function(...: string)
-			local buf <const> = getBuf()
-			local channel <const> = buf:getOption("channel")
-			chansend(channel, table.concat({...}, " "))
-			chansend(channel, "\n")
-		end,
-		nargs = "+",
-		overwrite = true,
-	}
-end
+		addMappings()
 
-return floatterm
+		nvim.newCommand{
+			name = "FloatingTerminal",
+			body = openTerm,
+			nargs = 0,
+			bar = true,
+			overwrite = true,
+		}
+
+		nvim.newCommand{
+			name = "FloatingTerminalSend",
+			body = function(...: string)
+				local buf <const> = getBuf()
+				local channel <const> = buf:getOption("channel")
+				chansend(channel, table.concat({...}, " "))
+				chansend(channel, "\n")
+			end,
+			nargs = "+",
+			overwrite = true,
+		}
+
+		return self
+	end,
+})

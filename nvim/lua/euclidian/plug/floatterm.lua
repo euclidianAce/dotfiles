@@ -4,12 +4,22 @@ local dialog = require("euclidian.lib.dialog")
 local a = vim.api
 
 local key = ""
-local FloatTermSetupOpts = {}
+local Dialog = dialog.Dialog
+local floatterm = {SetupOpts = {}, }
 
 
-local floatterm = {
-   FloatTermSetupOpts = FloatTermSetupOpts,
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 local d
 local openTerm
@@ -60,42 +70,52 @@ function floatterm.send(s)
    if not buf:isValid() then
       return false
    end
-   local channel = getBuf():getOption("channel")
+   local channel = buf:getOption("channel")
    chansend(channel, s)
    return true
 end
 
-function floatterm.setup(opts)
-   opts = opts or {}
+return setmetatable(floatterm, {
+   __call = function(self, opts)
+      opts = opts or {}
 
-   d = dialog.new({
-      wid = 0.9, hei = 0.85,
-      centered = true,
-      interactive = true,
-      hidden = true,
-   })
+      if d then
+         d:close()
+         d = nil
+      end
 
-   addMappings()
+      d = dialog.new({
+         wid = opts.wid or 0.9, hei = opts.hei or 0.85,
+         row = opts.row, col = opts.col,
+         centered = opts.centered or true,
+         border = opts.border,
 
-   nvim.newCommand({
-      name = "FloatingTerminal",
-      body = openTerm,
-      nargs = 0,
-      bar = true,
-      overwrite = true,
-   })
+         interactive = true,
+         hidden = true,
+      })
 
-   nvim.newCommand({
-      name = "FloatingTerminalSend",
-      body = function(...)
-         local buf = getBuf()
-         local channel = buf:getOption("channel")
-         chansend(channel, table.concat({ ... }, " "))
-         chansend(channel, "\n")
-      end,
-      nargs = "+",
-      overwrite = true,
-   })
-end
+      addMappings()
 
-return floatterm
+      nvim.newCommand({
+         name = "FloatingTerminal",
+         body = openTerm,
+         nargs = 0,
+         bar = true,
+         overwrite = true,
+      })
+
+      nvim.newCommand({
+         name = "FloatingTerminalSend",
+         body = function(...)
+            local buf = getBuf()
+            local channel = buf:getOption("channel")
+            chansend(channel, table.concat({ ... }, " "))
+            chansend(channel, "\n")
+         end,
+         nargs = "+",
+         overwrite = true,
+      })
+
+      return self
+   end,
+})

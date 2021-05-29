@@ -200,7 +200,12 @@ do
 	end)
 end
 
-require("euclidian.plug.floatterm").setup{ toggle = "" }
+require "euclidian.plug.floatterm" {
+	toggle = "",
+	-- wid = 0.3, col = 0.6,
+	-- hei = 0.35,
+	-- centered = { vertical = true },
+}
 
 do -- cd dialog
 	-- TODO: turn this into a telescope lens

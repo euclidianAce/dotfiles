@@ -47,7 +47,7 @@ local function currentState()
    return stateStack[#stateStack]
 end
 
-function imserialize.start(target, opts)
+function imserialize.begin(target, opts)
    assert(not currentWriter)
    currentWriter = target
    currentIndent = 0
@@ -181,6 +181,7 @@ local defaults = {
    number = imserialize.numberOrInteger,
    string = imserialize.string,
    boolean = imserialize.boolean,
+   ["nil"] = value(function() write("nil") end),
 }
 
 function imserialize.any(val)

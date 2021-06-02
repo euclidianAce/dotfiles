@@ -17,7 +17,7 @@ local function generateDef(out, p)
 
    tiFmt(out, "Package ")
    local key, s, i = ims.key, ims.string, ims.integer
-   ims.start(out, { newlines = true, indent = "   " })
+   ims.begin(out, { newlines = true, indent = "   " })
 
    ims.beginTable()
    key("kind"); s(p.kind)

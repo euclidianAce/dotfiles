@@ -17,7 +17,7 @@ local function generateDef(out: {string}, p: Spec)
 
 	tiFmt(out, "Package ")
 	local key <const>, s <const>, i <const> = ims.key, ims.string, ims.integer
-	ims.start(out, { newlines = true, indent = "   " })
+	ims.begin(out, { newlines = true, indent = "   " })
 
 	ims.beginTable()
 	key("kind") s(p.kind)

@@ -56,7 +56,7 @@ function configure.save(opts)
 
    fh:write("return ")
 
-   ims.start(fh, { newlines = true, indent = "   " })
+   ims.begin(fh, { newlines = true, indent = "   " })
    ims.beginTable()
    ims.key("enable")
    ims.beginTable()

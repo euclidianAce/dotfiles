@@ -4,6 +4,8 @@ local dialog <const> = require("euclidian.lib.dialog")
 local a <const> = vim.api
 
 local key = ""
+local shell = "bash"
+local termopenOpts: {string:any} = {}
 local type Dialog = dialog.Dialog
 local record floatterm
 	record SetupOpts
@@ -16,6 +18,9 @@ local record floatterm
 
 		centered: boolean | Dialog.Opts.Center
 		border: nvim.Window.Config.Border
+
+		shell: string
+		termopenOpts: {string:any}
 	end
 
 	metamethod __call: function(floatterm, floatterm.SetupOpts): floatterm
@@ -54,7 +59,9 @@ getBuf = function(): nvim.Buffer
 	local buf <const> = d:ensureBuf()
 	buf:setOption("modified", false)
 	if buf:getOption("buftype") ~= "terminal" then
-		buf:call(function() vim.fn.termopen("bash") end)
+		buf:call(function()
+			vim.fn.termopen(shell, termopenOpts)
+		end)
 	end
 	addMappings()
 	return d:buf()
@@ -79,6 +86,9 @@ end
 return setmetatable(floatterm, {
 	__call = function(self: floatterm, opts: floatterm.SetupOpts): floatterm
 		opts = opts or {}
+		key = opts.toggle or key
+		shell = opts.shell or shell
+		termopenOpts = opts.termopenOpts or termopenOpts
 
 		if d then
 			d:close()

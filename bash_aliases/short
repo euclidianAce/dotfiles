@@ -2,7 +2,11 @@
 # actual "aliases"
 
 function e {
-	$EDITOR $@
+	if [[ "$FLOATTERM" = "1" ]]; then
+		nano $@
+	else
+		$EDITOR $@
+	fi
 }
 alias v="vim"
 alias nv="nvim"

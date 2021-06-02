@@ -202,6 +202,12 @@ end
 
 require("euclidian.plug.floatterm")({
    toggle = "",
+   shell = "bash",
+   termopenOpts = {
+      env = {
+         FLOATTERM = 1,
+      },
+   },
 
 
 

@@ -1,8 +1,8 @@
-local actions <const> = require("euclidian.lib.package-manager.actions")
-local configure <const> = require("euclidian.lib.package-manager.configure")
-local loader <const> = require("euclidian.lib.package-manager.loader")
+local actions <const> = require("euclidian.plug.package-manager.actions")
+local configure <const> = require("euclidian.plug.package-manager.configure")
+local loader <const> = require("euclidian.plug.package-manager.loader")
 local nvim <const> = require("euclidian.lib.nvim")
-local report <const> = require("euclidian.lib.package-manager.report")
+local report <const> = require("euclidian.plug.package-manager.report")
 
 local packagemanager <const> = {
 	commands: {string:function()} = {

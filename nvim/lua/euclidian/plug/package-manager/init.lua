@@ -1,8 +1,8 @@
-local actions = require("euclidian.lib.package-manager.actions")
-local configure = require("euclidian.lib.package-manager.configure")
-local loader = require("euclidian.lib.package-manager.loader")
+local actions = require("euclidian.plug.package-manager.actions")
+local configure = require("euclidian.plug.package-manager.configure")
+local loader = require("euclidian.plug.package-manager.loader")
 local nvim = require("euclidian.lib.nvim")
-local report = require("euclidian.lib.package-manager.report")
+local report = require("euclidian.plug.package-manager.report")
 
 local packagemanager = {
    commands = {

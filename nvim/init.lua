@@ -20,6 +20,10 @@ function libreq(lib, reload)
 	if reload then unload("euclidian.lib." .. lib) end
 	return require("euclidian.lib." .. lib)
 end
+function plugreq(lib, reload)
+	if reload then unload("euclidian.plug." .. lib) end
+	return require("euclidian.plug." .. lib)
+end
 
 hi = libreq("color").scheme.hi
 palette = confreq "colors"
@@ -39,7 +43,7 @@ nvim.command[[syntax enable]]
 hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
-libreq "package-manager"
+plugreq "package-manager"
 
 if not windows then
 	-- Treesitter is finicky on windows

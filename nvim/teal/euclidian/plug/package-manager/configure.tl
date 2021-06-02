@@ -1,4 +1,4 @@
-local tree <const> = require("euclidian.lib.package-manager.tree")
+local tree <const> = require("euclidian.plug.package-manager.tree")
 
 local record Options
 	enable: {string}

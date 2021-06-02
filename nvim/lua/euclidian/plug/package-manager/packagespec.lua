@@ -1,5 +1,5 @@
 
-local tree = require("euclidian.lib.package-manager.tree")
+local tree = require("euclidian.plug.package-manager.tree")
 local uv = vim.loop
 
 local Kind = {}

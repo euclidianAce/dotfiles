@@ -1,7 +1,7 @@
 
-local packagespec <const> = require("euclidian.lib.package-manager.packagespec")
-local set <const> = require("euclidian.lib.package-manager.set")
-local report <const> = require("euclidian.lib.package-manager.report")
+local packagespec <const> = require("euclidian.plug.package-manager.packagespec")
+local set <const> = require("euclidian.plug.package-manager.set")
+local report <const> = require("euclidian.plug.package-manager.report")
 
 local loader <const> = {}
 

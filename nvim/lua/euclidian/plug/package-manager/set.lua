@@ -1,5 +1,5 @@
-local tree = require("euclidian.lib.package-manager.tree")
-local packagespec = require("euclidian.lib.package-manager.packagespec")
+local tree = require("euclidian.plug.package-manager.tree")
+local packagespec = require("euclidian.plug.package-manager.packagespec")
 local tu = require("euclidian.lib.textutils")
 local uv = vim.loop
 

@@ -225,6 +225,7 @@ imserialize.array = value(function(val: {any})
 end)
 
 function imserialize.beginTable()
+	flush(currentState())
 	open("{")
 	currentState().inTable = true
 end
@@ -233,7 +234,9 @@ function imserialize.endTable()
 	assert(currentState().lastEntryKind ~= "key", "Attempt to end a table directly after a key")
 	assert(currentState().inTable, "Attempt to end a table when not in a table")
 	close("}")
-	currentState().lastEntryKind = "value"
+	local s <const> = currentState()
+	s.idx = s.idx + 1
+	s.lastEntryKind = "value"
 end
 
 function imserialize.key(val: any)

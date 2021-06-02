@@ -175,6 +175,15 @@ local function applyHighlights(
 	hi.WildMenu                = { normal.bg, normal.yellow }
 
 
+	-- Git stuffs
+	hi.DiffAdd                     = { dark.green }
+	hi.DiffDelete                  = { dark.red }
+	hi.NeogitDiffAddHighlight      = { -1, bright.bg }
+	hi.NeogitDiffDeleteHighlight   = { -1, bright.bg }
+	hi.NeogitDiffContextHighlight  = { bright.blue }
+	hi.NeogitHunkHeader            = { bright.gray, dark.gray }
+	hi.NeogitHunkHeaderHighlight   = { bright.gray, normal.gray }
+
 	-- Custom Statusline Groups
 	hi.STLBufferInfo           = invert(dark[secondary])
 	hi.STLGit                  = invert(dark.green)

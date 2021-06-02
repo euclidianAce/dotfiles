@@ -328,8 +328,9 @@ local function runCmdForEachPkg(d, getcmd, loaded)
    for i, pkg in ipairs(loaded) do
       local cmd = getcmd(pkg)
       if cmd then
+         d:setLine(i - 1, tu.rightAlign(pkg:title(), titleWidth) .. ": ")
          local r = d:claimRegion(
-         { line = i - 1, char = titleWidth + 1 },
+         { line = i - 1, char = titleWidth + 2 },
          1, 0)
 
 

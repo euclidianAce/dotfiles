@@ -328,8 +328,9 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 	for i, pkg in ipairs(loaded) do
 		local cmd <const> = getcmd(pkg)
 		if cmd then
+			d:setLine(i - 1, tu.rightAlign(pkg:title(), titleWidth) .. ": ")
 			local r <const> = d:claimRegion(
-				{ line = i - 1, char = titleWidth + 1 },
+				{ line = i - 1, char = titleWidth + 2 },
 				1, 0
 			)
 

@@ -1,3 +1,4 @@
+local ims <const> = require("euclidian.lib.imserialize")
 local tree <const> = require("euclidian.plug.package-manager.tree")
 
 local record Options
@@ -52,15 +53,22 @@ function configure.save(opts: Options): boolean, string
 	if not fh then
 		return false, err
 	end
-	fh:write("return {\n")
-	fh:write("   enable = {\n")
-	for _, s in ipairs(opts.enable) do
-		fh:write(("      %q,\n"):format(s))
-	end
-	fh:write("   },\n")
-	fh:write(("   maxConcurrentJobs = %d,\n"):format(opts.maxConcurrentJobs or 2))
-	fh:write("}")
 
+	fh:write("return ")
+
+	ims.start(fh, { newlines = true, indent = "   " })
+	ims.beginTable()
+	ims.key("enable")
+	ims.beginTable()
+	for _, s in ipairs(opts.enable) do
+		ims.string(s)
+	end
+	ims.endTable()
+	ims.key("maxConcurrentJobs")
+	ims.integer(opts.maxConcurrentJobs or 2)
+	ims.endTable()
+
+	ims.finish()
 	fh:close()
 	return true
 end

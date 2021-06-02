@@ -30,7 +30,7 @@ local function addMappings()
 		-- window is visible, add mappings to hide it
 		d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
 		d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
-		nvim.autocmd("WinLeave", "*", hideTerm, { buffer = d:ensureBuf().id })
+		nvim.autocmd("WinLeave", nil, hideTerm, { buffer = d:ensureBuf().id })
 	else
 		-- window is not visible, add mappings to show it
 		nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })

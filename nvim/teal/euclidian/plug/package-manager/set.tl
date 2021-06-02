@@ -1,3 +1,4 @@
+local ims <const> = require("euclidian.lib.imserialize")
 local tree <const> = require("euclidian.plug.package-manager.tree")
 local packagespec <const> = require("euclidian.plug.package-manager.packagespec")
 local tu <const> = require("euclidian.lib.textutils")
@@ -13,43 +14,44 @@ local tiFmt <const> = tu.insertFormatted
 
 local function generateDef(out: {string}, p: Spec)
 	assert(p.id, "Attempt to generate package def without id")
-	local leadingSpaces <const> = (" "):rep(#("Package { "))
 
-	local function ins(s: string, ...: any)
-		tiFmt(out, leadingSpaces .. s, ...)
-		tiFmt(out, ",\n")
-	end
+	tiFmt(out, "Package ")
+	local key <const>, s <const>, i <const> = ims.key, ims.string, ims.integer
+	ims.start(out, { newlines = true, indent = "   " })
 
-	tiFmt(out, "Package { kind = %q,\n", p.kind)
-	ins("id = %d", p.id)
+	ims.beginTable()
+	key("kind") s(p.kind)
+	key("id") i(p.id)
 
 	if p.alias then
-		ins("alias = %q", p.alias)
+		key "alias" s(p.alias)
 	end
 	if p.kind == "git" then
-		ins("repo = %q", p.repo)
+		key "repo" s(p.repo)
 		if p.branch then
-			ins("branch = %q", p.branch)
+			key "branch" s(p.branch)
 		end
 	elseif p.kind == "local" then
-		ins("path = %q", p.path)
+		key "path" s(p.path)
 	end
 
 	if p.dependents then
 		local d <const> = {}
 		for _, dep in ipairs(p.dependents) do
 			if dep is Spec and dep.id then
-				table.insert(d, tostring(dep.id))
+				table.insert(d, dep.id)
 			end
 		end
 
 		if #d > 0 then
-			ins("dependents = { %s }", table.concat(d, ", "))
+			key "dependents" ims.array(d)
 		end
 	end
 
-	table.remove(out)
-	tiFmt(out, " }\n")
+	ims.endTable()
+	ims.finish()
+
+	table.insert(out, "\n")
 end
 
 function set.serialize(ps: {Spec}): string

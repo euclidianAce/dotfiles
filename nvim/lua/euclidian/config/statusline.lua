@@ -41,7 +41,7 @@ do
       return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
    end
 
-   local filesChanged, insertions, deletions = "?", "?", "?"
+   local filesChanged, insertions, deletions
    nvim.autocmd("VimEnter,BufWritePost", "*", function()
       local b = nvim.Buffer()
       if b:getOption("buftype") == "nofile" then
@@ -80,7 +80,7 @@ do
    end, "STLGit", true)
    stl.add(gitActive, gitInactive, function()
       if currentBranch == "" then return "" end
-      return (" ~%s +%s -%s "):format(filesChanged or "?", insertions or "?", deletions or "?")
+      return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
    end, "STLGit", true)
 
    stl.toggleTag("Git")

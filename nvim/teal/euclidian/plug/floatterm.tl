@@ -30,41 +30,45 @@ local d: Dialog
 local openTerm: function()
 local hideTerm: function()
 
-local function addMappings()
-	if d:win():isValid() then
-		-- window is visible, add mappings to hide it
-		d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
-		d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
-		nvim.autocmd("WinLeave", nil, hideTerm, { buffer = d:ensureBuf().id })
-	else
-		-- window is not visible, add mappings to show it
-		nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })
-	end
+local function addShowMappings()
+	nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })
+end
+
+local function addHideMappings()
+	d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
+	d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
+	nvim.autocmd("WinLeave", nil, hideTerm, { buffer = d:ensureBuf().id, once = true })
 end
 
 local getBuf: function(): nvim.Buffer
 
-openTerm = function()
-	getBuf()
-	d:show():win():setOption("winblend", 8)
-	addMappings()
-end
+do
+	local shown = false
+	openTerm = function()
+		shown = true
+		getBuf()
+		d:show():win():setOption("winblend", 8)
+	end
 
-hideTerm = function()
-	d:hide()
-	addMappings()
+	hideTerm = function()
+		if shown then
+			shown = false
+			d:hide()
+			addShowMappings()
+		end
+	end
 end
 
 getBuf = function(): nvim.Buffer
 	local buf <const> = d:ensureBuf()
-	buf:setOption("modified", false)
 	if buf:getOption("buftype") ~= "terminal" then
+		buf:setOption("modified", false)
 		buf:call(function()
 			vim.fn.termopen(shell, termopenOpts)
 		end)
+		addHideMappings()
 	end
-	addMappings()
-	return d:buf()
+	return buf
 end
 
 function floatterm.channel(): integer
@@ -105,7 +109,7 @@ return setmetatable(floatterm, {
 			hidden = true,
 		}
 
-		addMappings()
+		addShowMappings()
 
 		nvim.newCommand{
 			name = "FloatingTerminal",

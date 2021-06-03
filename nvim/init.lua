@@ -129,6 +129,7 @@ set(vim.g, {
 	mapleader = " ",
 	netrw_liststyle = 3,
 	netrw_banner = 0,
+	no_man_maps = 1,
 })
 
 -- TODO: wat

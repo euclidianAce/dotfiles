@@ -37,8 +37,13 @@ do -- git stuffs
 	local currentBranch = ""
 
 	local function parseDiff(s: string): string, string, string
+		-- ex: 1 file changed, 1 insertion(+)
 		-- ex: 5 files changed, 98 insertions(+), 45 deletions(-)
-		return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
+		local ns = {}
+		for n in s:gmatch("%d+") do
+			table.insert(ns, n)
+		end
+		return unpack(ns)
 	end
 
 	local filesChanged, insertions, deletions: string, string, string

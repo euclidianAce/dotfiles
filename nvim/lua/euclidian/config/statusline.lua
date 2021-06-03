@@ -38,7 +38,12 @@ do
 
    local function parseDiff(s)
 
-      return s:match("(%d+) files changed, (%d+) insertions%(%+%), (%d+) deletions")
+
+      local ns = {}
+      for n in s:gmatch("%d+") do
+         table.insert(ns, n)
+      end
+      return unpack(ns)
    end
 
    local filesChanged, insertions, deletions

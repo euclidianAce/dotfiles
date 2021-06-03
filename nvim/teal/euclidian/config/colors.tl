@@ -13,42 +13,31 @@ local enum Color
 	"orange"
 end
 local type Palette = {Color:integer}
+local type Gradient = {integer, integer, integer}
 
-local normal <const>: Palette = {
-	bg     = 0x181520,
-	fg     = 0xD8CEE4,
-	blue   = 0x799AE0,
-	gray   = 0x464252,
-	green  = 0x62F5A2,
-	orange = 0xE8AB73,
-	purple = 0x9876D9,
-	red    = 0xD16161,
-	yellow = 0xD5C876,
+local p <const>: {Color:Gradient} = {
+	bg     = { 0x16131F, 0x181520, 0x2B2735 },
+	fg     = { 0x817998, 0xD8CEE4, 0xEFEFEF },
+	blue   = { 0x395081, 0x799AE0, 0xAAC3FD },
+	gray   = { 0x332F3C, 0x464252, 0x817998 },
+	green  = { 0x48C878, 0x62F5A2, 0x98EBA5 },
+	orange = { 0xC88B43, 0xE8AB73, 0xFFC590 },
+	purple = { 0x6554A0, 0x9876D9, 0xC7B1F2 },
+	red    = { 0x77405F, 0xD16161, 0xE69090 },
+	yellow = { 0xB5AA60, 0xD5C876, 0xF0E7AC },
 }
 
-local dark <const>: Palette = {
-	bg     = 0x16131F,
-	fg     = 0x817998,
-	blue   = 0x395081,
-	gray   = 0x332F3C,
-	green  = 0x50D480,
-	orange = 0xB47B46,
-	purple = 0x6554A0,
-	red    = 0x77405F,
-	yellow = 0x7B7532,
-}
+local function extract(grads: {Color:Gradient}, idx: integer): Palette
+	local res <const> = {}
+	for k, v in pairs(grads) do
+		res[k] = v[idx]
+	end
+	return res
+end
 
-local bright <const>: Palette = {
-	bg     = 0x2B2735,
-	fg     = 0xEFEFEF,
-	blue   = 0xAAC3FD,
-	gray   = 0x817998,
-	green  = 0xA8EBC5,
-	orange = 0xC3AA93,
-	purple = 0xC7B1F2,
-	red    = 0xE69090,
-	yellow = 0xF0E7AC,
-}
+local dark <const> = extract(p, 1)
+local normal <const> = extract(p, 2)
+local bright <const> = extract(p, 3)
 
 local color <const> = require("euclidian.lib.color")
 local hi <const> = color.scheme.hi
@@ -125,7 +114,7 @@ local function applyHighlights(
 	hi.Statement               = { normal[primary] }
 	hi.Operator                = { normal[primaryComplement] }
 
-	hi.Type                    = { normal[primaryComplement] }
+	hi.Type                    = { bright[primaryComplement] }
 	hi.Structure               = { dark[secondaryComplement] }
 	hi.StorageClass            = { bright[primaryComplement], nil, "bold" }
 
@@ -140,8 +129,8 @@ local function applyHighlights(
 	hi.Underlined              = { nil, nil, "underline" }
 
 	hi.TSConstructor           = {  }
-	hi.TSParameter             = { normal[secondaryComplement] }
-	hi.TSParameterReference    = { normal[secondaryComplement] }
+	hi.TSParameter             = { bright[secondaryComplement] }
+	hi.TSParameterReference    = { bright[secondaryComplement] }
 	hi.TSAttribute             = { bright[primaryComplement] }
 	hi.TSConstBuiltin          = { normal[secondary] }
 
@@ -178,9 +167,9 @@ local function applyHighlights(
 	-- Git stuffs
 	hi.DiffAdd                     = { dark.green }
 	hi.DiffDelete                  = { dark.red }
-	hi.NeogitDiffAddHighlight      = { -1, bright.bg }
-	hi.NeogitDiffDeleteHighlight   = { -1, bright.bg }
-	hi.NeogitDiffContextHighlight  = { bright.blue }
+	hi.NeogitDiffAddHighlight      = { normal.green }
+	hi.NeogitDiffDeleteHighlight   = { normal.red }
+	hi.NeogitDiffContextHighlight  = { normal.blue, dark.bg }
 	hi.NeogitHunkHeader            = { bright.gray, dark.gray }
 	hi.NeogitHunkHeaderHighlight   = { bright.gray, normal.gray }
 
@@ -201,17 +190,17 @@ end
 local function hex(col: integer): string
 	return ("#%06X"):format(col)
 end
-vim.g.terminal_color_0 = hex(normal.bg)
-vim.g.terminal_color_1 = hex(normal.red)
-vim.g.terminal_color_2 = hex(normal.green)
-vim.g.terminal_color_3 = hex(normal.yellow)
-vim.g.terminal_color_4 = hex(normal.blue)
-vim.g.terminal_color_5 = hex(normal.purple)
-vim.g.terminal_color_6 = "cyan3"
-vim.g.terminal_color_7 = hex(bright.gray)
+vim.g.terminal_color_0  = hex(normal.bg)
+vim.g.terminal_color_1  = hex(normal.red)
+vim.g.terminal_color_2  = hex(normal.green)
+vim.g.terminal_color_3  = hex(normal.yellow)
+vim.g.terminal_color_4  = hex(normal.blue)
+vim.g.terminal_color_5  = hex(normal.purple)
+vim.g.terminal_color_6  = "cyan3"
+vim.g.terminal_color_7  = hex(bright.gray)
 
-vim.g.terminal_color_8 = hex(bright.bg)
-vim.g.terminal_color_9 = hex(bright.red)
+vim.g.terminal_color_8  = hex(bright.bg)
+vim.g.terminal_color_9  = hex(bright.red)
 vim.g.terminal_color_10 = hex(bright.green)
 vim.g.terminal_color_11 = hex(bright.yellow)
 vim.g.terminal_color_12 = hex(bright.blue)

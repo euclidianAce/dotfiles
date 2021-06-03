@@ -43,7 +43,7 @@ do
       for n in s:gmatch("%d+") do
          table.insert(ns, n)
       end
-      return unpack(ns)
+      return unpack(ns, 1, 3)
    end
 
    local filesChanged, insertions, deletions
@@ -61,14 +61,24 @@ do
             end
          end
       end
-      command.spawn({
-         command = { "git", "diff", "--shortstat" },
-         cwd = vim.loop.cwd(),
-         onStdoutLine = oneshot(function(ln)
-            filesChanged, insertions, deletions = parseDiff(ln)
-            vim.schedule(stl.updateWindow)
-         end),
-      })
+      do
+         local gotDiff = false
+         command.spawn({
+            command = { "git", "diff", "--shortstat" },
+            cwd = vim.loop.cwd(),
+            onStdoutLine = oneshot(function(ln)
+               gotDiff = true
+               filesChanged, insertions, deletions = parseDiff(ln)
+               vim.schedule(stl.updateWindow)
+            end),
+            onExit = function()
+               if not gotDiff then
+                  filesChanged, insertions, deletions = nil, nil, nil
+                  vim.schedule(stl.updateWindow)
+               end
+            end,
+         })
+      end
       command.spawn({
          command = { "git", "branch", "--show-current" },
          cwd = vim.loop.cwd(),

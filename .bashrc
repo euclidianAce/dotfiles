@@ -30,7 +30,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export DOTFILE_DIR="$HOME/dotfiles"
 
 # set nvim as the default editor
-export EDITOR="nvim-qt --nvim /usr/local/bin/nvim"
+export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
 export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
@@ -65,8 +65,7 @@ function update_ps1 {
 		return 0
 	fi
 
-	# using utf8 needs a utf8 lib, which luajit doesn't come with
-	PS1=$(/nix/store/qp7s8wsq919p03alrchf5i9lpa2h3fn2-lua-5.4.2/bin/lua $DOTFILE_DIR/ps1Getter.lua 2> /tmp/ps1ErrLog.log)
+	PS1=$($DOTFILE_DIR/ps1 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$MY_PS1
 	fi
@@ -74,9 +73,9 @@ function update_ps1 {
 update_ps1
 PROMPT_COMMAND=update_ps1
 
-# if [[ -z $TMUX ]]; then
-	# exec tmux
-# fi
+if [[ -z $TMUX ]]; then
+	exec tmux
+fi
 
 # This is silly
 # if [[ -z $NVIM_STARTED ]]; then
@@ -85,6 +84,3 @@ PROMPT_COMMAND=update_ps1
 # else
 # 	alias nvim="echo no;# "
 # fi
-
-# TODO: fix this?
-export QT_QPA_PLATFORM_PLUGIN_PATH=/nix/store/jwxyc4755zpaacssxy23y3s0bf3d6pk8-qtbase-5.15.2-bin/lib/qt-5.15.2/plugins/platforms

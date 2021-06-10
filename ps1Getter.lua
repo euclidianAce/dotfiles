@@ -1,4 +1,3 @@
-
 local os = require("os")
 local table = require("table")
 local tinsert, tconcat = table.insert, table.concat
@@ -6,22 +5,8 @@ local tinsert, tconcat = table.insert, table.concat
 local escChar = "\\[" .. string.char(27) .. "["
 local reset = escChar .. "0m\\]"
 local lineColor = escChar .. "36m\\]"
--- {{{ Use utf8 if we have it, but not necessary
-local utf8
-do
-	local ok, res = pcall(require, "utf8")
-	if ok then
-		utf8 = res
-	else
-		utf8 = {
-			len = function(str)
-				return #str
-			end
-		}
-	end
-end
--- }}}
--- {{{ Box Drawing Chars
+local utf8 = require("utf8")
+
 local c = utf8.char
 local line = {
 	horiz = "─", --c(0x2500),
@@ -40,8 +25,7 @@ local t = {
 	left = "┤", --c(0x2524),
 	right = "├", --c(0x251c),
 }
--- }}}
--- {{{ Environment vars
+
 local function sh(expr)
 	local f = io.popen(expr)
 	local out = f:read()
@@ -54,18 +38,20 @@ local time = os.date("%X")
 local user = os.getenv("USER")
 local host = sh("hostname")
 local wd = sh("pwd"):gsub("^/home/" .. user, "~")
-local branch = sh("git branch 2> /dev/null | grep \\*")
+local branch = sh("git branch --show-current")
+if branch then
+	branch = "* " .. branch
+end
 if isNixShell then
 	lineColor = escChar .. "32m\\]"
 end
--- }}}
--- {{{ Directory shortener
+
 do
 	local dirmaxlen = math.floor(columns / 2)
 	local dirminlen = 7
 	local dirstack = {}
 	for dir in wd:gmatch("[^/]+") do
-		tinsert(dirstack, utf8.len(dir) > dirmaxlen and dir:sub(1, dirmaxlen-1).."…" or dir)
+		tinsert(dirstack, utf8.len(dir) > dirmaxlen and dir:sub(1, dirmaxlen - 1) .. "…" or dir)
 	end
 	local home = dirstack[1] == "~"
 	if #dirstack > 3 then
@@ -78,8 +64,7 @@ do
 	wd = (home and "" or "/") .. tconcat(dirstack, "/")
 	wd = wd .. (" "):rep(dirminlen - utf8.len(wd))
 end
--- }}}
--- {{{ The Main Bits
+
 local entries = {}
 local function createEntry(str, color)
 	if str then
@@ -115,12 +100,11 @@ if middleLen > columns then
 	io.write("\n", lineColor, corner.bl, line.horiz, t.left, entries[2].color, entries[2].str, escChar, "35m\\] $ ", reset)
 	return
 end
--- first line
+
 io.write(reset, "   ", lineColor, corner.tl, tconcat(result[1], t.down), corner.tr, "\n")
--- second line
+
 io.write(corner.tl, line.horiz:rep(2), t.left, tconcat(result[2], reset .. lineColor .. line.vert), lineColor, t.right)
 io.write(line.horiz:rep(columns - middleLen), t.left, "\n")
--- third line
+
 io.write(lineColor, line.vert, "  ", corner.bl, tconcat(result[3], t.up), corner.br, "\n")
 io.write(lineColor, corner.bl, t.left, escChar .. "35m\\]$ ", reset)
--- }}}

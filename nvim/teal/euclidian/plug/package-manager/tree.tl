@@ -1,4 +1,4 @@
-local uv <const> = vim.loop
+local fs <const> = require("euclidian.lib.fs")
 
 local stdpath <const> = vim.fn.stdpath as function(string): string
 local dataPath <const> = stdpath("data")
@@ -9,20 +9,9 @@ local tree <const> = {
 	set = configPath .. "/sets",
 }
 
-local function mkdirp(path: string)
-	local components <const> = vim.split(path, "/")
-	for i = 1, #components do
-		uv.fs_mkdir(table.concat(components, "/", 1, i), tonumber("755", 8))
-	end
-end
-
-local function fileExists(fname: string): boolean
-	return uv.fs_stat(fname) ~= nil
-end
-
 for _, path in pairs(tree as {string:string}) do
-	if not fileExists(path) then
-		mkdirp(path)
+	if not fs.exists(path) then
+		fs.mkdirp(path)
 	end
 end
 

@@ -1,6 +1,5 @@
-
+local fs = require("euclidian.lib.fs")
 local tree = require("euclidian.plug.package-manager.tree")
-local uv = vim.loop
 
 local Kind = {}
 
@@ -84,13 +83,9 @@ function Spec:updateCmd()
    end
 end
 
-local function fileExists(fname)
-   return uv.fs_stat(fname) ~= nil
-end
-
 function Spec:isInstalled()
    if self.kind == "git" then
-      return fileExists(self:location())
+      return fs.exists(self:location())
    else
       return true
    end

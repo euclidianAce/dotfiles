@@ -199,7 +199,7 @@ do
    d:setModifiable(true)
 
    local function configureBuf(buf)
-      buf:setOption("ft", "teal")
+      buf:setOption("ft", "lua")
       buf:setOption("tabstop", 3)
       buf:setOption("shiftwidth", 3)
       buf:setKeymap(
@@ -406,5 +406,7 @@ map("n", "<S-Down>", function()
    local name, size = getGuiFontInfo()
    a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
 end)
+
+vim.cmd([[command -nargs=* L lua print(<args>)]])
 
 return M

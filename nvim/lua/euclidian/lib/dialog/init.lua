@@ -1,3 +1,4 @@
+local a = vim.api
 local nvim = require("euclidian.lib.nvim")
 
 local TextRegion = {Position = {}, }
@@ -396,6 +397,13 @@ function Dialog:fitText(minWid, minHei, maxWid, maxHei)
    win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
    return self
 end
+function Dialog:setWinSize(width, height)
+   local win = self:ensureWin()
+   local ui = nvim.ui()
+   if height then win:setHeight(clamp(height, 1, ui.height)) end
+   if width then win:setWidth(clamp(width, 1, ui.width)) end
+   return self
+end
 function Dialog:fitTextPadded(colPad, rowPad, minWid, minHei, maxWid, maxHei)
    local lines = self:ensureBuf():getLines(0, -1, false)
    local line = ""
@@ -465,6 +473,10 @@ function Dialog:hide()
    w:hide()
    return self
 end
+function Dialog:focus()
+   a.nvim_set_current_win(self:ensureWin().id)
+   return self
+end
 function Dialog:close()
    local w = self:win()
    if w:isValid() then
@@ -488,10 +500,10 @@ for k in pairs(linkedFns) do
    end
 end
 
-local function cmpPos(a, b)
-   return a.line == b.line and
-   a.char < b.char or
-   a.line < b.line
+local function cmpPos(lhs, rhs)
+   return lhs.line == rhs.line and
+   lhs.char < rhs.char or
+   lhs.line < rhs.line
 end
 
 function Dialog:claimRegion(start, nlines, nchars)

@@ -1,3 +1,4 @@
+local a <const> = vim.api
 local nvim <const> = require("euclidian.lib.nvim")
 
 local record TextRegion
@@ -396,6 +397,13 @@ function Dialog:fitText(minWid: integer, minHei: integer, maxWid: integer, maxHe
 	win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
 	return self
 end
+function Dialog:setWinSize(width: integer, height: integer): Dialog
+	local win <const> = self:ensureWin()
+	local ui <const> = nvim.ui()
+	if height then win:setHeight(clamp(height, 1, ui.height)) end
+	if width then win:setWidth(clamp(width, 1, ui.width)) end
+	return self
+end
 function Dialog:fitTextPadded(colPad: integer, rowPad: integer, minWid: integer, minHei: integer, maxWid: integer, maxHei: integer): Dialog
 	local lines <const> = self:ensureBuf():getLines(0, -1, false)
 	local line = ""
@@ -465,6 +473,10 @@ function Dialog:hide(): Dialog
 	w:hide()
 	return self
 end
+function Dialog:focus(): Dialog
+	a.nvim_set_current_win(self:ensureWin().id)
+	return self
+end
 function Dialog:close()
 	local w <const> = self:win()
 	if w:isValid() then
@@ -488,10 +500,10 @@ for k in pairs(linkedFns) do
 	end
 end
 
-local function cmpPos(a: TextRegion.Position, b: TextRegion.Position): boolean
-	return a.line == b.line
-		and a.char < b.char
-		or a.line < b.line
+local function cmpPos(lhs: TextRegion.Position, rhs: TextRegion.Position): boolean
+	return lhs.line == rhs.line
+		and lhs.char < rhs.char
+		or lhs.line < rhs.line
 end
 
 function Dialog:claimRegion(start: TextRegion.Position, nlines: integer, nchars: integer): TextRegion

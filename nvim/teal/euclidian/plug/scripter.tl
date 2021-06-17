@@ -1,0 +1,215 @@
+local a <const> = vim.api
+local dialog <const> = require("euclidian.lib.dialog")
+local fs <const> = require("euclidian.lib.fs")
+local notification <const> = require("euclidian.lib.notification")
+local nvim <const> = require("euclidian.lib.nvim")
+local quick <const> = require("euclidian.lib.dialog.quick")
+local z <const> = require("euclidian.lib.async.zig")
+
+-- TODO: use libuv for file reads and writes
+
+local stdpath <const> = vim.fn.stdpath as function(string): string
+
+local scripter <const> = {}
+
+local dir <const> = stdpath("config") .. "/.scripter"
+if not fs.exists(dir) then
+	fs.mkdirp(dir)
+end
+local function scriptPath(name: string): string
+	return dir .. "/" .. name
+end
+
+local currentScript, currentScriptChanged: string, boolean
+local openEditor, openBrowser: function(), function()
+
+local mainDialog = dialog.new{
+	wid = 75, hei = 30,
+	centered = true,
+	interactive = true,
+	notMinimal = true,
+	hidden = true,
+}
+mainDialog:setModifiable(true)
+
+local function execBuffer(b: nvim.Buffer)
+	local lines <const> = b:getLines(0, -1, false);
+	local txt <const> = table.concat(lines, "\n")
+
+	local chunk <const>, loaderr <const> = loadstring(txt)
+	if not chunk then
+		a.nvim_err_writeln(loaderr)
+		return
+	end
+	local ok <const>, err <const> = pcall(chunk) as (boolean, string)
+	if not ok then
+		a.nvim_err_writeln(err)
+	end
+end
+
+local promptOpts <const>: dialog.Dialog.Opts = {
+	wid = 45, hei = 1,
+	centered = true,
+	interactive = true,
+	ephemeral = true,
+}
+
+local function saveBufferToFile(buf: nvim.Buffer, file: string)
+	assert(buf)
+	assert(file)
+	if not currentScriptChanged then
+		return
+	end
+	local realPath <const> = scriptPath(file)
+	local fh <const>, err <const> = io.open(realPath, "w")
+	if err then
+		notification.create("Could not save script " .. file .. ": " .. tostring(err))
+		return
+	end
+	for _, ln in ipairs(buf:getLines(0, -1, false)) do
+		fh:write(ln, "\n")
+	end
+	fh:close()
+	notification.create("Saved script " .. file)
+	currentScriptChanged = false
+end
+
+local function clearMappings(d: dialog.Dialog)
+	for _, map in ipairs(d:buf():getKeymap("n") as {{string:string}}) do
+		d:delKeymap("n", map.lhs)
+	end
+end
+
+openEditor = function()
+	assert(currentScript)
+	clearMappings(mainDialog)
+	local buf <const> = mainDialog:ensureBuf()
+	local win <const> = mainDialog:ensureWin()
+	nvim.augroup("ScripterBrowserFloat", {}, true)
+	mainDialog:focus()
+
+	local text <const> = {}
+	if fs.exists(scriptPath(currentScript)) then
+		for ln in io.lines(scriptPath(currentScript)) do
+			table.insert(text, ln)
+		end
+	end
+	mainDialog:setLines(text)
+
+	mainDialog:setWinSize(75, 30):center()
+	win:setOption("cursorline", false)
+	win:setOption("number", true)
+	win:setOption("relativenumber", true)
+
+	mainDialog:setModifiable(true)
+	buf:setOption("ft", "lua")
+	buf:setKeymap(
+		"n", "<cr>",
+		function() execBuffer(mainDialog:buf()) end,
+		{ silent = true, noremap = true }
+	)
+	local save = z.asyncFn(function()
+		if not currentScript then
+			currentScript = quick.prompt("Save As: ", promptOpts)
+		end
+		saveBufferToFile(buf, currentScript)
+	end)
+	buf:setKeymap(
+		"n", "<bs>",
+		function()
+			z.nosuspend(save)
+			currentScript = nil
+			openBrowser()
+		end,
+		{ silent = true, noremap = true }
+	)
+	buf:setKeymap(
+		"n", "",
+		function() mainDialog:hide() end,
+		{ silent = true, noremap = true }
+	)
+	buf:setKeymap(
+		"n", "<leader>W",
+		save,
+		{ silent = true, noremap = true }
+	)
+	mainDialog:show()
+	buf:attach(false, {
+		on_lines = function(): boolean
+			if currentScript then
+				currentScriptChanged = true
+			end
+			return true
+		end,
+	})
+end
+
+-- TODO: implement this as nvim.Window:getVarSafe or something
+local function getWinVar(win: nvim.Window, name: string): any
+	local var: any
+	pcall(function()
+		var = win:getVar(name)
+	end)
+	return var
+end
+
+openBrowser = function()
+	assert(not currentScript)
+	local win <const> = mainDialog:ensureWin()
+	local buf <const> = mainDialog:ensureBuf()
+
+	mainDialog:setModifiable(false)
+	a.nvim_set_current_win(win.id)
+	win:setOption("cursorline", true)
+	win:setOption("number", false)
+	win:setOption("relativenumber", false)
+	buf:setOption("ft", "")
+
+	clearMappings(mainDialog)
+	local scripts = {}
+	for f in fs.ls(dir) do
+		table.insert(scripts, f)
+	end
+	mainDialog:setLines(scripts)
+	mainDialog:fitTextPadded(2, 2, 50, 10):center()
+	if #scripts == 0 then
+		z.async(function()
+			if quick.yesOrNo("No scripts found, create new script?") then
+				currentScript = quick.prompt("Name: ", promptOpts)
+				openEditor()
+			else
+				mainDialog:close()
+			end
+		end)
+		return
+	end
+	mainDialog:addKeymap("n", "<bs>", function() mainDialog:close() end, {})
+	mainDialog:addKeymap("n", "<cr>", function()
+		currentScript = mainDialog:getCurrentLine()
+		openEditor()
+	end, {})
+	mainDialog:addKeymap("n", "dd", z.asyncFn(function()
+		local file <const> = mainDialog:getCurrentLine()
+		if quick.yesOrNo("Delete " .. file .. "?") then
+			os.remove(scriptPath(file))
+			openBrowser()
+		end
+	end), { noremap = true })
+	nvim.augroup("ScripterBrowserFloat", {
+		{ "WinLeave", nil, vim.schedule_wrap(function()
+			if not getWinVar(nvim.Window(), "QuickDialog") then
+				mainDialog:close()
+			end
+		end), { buffer = buf.id } }
+	}, true)
+end
+
+function scripter.open()
+	if currentScript then
+		openEditor()
+	else
+		openBrowser()
+	end
+end
+
+return scripter

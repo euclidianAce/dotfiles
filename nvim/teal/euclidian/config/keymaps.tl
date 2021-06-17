@@ -187,37 +187,6 @@ do
 	end
 
 	map("n", "<leader>L", execBuffer)
-
-	-- floating buffer to execute some lua
-	local d <const> = dialog.new{
-		wid = 75, hei = 30,
-		centered = true,
-		interactive = true,
-		notMinimal = true,
-		hidden = true,
-	}
-	d:setModifiable(true)
-
-	local function configureBuf(buf: nvim.Buffer)
-		buf:setOption("ft", "lua")
-		buf:setOption("tabstop", 3)
-		buf:setOption("shiftwidth", 3)
-		buf:setKeymap(
-			"n", "<cr>",
-			function() execBuffer(d:ensureBuf()) end,
-			{ silent = true, noremap = true }
-		)
-		buf:setKeymap(
-			"n", "",
-			function() d:hide() end,
-			{ silent = true, noremap = true }
-		)
-	end
-
-	map("n", "<leader>lua", function()
-		configureBuf(d:ensureBuf())
-		d:show()
-	end)
 end
 
 require "euclidian.plug.floatterm" {

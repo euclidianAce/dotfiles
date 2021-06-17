@@ -133,10 +133,10 @@ set(vim.g, {
 -- TODO: wat
 nvim.command [[set undofile]]
 
-set(vim.o, {
-	guicursor = "a:block",
+set(vim.opt, {
+	-- guicursor = "a:block",
 	-- guicursor = "n:hor10",
-	-- guicursor = "i:ver20",
+	guicursor = "n:hor20,i:ver20",
 
 	mouse = "nv",
 	termguicolors = true,
@@ -156,20 +156,16 @@ set(vim.o, {
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
-	listchars = "tab:   ,space:·,precedes:<,extends:>,nbsp:+",
-	fillchars = "fold: ,vert: ",
+	listchars = { tab = "   ", space = "·", precedes = "<", extends = ">", nbsp = "+" },
+	fillchars = { fold = " ", vert = " " },
 	inccommand = "nosplit",
 	laststatus = 2,
 	scrolloff = 2,
 	virtualedit = "block",
 	foldmethod = "marker",
-})
 
-set(vim.bo, {
 	formatoptions = "lroj",
-})
 
-set(vim.wo, {
 	list = true,
 	signcolumn = "yes:1",
 	numberwidth = 4,
@@ -196,7 +192,7 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 	}
 	lspconfig.teal.setup{}
 end
-lspconfig.clangd.setup{}
+-- lspconfig.clangd.setup{}
 
 confreq("statusline")
 confreq("keymaps")

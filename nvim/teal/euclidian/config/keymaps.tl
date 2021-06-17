@@ -149,6 +149,26 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
+map("n", "<leader>head", function()
+	local buf <const> = nvim.Buffer()
+	local lines = buf:getLines(0, -1, false)
+	if #lines ~= 1 or lines[1] ~= "" then
+		vim.api.nvim_err_writeln("Cannot insert header guard: Buffer is not empty")
+		return
+	end
+	local guard = vim.fn.input("Insert Header Guard: ") as string
+	guard = guard:upper()
+	if not guard:match("_H$") then
+		guard = guard .. "_H"
+	end
+	buf:setLines(0, -1, false, {
+		"#ifndef " .. guard,
+		"#define " .. guard,
+		"",
+		"#endif // " .. guard,
+	})
+end)
+
 do
 	local function execBuffer(b: nvim.Buffer)
 		b = b or nvim.Buffer()

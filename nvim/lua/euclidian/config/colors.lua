@@ -81,7 +81,7 @@ local function applyHighlights(
    hi.StatusLine = invert(dark[secondary])
    hi.StatusLineNC = invert(normal.gray)
 
-   hi.VertSplit = { nil, normal.bg }
+   hi.VertSplit = { nil, normal.gray }
    hi.TabLine = { nil, normal.gray }
    hi.TabLineSel = { nil, bright.gray, "underline" }
    hi.TabLineFill = { nil, dark.gray }

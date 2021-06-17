@@ -1,18 +1,32 @@
 
 local a <const> = vim.api
 
-local function failsafe(f: function, err_prefix: string): function(...: any): any...
+local function failsafe<Args..., Rets...>(f: (function(Args): Rets), err_prefix: string): function(Args): Rets
 	local ok = true
 	local err: string
-	return function(...: any): any...
+	local unpack_ <const> = unpack as function(any): Rets
+	return function(...: Args): Rets
 		if ok then
 			local res <const> = { pcall(f, ...) }
 			ok = table.remove(res, 1) as boolean
 			if ok then
-				return unpack(res)
+				return unpack_(res)
 			end
 			err = res[1] as string
 		end
+		a.nvim_err_writeln((err_prefix or "") .. err)
+	end
+end
+
+local function pcallWrap<Args..., Rets...>(f: (function(Args): Rets), err_prefix: string): function(Args): Rets
+	local unpack_ <const> = unpack as function(any): Rets
+	return function(...: Args): Rets
+		local res <const> = { pcall(f, ...) }
+		local ok <const> = table.remove(res, 1) as boolean
+		if ok then
+			return unpack_(res)
+		end
+		local err <const> = res[1] as string
 		a.nvim_err_writeln((err_prefix or "") .. err)
 	end
 end
@@ -128,6 +142,7 @@ local record AutocmdOpts
 	buffer: boolean | integer
 	once: boolean
 	nested: boolean
+	canError: boolean
 end
 
 local nvim <const> = {
@@ -248,7 +263,11 @@ function nvim.autocmd(sEvents: string | {string}, sPatts: string | {string}, exp
 		actualExpr = expr
 	else
 		local key <const> = "autocmd" .. events .. (patts or "buffer=" .. tostring(opts.buffer))
-		nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+		if opts.canError then
+			nvim._exports[key] = pcallWrap(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+		else
+			nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+		end
 		actualExpr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
 	end
 	local cmd = { "autocmd" }
@@ -264,13 +283,13 @@ function nvim.autocmd(sEvents: string | {string}, sPatts: string | {string}, exp
 	nvim.command(table.concat(cmd, " "))
 end
 
-function nvim.augroup(name: string, lst: {{string | {string}, string | {string}, string | function}}, clear: boolean)
+function nvim.augroup(name: string, lst: {{string | {string}, string | {string}, string | function, AutocmdOpts}}, clear: boolean)
 	nvim.command("augroup %s", name)
 	if clear then
 		nvim.command("autocmd!")
 	end
 	for _, v in ipairs(lst) do
-		nvim.autocmd(v[1], v[2], v[3])
+		nvim.autocmd(v[1], v[2], v[3], v[4])
 	end
 	nvim.command("augroup END")
 end

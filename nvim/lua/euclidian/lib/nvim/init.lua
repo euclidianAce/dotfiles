@@ -4,15 +4,29 @@ local a = vim.api
 local function failsafe(f, err_prefix)
    local ok = true
    local err
+   local unpack_ = unpack
    return function(...)
       if ok then
          local res = { pcall(f, ...) }
          ok = table.remove(res, 1)
          if ok then
-            return unpack(res)
+            return unpack_(res)
          end
          err = res[1]
       end
+      a.nvim_err_writeln((err_prefix or "") .. err)
+   end
+end
+
+local function pcallWrap(f, err_prefix)
+   local unpack_ = unpack
+   return function(...)
+      local res = { pcall(f, ...) }
+      local ok = table.remove(res, 1)
+      if ok then
+         return unpack_(res)
+      end
+      local err = res[1]
       a.nvim_err_writeln((err_prefix or "") .. err)
    end
 end
@@ -125,6 +139,7 @@ local CommandOpts = {}
 
 
 local AutocmdOpts = {}
+
 
 
 
@@ -248,7 +263,11 @@ function nvim.autocmd(sEvents, sPatts, expr, maybeOpts)
       actualExpr = expr
    else
       local key = "autocmd" .. events .. (patts or "buffer=" .. tostring(opts.buffer))
-      nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+      if opts.canError then
+         nvim._exports[key] = pcallWrap(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+      else
+         nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
+      end
       actualExpr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
    end
    local cmd = { "autocmd" }
@@ -270,7 +289,7 @@ function nvim.augroup(name, lst, clear)
       nvim.command("autocmd!")
    end
    for _, v in ipairs(lst) do
-      nvim.autocmd(v[1], v[2], v[3])
+      nvim.autocmd(v[1], v[2], v[3], v[4])
    end
    nvim.command("augroup END")
 end

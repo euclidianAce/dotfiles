@@ -196,6 +196,7 @@ local record Window
 	isValid: function(Window): boolean
 	hide: function(Window)
 	close: function(Window, boolean)
+	call: function(Window, any): any
 	enum BooleanOpt
 		"arabic"
 		"breakindent"

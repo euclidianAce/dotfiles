@@ -10,18 +10,21 @@ local z = require("euclidian.lib.async.zig")
 
 local stdpath = vim.fn.stdpath
 
-local scripter = {}
+local scripter = {Opts = {}, }
+
+
+
+
+
+
 
 local dir = stdpath("config") .. "/.scripter"
-if not fs.exists(dir) then
-   fs.mkdirp(dir)
-end
 local function scriptPath(name)
    return dir .. "/" .. name
 end
 
 local currentScript, currentScriptChanged
-local editor, browser
+local openEditor, openBrowser
 
 local mainDialog = dialog.new({
    wid = 75, hei = 30,
@@ -80,7 +83,7 @@ local function clearMappings(d)
    end
 end
 
-editor = function()
+openEditor = function()
    assert(currentScript)
    clearMappings(mainDialog)
    local buf = mainDialog:ensureBuf()
@@ -119,7 +122,7 @@ editor = function()
    function()
       z.nosuspend(save)
       currentScript = nil
-      browser()
+      openBrowser()
    end,
    { silent = true, noremap = true })
 
@@ -153,7 +156,7 @@ local function getWinVar(win, name)
    return var
 end
 
-browser = function()
+openBrowser = function()
    assert(not currentScript)
    local win = mainDialog:ensureWin()
    local buf = mainDialog:ensureBuf()
@@ -176,7 +179,7 @@ browser = function()
       z.async(function()
          if quick.yesOrNo("No scripts found, create new script?") then
             currentScript = quick.prompt("Name: ", promptOpts)
-            editor()
+            openEditor()
          else
             mainDialog:close()
          end
@@ -186,16 +189,18 @@ browser = function()
    mainDialog:addKeymap("n", "<bs>", function() mainDialog:close() end, {})
    mainDialog:addKeymap("n", "<cr>", function()
       currentScript = mainDialog:getCurrentLine()
-      editor()
+      openEditor()
    end, {})
    mainDialog:addKeymap("n", "dd", z.asyncFn(function()
       local file = mainDialog:getCurrentLine()
       if quick.yesOrNo("Delete " .. file .. "?") then
          os.remove(scriptPath(file))
-         browser()
+         openBrowser()
       end
    end), { noremap = true })
    nvim.augroup("ScripterBrowserFloat", {
+
+
       { "WinLeave", nil, vim.schedule_wrap(function()
          if not getWinVar(nvim.Window(), "QuickDialog") then
             mainDialog:close()
@@ -206,10 +211,29 @@ end
 
 function scripter.open()
    if currentScript then
-      editor()
+      openEditor()
    else
-      browser()
+      openBrowser()
    end
 end
 
-return scripter
+return setmetatable(scripter, {
+   __call = function(_self, opts)
+      opts = opts or {}
+      if opts.dir then
+         dir = opts.dir
+      end
+
+      if not fs.exists(dir) then
+         fs.mkdirp(dir)
+      end
+
+      if opts.open then
+         nvim.setKeymap(
+         "n", opts.open,
+         scripter.open,
+         { noremap = true, silent = true })
+
+      end
+   end,
+})

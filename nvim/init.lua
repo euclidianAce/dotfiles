@@ -49,7 +49,9 @@ plugreq "floatterm" {
 	shell = "bash",
 	termopenOpts = { env = { FLOATTERM = 1 } }
 }
-plugreq "scripter" {}
+plugreq "scripter" {
+	open = "<leader>lua",
+}
 
 if not windows then
 	-- Treesitter is finicky on windows

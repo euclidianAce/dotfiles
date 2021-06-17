@@ -12,6 +12,7 @@ local stdpath <const> = vim.fn.stdpath as function(string): string
 
 local record scripter
 	record Opts
+		open: string
 		dir: string
 	end
 	__call: function(scripter, Opts)
@@ -225,6 +226,14 @@ return setmetatable(scripter, {
 
 		if not fs.exists(dir) then
 			fs.mkdirp(dir)
+		end
+
+		if opts.open then
+			nvim.setKeymap(
+				"n", opts.open,
+				scripter.open,
+				{ noremap = true, silent = true }
+			)
 		end
 	end
 })

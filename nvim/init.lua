@@ -226,7 +226,7 @@ end
 
 setmetatable(_G, {
 	__index = function(_, key)
-		for _, r in ipairs{libreq, confreq} do
+		for _, r in ipairs{libreq, confreq, plugreq} do
 			local ok, res = pcall(r, key)
 			if ok then
 				return res

@@ -44,6 +44,12 @@ hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
 plugreq "package-manager"
+plugreq "floatterm" {
+	toggle = "",
+	shell = "bash",
+	termopenOpts = { env = { FLOATTERM = 1 } }
+}
+plugreq "scripter" {}
 
 if not windows then
 	-- Treesitter is finicky on windows
@@ -54,9 +60,7 @@ if not windows then
 	}
 end
 
-local function isExecutable(name)
-	return vim.fn.executable(name) == 1
-end
+local function isExecutable(name) return vim.fn.executable(name) == 1 end
 
 if isExecutable("clang-format") then
 	nvim.augroup("ClangFormatOnSave", {
@@ -134,8 +138,6 @@ set(vim.g, {
 nvim.command [[set undofile]]
 
 set(vim.opt, {
-	-- guicursor = "a:block",
-	-- guicursor = "n:hor10",
 	guicursor = "n:hor20,i:ver20",
 
 	mouse = "nv",
@@ -206,13 +208,18 @@ local function requirer(str)
 	})
 end
 
-euclidian = {
+euclidian = setmetatable({
 	lib = requirer("euclidian.lib"),
 	config = requirer("euclidian.config"),
-}
+	plug = requirer("euclidian.plug"),
+}, {
+	__index = function(self, key)
+		if type(key) == "string" then
+			return rawget(self, key:sub(1,1))
+		end
+	end
+})
 e = euclidian
-e.l = euclidian.lib
-e.c = euclidian.config
 
 confreq("luasearch")
 

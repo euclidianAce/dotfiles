@@ -10,12 +10,14 @@ local z <const> = require("euclidian.lib.async.zig")
 
 local stdpath <const> = vim.fn.stdpath as function(string): string
 
-local scripter <const> = {}
-
-local dir <const> = stdpath("config") .. "/.scripter"
-if not fs.exists(dir) then
-	fs.mkdirp(dir)
+local record scripter
+	record Opts
+		dir: string
+	end
+	__call: function(scripter, Opts)
 end
+
+local dir = stdpath("config") .. "/.scripter"
 local function scriptPath(name: string): string
 	return dir .. "/" .. name
 end
@@ -196,6 +198,8 @@ openBrowser = function()
 		end
 	end), { noremap = true })
 	nvim.augroup("ScripterBrowserFloat", {
+		-- TODO: this schedule_wrap seems jank, but there doesn't seem to be a
+		--       good way to get the window that was entered
 		{ "WinLeave", nil, vim.schedule_wrap(function()
 			if not getWinVar(nvim.Window(), "QuickDialog") then
 				mainDialog:close()
@@ -212,4 +216,15 @@ function scripter.open()
 	end
 end
 
-return scripter
+return setmetatable(scripter, {
+	__call = function(_self: scripter, opts: scripter.Opts)
+		opts = opts or {}
+		if opts.dir then
+			dir = opts.dir
+		end
+
+		if not fs.exists(dir) then
+			fs.mkdirp(dir)
+		end
+	end
+})

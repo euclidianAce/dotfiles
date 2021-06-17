@@ -43,6 +43,60 @@ nvim.command[[syntax enable]]
 hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
 
+local function set(t, options)
+	for opt, val in pairs(options) do
+		t[opt] = val
+	end
+end
+
+set(vim.g, {
+	mapleader = " ",
+	netrw_liststyle = 3,
+	netrw_banner = 0,
+	no_man_maps = 1,
+})
+
+-- TODO: wat
+nvim.command [[set undofile]]
+
+set(vim.opt, {
+	guicursor = "n:hor20,i:ver20",
+
+	-- mouse = "nv",
+	termguicolors = true,
+	belloff = "all",
+	swapfile = false,
+	switchbuf = "useopen",
+	wildmenu = true,
+	showcmd = true,
+	breakindent = true,
+	lazyredraw = true,
+	splitbelow = true,
+	splitright = true,
+	incsearch = true,
+	showmode = false,
+	modeline = true,
+	linebreak = true,
+	ignorecase = true,
+	smartcase = true,
+	gdefault = true,
+	listchars = { tab = "   ", space = "·", precedes = "<", extends = ">", nbsp = "+" },
+	fillchars = { fold = " ", vert = " " },
+	inccommand = "nosplit",
+	laststatus = 2,
+	scrolloff = 2,
+	virtualedit = "block",
+	foldmethod = "marker",
+
+	formatoptions = "lroj",
+
+	list = true,
+	signcolumn = "yes:1",
+	numberwidth = 4,
+	number = true,
+	relativenumber = true,
+})
+
 plugreq "package-manager"
 plugreq "floatterm" {
 	toggle = "",
@@ -87,11 +141,10 @@ if isExecutable("rustfmt") then
 end
 
 nvim.augroup("Custom", {
-	{ "BufReadPost", {"*.tl", "*.lua"}, function()
+	{ "FileType", {"teal", "lua"}, function()
 		local buf = nvim.Buffer()
 		local win = nvim.Window()
 		win:setOption("foldmethod", "expr")
-
 		buf:setOption("shiftwidth", 3)
 		buf:setOption("tabstop", 3)
 	end },
@@ -123,59 +176,6 @@ nvim.augroup("Custom", {
 	end },
 })
 
-local function set(t, options)
-	for opt, val in pairs(options) do
-		t[opt] = val
-	end
-end
-
-set(vim.g, {
-	mapleader = " ",
-	netrw_liststyle = 3,
-	netrw_banner = 0,
-	no_man_maps = 1,
-})
-
--- TODO: wat
-nvim.command [[set undofile]]
-
-set(vim.opt, {
-	guicursor = "n:hor20,i:ver20",
-
-	mouse = "nv",
-	termguicolors = true,
-	belloff = "all",
-	swapfile = false,
-	switchbuf = "useopen",
-	wildmenu = true,
-	showcmd = true,
-	breakindent = true,
-	lazyredraw = true,
-	splitbelow = true,
-	splitright = true,
-	incsearch = true,
-	showmode = false,
-	modeline = true,
-	linebreak = true,
-	ignorecase = true,
-	smartcase = true,
-	gdefault = true,
-	listchars = { tab = "   ", space = "·", precedes = "<", extends = ">", nbsp = "+" },
-	fillchars = { fold = " ", vert = " " },
-	inccommand = "nosplit",
-	laststatus = 2,
-	scrolloff = 2,
-	virtualedit = "block",
-	foldmethod = "marker",
-
-	formatoptions = "lroj",
-
-	list = true,
-	signcolumn = "yes:1",
-	numberwidth = 4,
-	number = true,
-	relativenumber = true,
-})
 
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH

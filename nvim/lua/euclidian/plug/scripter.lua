@@ -35,7 +35,7 @@ local mainDialog = dialog.new({
 })
 mainDialog:setModifiable(true)
 
-local function execBuffer(b)
+local function execBuffer(b, ...)
    local lines = b:getLines(0, -1, false);
    local txt = table.concat(lines, "\n")
 
@@ -44,7 +44,7 @@ local function execBuffer(b)
       a.nvim_err_writeln(loaderr)
       return
    end
-   local ok, err = pcall(chunk)
+   local ok, err = pcall(chunk, ...)
    if not ok then
       a.nvim_err_writeln(err)
    end
@@ -88,7 +88,6 @@ openEditor = function()
    clearMappings(mainDialog)
    local buf = mainDialog:ensureBuf()
    local win = mainDialog:ensureWin()
-   nvim.augroup("ScripterBrowserFloat", {}, true)
    mainDialog:focus()
 
    local text = {}
@@ -111,6 +110,26 @@ openEditor = function()
    function() execBuffer(mainDialog:buf()) end,
    { silent = true, noremap = true })
 
+   buf:setKeymap(
+   "n", "<leader>r",
+   z.asyncFn(function()
+      local strArgs = quick.prompt("Script Arguments: ")
+      local loaded, err = loadstring("return " .. strArgs)
+      if not loaded then
+         notification.create("Could not load arguments: " .. tostring(err))
+         return
+      end
+      local function forwardPcall(ok, ...)
+         if not ok then
+            coroutine.yield()
+            error("unreachable")
+         end
+         return ...
+      end
+      execBuffer(mainDialog:buf(), forwardPcall(pcall(loaded)))
+   end),
+   { silent = true, noremap = true })
+
    local save = z.asyncFn(function()
       if not currentScript then
          currentScript = quick.prompt("Save As: ", promptOpts)
@@ -126,16 +145,8 @@ openEditor = function()
    end,
    { silent = true, noremap = true })
 
-   buf:setKeymap(
-   "n", "",
-   function() mainDialog:hide() end,
-   { silent = true, noremap = true })
-
-   buf:setKeymap(
-   "n", "<leader>W",
-   save,
-   { silent = true, noremap = true })
-
+   buf:setKeymap("n", "<leader>W", save, { silent = true, noremap = true })
+   buf:setKeymap("n", ":w<cr>", save, { silent = true, noremap = true })
    mainDialog:show()
    buf:attach(false, {
       on_lines = function()
@@ -197,6 +208,10 @@ openBrowser = function()
          os.remove(scriptPath(file))
          openBrowser()
       end
+   end), { noremap = true })
+   mainDialog:addKeymap("n", "o", z.asyncFn(function()
+      currentScript = quick.prompt("New Script: ")
+      openEditor()
    end), { noremap = true })
    nvim.augroup("ScripterBrowserFloat", {
 

@@ -60,12 +60,12 @@ end
 
 if isExecutable("clang-format") then
 	nvim.augroup("ClangFormatOnSave", {
-		{ "BufWritePre", { "*.hpp", "*.cpp" }, function()
+		{ "BufWritePre", { "*.c", "*.h", "*.hpp", "*.cpp" }, function()
 			local win = nvim.Window()
 			local cursor = win:getCursor()
-			nvim.command [[%%!clang-format]]
+			nvim.command([[%%!clang-format -style=file --assume-filename=%s]], nvim.Buffer():getName() or "")
 			win:setCursor(cursor)
-		end }
+		end, { canError = true } }
 	})
 end
 
@@ -102,8 +102,6 @@ nvim.augroup("Custom", {
 
 	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
 		local buf = nvim.Buffer()
-		buf:setOption("shiftwidth", 4)
-		buf:setOption("tabstop", 4)
 		buf:setOption("commentstring", "// %s")
 	end },
 

@@ -93,6 +93,12 @@ local function async(fn, ...)
    return f
 end
 
+local function asyncFn(fn)
+   return function(...)
+      async(fn, ...)
+   end
+end
+
 return {
    suspend = suspend,
    resume = resume,
@@ -100,6 +106,8 @@ return {
    await = await,
    nosuspend = nosuspend,
    currentFrame = currentFrame,
+
+   asyncFn = asyncFn,
 
    Frame = Frame,
 }

@@ -93,6 +93,12 @@ local function async<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args)
 	return f
 end
 
+local function asyncFn<Ret..., Args...>(fn: (function(...: Args): Ret)): function(Args)
+	return function(...: Args)
+		async(fn, ...)
+	end
+end
+
 return {
 	suspend = suspend,
 	resume = resume,
@@ -100,6 +106,8 @@ return {
 	await = await,
 	nosuspend = nosuspend,
 	currentFrame = currentFrame,
+
+	asyncFn = asyncFn,
 
 	Frame = Frame,
 }

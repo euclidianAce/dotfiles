@@ -7,7 +7,7 @@ function ebrc {
 }
 
 function exr {
-	$EDITOR "$DOTFILES_DIR/.Xresource" && xrdb ~/.Xresources
+	$EDITOR "$DOTFILE_DIR/.Xresources" && xrdb ~/.Xresources
 }
 
 function envrc {

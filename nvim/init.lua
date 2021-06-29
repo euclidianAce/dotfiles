@@ -26,10 +26,7 @@ function plugreq(lib, reload)
 end
 
 hi = libreq("color").scheme.hi
-palette = confreq "colors"
-
-palette.applyHighlights("blue", "purple", "red", "orange")
--- palette.applyHighlights("red", "orange", "blue", "purple")
+palette = confreq("colors")
 
 libreq("printmode")
 	.set("inspect")
@@ -51,18 +48,26 @@ end
 
 set(vim.g, {
 	mapleader = " ",
-	netrw_liststyle = 3,
-	netrw_banner = 0,
 	no_man_maps = 1,
+	loaded_gzip = 1,
+	loaded_tar = 1,
+	loaded_tarPlugin = 1,
+	loaded_zipPlugin = 1,
+	loaded_2html_plugin = 1,
+	loaded_netrw = 1,
+	loaded_netrwPlugin = 1,
+	loaded_spec = 1,
 })
 
 -- TODO: wat
 nvim.command [[set undofile]]
 
 set(vim.opt, {
-	guicursor = "n:hor20,i:ver20",
+	guicursor = "",
+	-- guicursor = "n:hor15",
+	-- guicursor = "n:hor15,i:ver30",
 
-	-- mouse = "nv",
+	mouse = "nv",
 	termguicolors = true,
 	belloff = "all",
 	swapfile = false,
@@ -101,7 +106,7 @@ plugreq "package-manager"
 plugreq "floatterm" {
 	toggle = "",
 	shell = "bash",
-	termopenOpts = { env = { FLOATTERM = 1 } }
+	termopenOpts = { env = { FLOATTERM = 1 } },
 }
 plugreq "scripter" {
 	open = "<leader>lua",
@@ -109,7 +114,7 @@ plugreq "scripter" {
 
 if not windows then
 	-- Treesitter is finicky on windows
-	local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp" }
+	local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp", "nix" }
 	require("nvim-treesitter.configs").setup{
 		ensure_installed = tsLangs,
 		highlight = { enable = tsLangs },
@@ -121,9 +126,11 @@ local function isExecutable(name) return vim.fn.executable(name) == 1 end
 if isExecutable("clang-format") then
 	nvim.augroup("ClangFormatOnSave", {
 		{ "BufWritePre", { "*.c", "*.h", "*.hpp", "*.cpp" }, function()
+			local buf = nvim.Buffer()
 			local win = nvim.Window()
 			local cursor = win:getCursor()
 			nvim.command([[%%!clang-format -style=file --assume-filename=%s]], nvim.Buffer():getName() or "")
+			cursor[1] = math.min(#buf:getLines(0, -1, false), cursor[1])
 			win:setCursor(cursor)
 		end, { canError = true } }
 	})
@@ -143,8 +150,6 @@ end
 nvim.augroup("Custom", {
 	{ "FileType", {"teal", "lua"}, function()
 		local buf = nvim.Buffer()
-		local win = nvim.Window()
-		win:setOption("foldmethod", "expr")
 		buf:setOption("shiftwidth", 3)
 		buf:setOption("tabstop", 3)
 	end },
@@ -159,7 +164,7 @@ nvim.augroup("Custom", {
 		buf:delKeymap("i", "<space>al")
 	end },
 
-	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
+	{ "FileType", {"c", "h", "cpp", "hpp"}, function()
 		local buf = nvim.Buffer()
 		buf:setOption("commentstring", "// %s")
 	end },
@@ -217,7 +222,9 @@ euclidian = setmetatable({
 }, {
 	__index = function(self, key)
 		if type(key) == "string" then
-			return rawget(self, key:sub(1,1))
+			local t = rawget(self, key:sub(1,1))
+			rawset(self, key, t)
+			return t
 		end
 	end
 })

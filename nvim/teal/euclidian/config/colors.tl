@@ -75,17 +75,17 @@ local function applyHighlights(
 	hi.Visual                  = { -1, dark.gray }
 	hi.ErrorMsg                = { nil, normal.red }
 	hi.Question                = { dark.green }
-	hi.Search                  = { dark.green, hi.Visual[2], "bold" }
-	hi.IncSearch               = hi.Search
+	hi.Search                  = { dark.green, -1, "bold" }
+	hi.IncSearch               = { bright.green, nil, "bold,underline" }
 
 	hi.StatusLine              = invert(dark[secondary])
 	hi.StatusLineNC            = invert(normal.gray)
 
 	hi.VertSplit               = { nil, normal.gray }
-	hi.TabLine                 = { nil, normal.gray }
-	hi.TabLineSel              = { nil, bright.gray, "underline" }
+	hi.TabLine                 = { dark.red, normal.gray }
+	hi.TabLineSel              = { normal.red, normal.gray }
 	hi.TabLineFill             = { nil, dark.gray }
-	hi.Title                   = { normal.green, nil, "bold" }
+	hi.Title                   = { dark.red }
 
 	hi.FloatBorder             = { dark.fg, bright.bg }
 

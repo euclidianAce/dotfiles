@@ -8,10 +8,11 @@ URxvt.perl-ext-common: default,resize-font
 *locale: en_US.UTF-8
 
 /* *.font: xft:Terminus (TTF):size=12:antialias=true */
-/* *.font: xft:Ubuntu Mono:size=12:antialias=true */
+*.font: xft:Ubuntu Mono:size=12:antialias=true
 /* *.font: xft:Hasklig:size=11:antialias=true */
 /* *.font: -*-terminus-*-*-*-*-16-*-*-*-*-*-*-* */
-*.font = xft:JuliaMono:pixelsize=16:antialias=true
+/* *.font = xft:Julia Mono:size=12:antialias=true */
+/* *.font = xft:Fixedsys Excelsior */
 
 *.letterSpace: 1
 *.lineSpace: 0

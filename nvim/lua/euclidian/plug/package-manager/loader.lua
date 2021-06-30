@@ -7,11 +7,6 @@ local loader = {}
 
 local Spec = packagespec.Spec
 
-
-
-
-
-
 local command = vim.api.nvim_command
 local function packadd(pkg)
    command(([[packadd %s]]):format(pkg))
@@ -62,6 +57,7 @@ local function packaddSet(setname)
    local loaded, err = set.load(setname)
    if not loaded then
       report.err("Unable to load set %s: %s", setname, err)
+      return
    end
    local ps = getLoadOrder(loaded)
    for _, pkg in ipairs(ps) do
@@ -81,9 +77,7 @@ local function packaddSet(setname)
 end
 
 function loader.enableSet(setname)
-
    packaddSet(setname)
-
 end
 
 return loader

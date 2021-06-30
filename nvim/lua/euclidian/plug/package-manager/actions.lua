@@ -504,6 +504,7 @@ actions.configure = createDialog(function(d)
       end
       clear = function()
          txt = {}
+         handlers = {}
          d:setLines({})
       end
    end

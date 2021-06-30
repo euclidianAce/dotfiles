@@ -7,11 +7,6 @@ local loader <const> = {}
 
 local type Spec = packagespec.Spec
 
--- TODO: ideally, we'd have a custom install location
--- and we just add each path to rtp, but for now, just :packadd
-
--- Holy shit packadd is cursed
-
 local command <const> = vim.api.nvim_command
 local function packadd(pkg: string)
 	command(([[packadd %s]]):format(pkg))
@@ -62,6 +57,7 @@ local function packaddSet(setname: string)
 	local loaded <const>, err <const> = set.load(setname)
 	if not loaded then
 		report.err("Unable to load set %s: %s", setname, err)
+		return
 	end
 	local ps <const> = getLoadOrder(loaded)
 	for _, pkg in ipairs(ps) do
@@ -81,9 +77,7 @@ local function packaddSet(setname: string)
 end
 
 function loader.enableSet(setname: string)
-	-- give some feedback that things got done?
 	packaddSet(setname)
-	-- print("enabled package set:", setname)
 end
 
 return loader

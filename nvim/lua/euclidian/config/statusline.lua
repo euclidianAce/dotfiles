@@ -46,7 +46,7 @@ do
    end
 
    local filesChanged, insertions, deletions
-   nvim.autocmd("VimEnter,BufWritePost", "*", function()
+   nvim.autocmd("BufWritePost", "*", function()
       local b = nvim.Buffer()
       if b:getOption("buftype") == "nofile" then
          return

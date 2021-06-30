@@ -80,7 +80,7 @@ function set.serialize(ps)
       gen(p)
    end
 
-   table.insert(out, "\n-- vim: ft=teal")
+   table.insert(out, "\n-- vim: ft=lua")
 
    for _, p in ipairs(ps) do
       p.id = nil

@@ -483,7 +483,7 @@ actions.configure = createDialog(function(d: Dialog)
 	local clear: function()
 	do
 		-- latest line that handles the option -> the function that updates that option
-		local handlers <const>: {integer:function} = {}
+		local handlers: {integer:function} = {}
 		local txt: {string} = {}
 
 		addLine = function(fmt: string, ...: any)
@@ -504,6 +504,7 @@ actions.configure = createDialog(function(d: Dialog)
 		end
 		clear = function()
 			txt = {}
+			handlers = {}
 			d:setLines{}
 		end
 	end

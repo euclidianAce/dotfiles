@@ -89,6 +89,14 @@ static struct winsize w;
 		{ body } \
 	} while (0)
 
+size_t compute_length() {
+	size_t result = 0;
+	FOR_EACH_COMPONENT(i, comp, {
+		result += comp->len;
+	});
+	return result;
+}
+
 int main(void) {
 	username = getenv("USER");
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) != 0) {
@@ -100,6 +108,27 @@ int main(void) {
 	setup_username_component();
 	setup_cwd_component();
 	setup_git_branch_component();
+
+	size_t const component_length = compute_length();
+
+	// 5 base lines
+	// +1 per component beyond the first
+	// +some padding for safety
+	if (w.ws_col < 10 + component_length + num_components - 1) {
+		put_color(line_color);
+		fputs(CORNER_TOP_LEFT LINE_HORIZONTAL T_LEFT, stdout);
+		printf(CMP_FMT, CMP_ARG(components[1]));
+		put_color(line_color);
+		fputs(LINE_VERTICAL, stdout);
+		printf(CMP_FMT, CMP_ARG(components[2]));
+		fputs("\n", stdout);
+		put_color(line_color);
+		fputs(CORNER_BOTTOM_LEFT T_LEFT, stdout);
+		put_color(ANSI_MAGENTA);
+		fputs("$ ", stdout);
+		put_color(ANSI_NONE);
+		exit(EXIT_SUCCESS);
+	}
 
 	fputs("   ", stdout);
 	put_color(line_color);
@@ -128,8 +157,8 @@ int main(void) {
 		put_color(line_color);
 		fputs(T_RIGHT, stdout);
 
-		assert(w.ws_col > len + 6);
-		size_t lines = w.ws_col - len - 6;
+		assert(w.ws_col >= component_length + 10);
+		size_t lines = w.ws_col - component_length - 10;
 		for (size_t i = 0; i < lines; ++i)
 			fputs(LINE_HORIZONTAL, stdout);
 

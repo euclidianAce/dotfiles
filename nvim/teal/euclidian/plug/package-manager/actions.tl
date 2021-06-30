@@ -22,6 +22,8 @@ local actions <const> = {
 	configure: Action = nil,
 }
 
+local namespace <const> = vim.api.nvim_create_namespace("euclidian:package-manager:highlight")
+
 local type Spec = packagespec.Spec
 local type Dialog = dialog.Dialog
 local function setCmp(a: Spec, b: Spec): boolean
@@ -67,17 +69,23 @@ end
 actions.listSets = createDialog(function(d: Dialog)
 	-- TODO: this should show dependencies/dependents
 	repeat
-		local pkgs <const> = set.list()
-		table.sort(pkgs)
+		local sets <const> = set.list()
+		table.sort(sets)
 
-		d:setLines(pkgs)
-		 :fitText(35, 17)
-		 :center()
+		d:setLines(sets):fitText(35, 17):center()
 
-	 	if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
+		local buf <const> = d:buf()
+		nvim.autocmd("CursorMoved", nil, function()
+			buf:clearNamespace(namespace, 0, -1)
+			local ln <const> = d:getCursor()
+			buf:addHighlight(namespace, "Special", ln - 1, 0, #d:getCurrentLine())
+		end, { buffer = buf.id })
+
+		if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
 			break
 		end
 
+		buf:clearNamespace(namespace, 0, -1)
 		local choice <const> = d:getCurrentLine()
 		local loaded <const> = set.load(choice)
 
@@ -88,9 +96,7 @@ actions.listSets = createDialog(function(d: Dialog)
 			txt[i] = v:title()
 		end
 
-		d:setLines(txt)
-		 :fitText(35, 17)
-		 :center()
+		d:setLines(txt):fitText(35, 17):center()
 
 	until waitForKey(d, "<cr>", "<bs>") == "<cr>"
 

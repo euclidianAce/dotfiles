@@ -22,6 +22,8 @@ local actions = {
    configure = nil,
 }
 
+local namespace = vim.api.nvim_create_namespace("euclidian:package-manager:highlight")
+
 local Spec = packagespec.Spec
 local Dialog = dialog.Dialog
 local function setCmp(a, b)
@@ -67,17 +69,23 @@ end
 actions.listSets = createDialog(function(d)
 
    repeat
-      local pkgs = set.list()
-      table.sort(pkgs)
+      local sets = set.list()
+      table.sort(sets)
 
-      d:setLines(pkgs):
-      fitText(35, 17):
-      center()
+      d:setLines(sets):fitText(35, 17):center()
+
+      local buf = d:buf()
+      nvim.autocmd("CursorMoved", nil, function()
+         buf:clearNamespace(namespace, 0, -1)
+         local ln = d:getCursor()
+         buf:addHighlight(namespace, "Special", ln - 1, 0, #d:getCurrentLine())
+      end, { buffer = buf.id })
 
       if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
          break
       end
 
+      buf:clearNamespace(namespace, 0, -1)
       local choice = d:getCurrentLine()
       local loaded = set.load(choice)
 
@@ -88,9 +96,7 @@ actions.listSets = createDialog(function(d)
          txt[i] = v:title()
       end
 
-      d:setLines(txt):
-      fitText(35, 17):
-      center()
+      d:setLines(txt):fitText(35, 17):center()
 
    until waitForKey(d, "<cr>", "<bs>") == "<cr>"
 

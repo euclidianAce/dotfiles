@@ -35,7 +35,6 @@ libreq("printmode")
 local nvim = libreq("nvim")
 
 nvim.command[[filetype indent on]]
-nvim.command[[syntax enable]]
 
 hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
@@ -59,14 +58,12 @@ set(vim.g, {
 	loaded_spec = 1,
 })
 
--- TODO: wat
-nvim.command [[set undofile]]
-
 set(vim.opt, {
 	guicursor = "",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
+	undofile = true,
 	mouse = "nv",
 	termguicolors = true,
 	belloff = "all",
@@ -181,7 +178,6 @@ nvim.augroup("Custom", {
 	end },
 })
 
-
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH
 if not lspconfig.teal and isExecutable("teal-language-server") then
@@ -214,21 +210,6 @@ local function requirer(str)
 		end,
 	})
 end
-
-euclidian = setmetatable({
-	lib = requirer("euclidian.lib"),
-	config = requirer("euclidian.config"),
-	plug = requirer("euclidian.plug"),
-}, {
-	__index = function(self, key)
-		if type(key) == "string" then
-			local t = rawget(self, key:sub(1,1))
-			rawset(self, key, t)
-			return t
-		end
-	end
-})
-e = euclidian
 
 confreq("luasearch")
 

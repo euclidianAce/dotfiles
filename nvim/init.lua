@@ -211,8 +211,6 @@ local function requirer(str)
 	})
 end
 
-confreq("luasearch")
-
 if vim.fn.exists(":GuiRenderLigatures") == 2 then
 	nvim.command[[GuiRenderLigatures 1]]
 end

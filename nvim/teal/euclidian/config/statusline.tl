@@ -1,4 +1,3 @@
-
 local command <const> = require("euclidian.lib.command")
 local nvim <const> = require("euclidian.lib.nvim")
 local stl <const> = require("euclidian.lib.statusline")
@@ -47,7 +46,7 @@ do -- git stuffs
 	end
 
 	local filesChanged, insertions, deletions: string, string, string
-	nvim.autocmd("VimEnter,BufWritePost", "*", function()
+	nvim.autocmd("BufWritePost", "*", function()
 		local b = nvim.Buffer()
 		if b:getOption("buftype") == "nofile" then
 			return
@@ -152,3 +151,5 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 		return "  " .. out[1] .. "  "
 	end
 end, "STLBufferInfo")
+
+vim.schedule(stl.updateWindow)

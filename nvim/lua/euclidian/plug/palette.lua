@@ -1,6 +1,4 @@
 
-
-vim.g.colors_name = "euclidian"
 local Color = {}
 
 
@@ -66,6 +64,7 @@ local function applyHighlights(
    secondary,
    secondaryComplement)
 
+   vim.g.colors_name = "euclidian"
    primary = primary or "fg"
    primaryComplement = primaryComplement or primary
    secondary = secondary or primary
@@ -164,7 +163,6 @@ local function applyHighlights(
    hi.WildMenu = { normal.bg, normal.yellow }
 
 
-
    hi.DiffAdd = { dark.green }
    hi.DiffDelete = { dark.red }
    hi.NeogitDiffAddHighlight = { normal.green }
@@ -185,28 +183,28 @@ local function applyHighlights(
 
    hi.STLReplace = invert(normal.red)
    hi.STLTerminal = invert(normal.orange)
-end
 
-local function hex(col)
-   return ("#%06X"):format(col)
-end
-vim.g.terminal_color_0 = hex(normal.bg)
-vim.g.terminal_color_1 = hex(normal.red)
-vim.g.terminal_color_2 = hex(normal.green)
-vim.g.terminal_color_3 = hex(normal.yellow)
-vim.g.terminal_color_4 = hex(normal.blue)
-vim.g.terminal_color_5 = hex(normal.purple)
-vim.g.terminal_color_6 = "cyan3"
-vim.g.terminal_color_7 = hex(bright.gray)
+   local function hex(col)
+      return ("#%06X"):format(col)
+   end
+   vim.g.terminal_color_0 = hex(normal.bg)
+   vim.g.terminal_color_1 = hex(normal.red)
+   vim.g.terminal_color_2 = hex(normal.green)
+   vim.g.terminal_color_3 = hex(normal.yellow)
+   vim.g.terminal_color_4 = hex(normal.blue)
+   vim.g.terminal_color_5 = hex(normal.purple)
+   vim.g.terminal_color_6 = "cyan3"
+   vim.g.terminal_color_7 = hex(bright.gray)
 
-vim.g.terminal_color_8 = hex(bright.bg)
-vim.g.terminal_color_9 = hex(bright.red)
-vim.g.terminal_color_10 = hex(bright.green)
-vim.g.terminal_color_11 = hex(bright.yellow)
-vim.g.terminal_color_12 = hex(bright.blue)
-vim.g.terminal_color_13 = "magenta"
-vim.g.terminal_color_14 = "cyan"
-vim.g.terminal_color_15 = "white"
+   vim.g.terminal_color_8 = hex(bright.bg)
+   vim.g.terminal_color_9 = hex(bright.red)
+   vim.g.terminal_color_10 = hex(bright.green)
+   vim.g.terminal_color_11 = hex(bright.yellow)
+   vim.g.terminal_color_12 = hex(bright.blue)
+   vim.g.terminal_color_13 = "magenta"
+   vim.g.terminal_color_14 = "cyan"
+   vim.g.terminal_color_15 = "white"
+end
 
 return {
    normal = normal,

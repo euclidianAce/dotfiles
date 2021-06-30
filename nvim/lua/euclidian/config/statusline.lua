@@ -1,4 +1,3 @@
-
 local command = require("euclidian.lib.command")
 local nvim = require("euclidian.lib.nvim")
 local stl = require("euclidian.lib.statusline")
@@ -152,3 +151,5 @@ stl.add(alwaysActive, empty, function(winid)
       return "  " .. out[1] .. "  "
    end
 end, "STLBufferInfo")
+
+vim.schedule(stl.updateWindow)

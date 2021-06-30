@@ -1,6 +1,4 @@
 
-local M = { _exports = {} }
-
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 local a = vim.api
@@ -48,7 +46,7 @@ local OperatorfuncMode = {}
 
 
 local commenter = require("euclidian.lib.commenter")
-M._exports.commentMotion = function(kind)
+__euclidian.commentMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
    commenter.commentRange(
@@ -57,7 +55,7 @@ M._exports.commentMotion = function(kind)
    b:getMark(']')[1])
 
 end
-M._exports.commentVisualSelection = function()
+__euclidian.commentVisualSelection = function()
    local b = nvim.Buffer()
    commenter.commentRange(
    b.id,
@@ -77,7 +75,7 @@ local function getchars()
 end
 local append = require("euclidian.lib.append")
 
-M._exports.appendCharMotion = function(kind)
+__euclidian.appendCharMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
    append.toRange(
@@ -88,7 +86,7 @@ M._exports.appendCharMotion = function(kind)
 
 end
 
-M._exports.appendCharsMotion = function(kind)
+__euclidian.appendCharsMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
    append.toRange(
@@ -99,7 +97,7 @@ M._exports.appendCharsMotion = function(kind)
 
 end
 
-M._exports.appendToVisualSelection = function(multiple)
+__euclidian.appendToVisualSelection = function(multiple)
    local b = nvim.Buffer()
    local inputfn = multiple and getchars or getchar
    append.toRange(
@@ -113,11 +111,11 @@ end
 
 
 
-map("v", "<leader>a", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(false)<cr>]])
-map("v", "<leader>A", [[:lua require("euclidian.config.keymaps")._exports.appendToVisualSelection(true)<cr>]])
+map("v", "<leader>a", [[:lua __euclidian.appendToVisualSelection(false)<cr>]])
+map("v", "<leader>A", [[:lua __euclidian.appendToVisualSelection(true)<cr>]])
 
-map("n", "<leader>a", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharMotion")<cr>g@]])
-map("n", "<leader>A", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.appendCharsMotion")<cr>g@]])
+map("n", "<leader>a", [[<cmd>set opfunc=v:lua.__euclidian.appendCharMotion")<cr>g@]])
+map("n", "<leader>A", [[<cmd>set opfunc=v:lua.__euclidian.appendCharsMotion")<cr>g@]])
 
 map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
 map("n", "<leader>AA", function() append.toCurrentLine(getchars()) end)
@@ -139,8 +137,8 @@ map("n", "K", vim.lsp.buf.hover)
 map("n", "<leader>N", vim.lsp.diagnostic.goto_next)
 map("n", "<leader>P", vim.lsp.diagnostic.goto_prev)
 
-map("n", "<leader>fz", require("telescope.builtin").find_files)
-map("n", "<leader>g", require("telescope.builtin").live_grep)
+map("n", "<leader>fz", function() require("telescope.builtin").find_files() end)
+map("n", "<leader>g", function() require("telescope.builtin").live_grep() end)
 
 map("n", "<leader>n", "<cmd>noh<cr>")
 
@@ -362,7 +360,3 @@ map("n", "<S-Down>", function()
    local name, size = getGuiFontInfo()
    a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
 end)
-
-vim.cmd([[command -nargs=* L lua print(<args>)]])
-
-return M

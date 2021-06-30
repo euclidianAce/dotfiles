@@ -1,1 +1,2 @@
-confreq("colors").applyHighlights("blue", "purple", "red", "orange")
+palette = plugreq("palette")
+palette.applyHighlights("blue", "purple", "red", "orange")

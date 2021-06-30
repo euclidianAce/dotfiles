@@ -1,3 +1,5 @@
+__euclidian = {}
+
 local windows = vim.fn.has("win32") == 1
 
 -- trick the teal compat code
@@ -12,10 +14,10 @@ function req(lib)
 	return require(lib)
 end
 
-function confreq(lib, reload)
+confload = vim.schedule_wrap(function(lib, reload)
 	if reload then unload("euclidian.config." .. lib) end
-	return require("euclidian.config." .. lib)
-end
+	require("euclidian.config." .. lib)
+end)
 function libreq(lib, reload)
 	if reload then unload("euclidian.lib." .. lib) end
 	return require("euclidian.lib." .. lib)
@@ -26,15 +28,16 @@ function plugreq(lib, reload)
 end
 
 hi = libreq("color").scheme.hi
-palette = confreq("colors")
 
 libreq("printmode")
 	.set("inspect")
 	.override()
 
 local nvim = libreq("nvim")
+nvim.command[[colorscheme euclidian]]
 
 nvim.command[[filetype indent on]]
+nvim.command[[syntax enable]]
 
 hi.TrailingSpace = hi.Error
 nvim.command[[match TrailingSpace /\s\+$/]]
@@ -199,8 +202,8 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 end
 -- lspconfig.clangd.setup{}
 
-confreq("statusline")
-confreq("keymaps")
+confload("statusline")
+confload("keymaps")
 
 local function requirer(str)
 	return setmetatable({}, {
@@ -221,7 +224,7 @@ end
 
 setmetatable(_G, {
 	__index = function(_, key)
-		for _, r in ipairs{libreq, confreq, plugreq} do
+		for _, r in ipairs{libreq, plugreq} do
 			local ok, res = pcall(r, key)
 			if ok then
 				return res

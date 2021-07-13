@@ -30,76 +30,97 @@ stl.add(active, inactive, function()
    return " " .. stl.getModeText() .. " "
 end, stl.higroup)
 
-do
-   local gitActive, gitInactive = { "Git" }, { "Inactive" }
-   local maxBranchWid = 20
-   local currentBranch = ""
-
-   local function parseDiff(s)
 
 
-      local ns = {}
-      for n in s:gmatch("%d+") do
-         table.insert(ns, n)
-      end
-      return unpack(ns, 1, 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local gitActive, gitInactive = { "Git" }, { "Inactive" }
+local maxBranchWid = 20
+local currentBranch = ""
+
+local function parseDiff(s)
+
+
+   return s:match("(%d+) file"), s:match("(%d+) insert"), s:match("(%d+) delet")
+end
+
+local filesChanged, insertions, deletions
+local function updateGitStatusline()
+   local b = nvim.Buffer()
+   if b:getOption("buftype") == "nofile" then
+      return
    end
-
-   local filesChanged, insertions, deletions
-   nvim.autocmd("BufWritePost", "*", function()
-      local b = nvim.Buffer()
-      if b:getOption("buftype") == "nofile" then
-         return
-      end
-      local function oneshot(fn)
-         local execd = false
-         return function(...)
-            if not execd then
-               fn(...)
-               execd = true
-            end
+   local function oneshot(fn)
+      local execd = false
+      return function(...)
+         if not execd then
+            fn(...)
+            execd = true
          end
       end
-      do
-         local gotDiff = false
-         command.spawn({
-            command = { "git", "diff", "--shortstat" },
-            cwd = vim.loop.cwd(),
-            onStdoutLine = oneshot(function(ln)
-               gotDiff = true
-               filesChanged, insertions, deletions = parseDiff(ln)
-               vim.schedule(stl.updateWindow)
-            end),
-            onExit = function()
-               if not gotDiff then
-                  filesChanged, insertions, deletions = nil, nil, nil
-                  vim.schedule(stl.updateWindow)
-               end
-            end,
-         })
-      end
+   end
+   do
+      local gotDiff = false
       command.spawn({
-         command = { "git", "branch", "--show-current" },
+         command = { "git", "diff", "--shortstat" },
          cwd = vim.loop.cwd(),
          onStdoutLine = oneshot(function(ln)
-            currentBranch = ln
+            gotDiff = true
+            filesChanged, insertions, deletions = parseDiff(ln)
             vim.schedule(stl.updateWindow)
          end),
+         onExit = function()
+            if not gotDiff then
+               filesChanged, insertions, deletions = nil, nil, nil
+               vim.schedule(stl.updateWindow)
+            end
+         end,
       })
-   end)
-
-   stl.add(gitActive, gitInactive, function()
-      if currentBranch == "" then return "" end
-      return " " .. currentBranch:sub(1, maxBranchWid)
-   end, "STLGit", true)
-   stl.add(gitActive, gitInactive, function()
-      if currentBranch == "" then return "" end
-      return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
-   end, "STLGit", true)
-
-   stl.toggleTag("Git")
-   nvim.setKeymap("n", "<F12>", stl.tagToggler("Git"), { noremap = true })
+   end
+   command.spawn({
+      command = { "git", "branch", "--show-current" },
+      cwd = vim.loop.cwd(),
+      onStdoutLine = oneshot(function(ln)
+         currentBranch = ln
+         vim.schedule(stl.updateWindow)
+      end),
+   })
 end
+nvim.autocmd("BufWritePost", "*", updateGitStatusline)
+
+stl.add(gitActive, gitInactive, function()
+   if currentBranch == "" then return "" end
+   return " " .. currentBranch:sub(1, maxBranchWid)
+end, "STLGit", true)
+stl.add(gitActive, gitInactive, function()
+   if currentBranch == "" then return "" end
+   return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
+end, "STLGit", true)
+
+stl.toggleTag("Git")
+nvim.setKeymap("n", "<F12>", stl.tagToggler("Git"), { noremap = true })
+
 
 stl.add(alwaysActive, empty, function(winid)
    local buf = nvim.Buffer(nvim.Window(winid):getBuf())
@@ -119,37 +140,47 @@ stl.add(alwaysActive, empty, function(winid)
    local buf = nvim.Buffer(win:getBuf())
 
    local wid = win:getWidth()
-   local pos = win:getCursor()
+   local line, col = unpack(win:getCursor())
 
    local out = {}
 
+   local isShort = wid < minWid
+
    if stl.isActive(winid) then
 
-      if wid > minWid then
-         local expandtab = buf:getOption("expandtab")
-         local num = expandtab and
-         buf:getOption("shiftwidth") or
-         buf:getOption("tabstop")
-         insFmt(out, "%s (%d)", expandtab and "spaces" or "tabs", num)
-      end
+      local expandtab = buf:getOption("expandtab")
+      local num = expandtab and
+      buf:getOption("shiftwidth") or
+      buf:getOption("tabstop")
+      insFmt(
+      out, "%s(%d)",
+      (expandtab and
+      "spaces " or
+      "tabs "):sub(1, isShort and 1 or -1),
+      num)
+
 
 
       local totalLines = #buf:getLines(0, -1, false)
-      if wid > minWid then
-         insFmt(out, "Ln: %3d of %3d", pos[1], totalLines)
-         insFmt(out, "Col: %3d", pos[2] + 1)
-         insFmt(out, "%3d%%", pos[1] / totalLines * 100)
+      if not isShort then
+         insFmt(out, "Ln: %3d of %3d", line, totalLines)
+         insFmt(out, "Col: %3d", col + 1)
+         insFmt(out, "%3d%%", line / totalLines * 100)
       else
-         insFmt(out, "Ln:%d C:%d", pos[1], pos[2])
+         insFmt(out, "%d,%d", line, col + 1)
       end
    else
-      insFmt(out, "Ln: %3d", pos[1])
+      insFmt(out, "Ln: %3d", line)
    end
+
    if #out > 1 then
-      return "│ " .. table.concat(out, " │ ") .. "  "
+      return table.concat(out, isShort and " " or " │ ") .. "  "
    else
       return "  " .. out[1] .. "  "
    end
 end, "STLBufferInfo")
 
-vim.schedule(stl.updateWindow)
+vim.schedule(function()
+   updateGitStatusline()
+   stl.updateWindow()
+end)

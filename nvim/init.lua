@@ -62,7 +62,7 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "",
+	-- guicursor = "",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -71,6 +71,7 @@ set(vim.opt, {
 	termguicolors = true,
 	belloff = "all",
 	swapfile = false,
+	updatetime = 1250,
 	switchbuf = "useopen",
 	wildmenu = true,
 	showcmd = true,
@@ -164,7 +165,7 @@ nvim.augroup("Custom", {
 		buf:delKeymap("i", "<space>al")
 	end },
 
-	{ "FileType", {"c", "h", "cpp", "hpp"}, function()
+	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
 		local buf = nvim.Buffer()
 		buf:setOption("commentstring", "// %s")
 	end },
@@ -187,8 +188,9 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 	configs.teal = {
 		default_config = {
 			cmd = {
+				-- "nc", "localhost", "8081",
 				"teal-language-server",
-				-- "logging=on",
+				"logging=on",
 			},
 			filetypes = {
 				"teal",
@@ -198,9 +200,16 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 			settings = {},
 		},
 	}
-	lspconfig.teal.setup{}
+	lspconfig.teal.setup{
+		handlers = {
+			["textDocument/publishDiagnostics"] = vim.lsp.with(
+				vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
+		},
+	}
 end
--- lspconfig.clangd.setup{}
+lspconfig.clangd.setup{}
+
+nvim.autocmd("CursorHold", "*", vim.lsp.diagnostic.show_line_diagnostics)
 
 confload("statusline")
 confload("keymaps")

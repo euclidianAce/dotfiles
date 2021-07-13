@@ -67,6 +67,7 @@ local function waitForKey(d: Dialog, ...: string): string
 end
 
 actions.listSets = createDialog(function(d: Dialog)
+	local augroupName <const> = "PackageManagerDialogHighlights"
 	-- TODO: this should show dependencies/dependents
 	repeat
 		local sets <const> = set.list()
@@ -75,11 +76,14 @@ actions.listSets = createDialog(function(d: Dialog)
 		d:setLines(sets):fitText(35, 17):center()
 
 		local buf <const> = d:buf()
-		nvim.autocmd("CursorMoved", nil, function()
-			buf:clearNamespace(namespace, 0, -1)
-			local ln <const> = d:getCursor()
-			buf:addHighlight(namespace, "Special", ln - 1, 0, #d:getCurrentLine())
-		end, { buffer = buf.id })
+		nvim.augroup(augroupName, {
+			{ "CursorMoved", nil, function()
+				buf:clearNamespace(namespace, 0, -1)
+				local ln <const> = d:getCursor()
+				local text <const> = d:getCurrentLine()
+				buf:addHighlight(namespace, "Special", ln - 1, 0, #text)
+			end, { buffer = buf.id } }
+		}, true)
 
 		if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
 			break
@@ -97,7 +101,6 @@ actions.listSets = createDialog(function(d: Dialog)
 		end
 
 		d:setLines(txt):fitText(35, 17):center()
-
 	until waitForKey(d, "<cr>", "<bs>") == "<cr>"
 
 	d:close()

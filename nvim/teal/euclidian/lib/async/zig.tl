@@ -64,7 +64,6 @@ local function currentFrame(): Frame<any>
 	return frames[co] as Frame<any>
 end
 
--- TODO: don't use this casting hack, also this isn't properly type checked, but is ignored
 local function await<Ret...>(frame: Frame<Ret>): Ret
 	if not isDead(frame) then
 		assert(frame._awaiter == nil, "async function awaited twice")

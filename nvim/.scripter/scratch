@@ -1,13 +1,17 @@
-local l = {1, {2, 3}, {{4}, {5, 6}, 7}, 8}
-local function flatten_iter(nested_list)
-	local function iter(list)
-		for i, v in ipairs(list) do
-			if type(v) == "table" then
-				iter(v)
-			else
-				coroutine.yield(v)
-			end
-		end
+local z = libreq("async.zig")
+local menu = plugreq("package-manager.menu", true)
+local acc = menu.new "accordion"
+acc:add"foo"
+	:add"bar"
+	:add{"baz", "qux"}
+z.async(function()
+	for item in acc:step{
+		centered = true,
+		wid = 30,
+		hei = 10,
+		interactive = true,
+		ephemeral = true,
+	} do
+		print("got", item)
 	end
-	return corotine.wrap(iter), nested_list
-end
+end)

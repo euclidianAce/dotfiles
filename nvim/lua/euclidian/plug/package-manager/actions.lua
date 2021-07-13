@@ -67,6 +67,7 @@ local function waitForKey(d, ...)
 end
 
 actions.listSets = createDialog(function(d)
+   local augroupName = "PackageManagerDialogHighlights"
 
    repeat
       local sets = set.list()
@@ -75,11 +76,14 @@ actions.listSets = createDialog(function(d)
       d:setLines(sets):fitText(35, 17):center()
 
       local buf = d:buf()
-      nvim.autocmd("CursorMoved", nil, function()
-         buf:clearNamespace(namespace, 0, -1)
-         local ln = d:getCursor()
-         buf:addHighlight(namespace, "Special", ln - 1, 0, #d:getCurrentLine())
-      end, { buffer = buf.id })
+      nvim.augroup(augroupName, {
+         { "CursorMoved", nil, function()
+            buf:clearNamespace(namespace, 0, -1)
+            local ln = d:getCursor()
+            local text = d:getCurrentLine()
+            buf:addHighlight(namespace, "Special", ln - 1, 0, #text)
+         end, { buffer = buf.id }, },
+      }, true)
 
       if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
          break
@@ -97,7 +101,6 @@ actions.listSets = createDialog(function(d)
       end
 
       d:setLines(txt):fitText(35, 17):center()
-
    until waitForKey(d, "<cr>", "<bs>") == "<cr>"
 
    d:close()

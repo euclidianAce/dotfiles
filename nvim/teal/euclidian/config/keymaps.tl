@@ -64,8 +64,8 @@ __euclidian.commentVisualSelection = function()
 	)
 end
 
-map("n", "<leader>c", [[<cmd>set opfunc=v:lua.euclidian.config.keymaps._exports.commentMotion")<cr>g@]])
-map("v", "<leader>c", [[:lua require("euclidian.config.keymaps")._exports.commentVisualSelection()<cr>]])
+map("n", "<leader>c", [[<cmd>set opfunc=v:lua.__euclidian.commentMotion")<cr>g@]])
+map("v", "<leader>c", [[:lua __euclidian.commentVisualSelection()<cr>]])
 
 local function getchar(): string
 	return string.char(vim.fn.getchar() as integer)

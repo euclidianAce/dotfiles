@@ -98,7 +98,7 @@ local function applyHighlights(
 	hi.LineNr                  = { normal.gray, dark.bg }
 	hi.CursorLineNr            = { nil, dark.bg }
 
-	hi.Folded                  = { dark[secondary], nil, "bold" }
+	hi.Folded                  = { dark[secondary], bright.bg, "bold" }
 	hi.FoldColumn              = { dark[secondary], dark.bg, "bold" }
 	hi.SignColumn              = { bright.bg, dark.bg }
 	hi.NonText                 = { bright.bg }

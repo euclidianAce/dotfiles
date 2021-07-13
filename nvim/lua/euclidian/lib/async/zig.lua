@@ -64,7 +64,6 @@ local function currentFrame()
    return frames[co]
 end
 
-
 local function await(frame)
    if not isDead(frame) then
       assert(frame._awaiter == nil, "async function awaited twice")

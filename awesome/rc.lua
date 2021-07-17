@@ -188,7 +188,7 @@ local globalkeys = gears.table.join(
 	awful.key(
 		{m,shft}, "Return",
 		function()
-			awful.spawn(terminal, {
+			awful.spawn(terminal .. " -e sh", {
 				floating = true,
 				height = 400,
 				width = 600,

@@ -1,4 +1,3 @@
-
 return {
 	include_dir = { "teal", "teal/types" },
 	global_env_def = "env",

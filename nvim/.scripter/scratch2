@@ -1,1 +1,0 @@
-print(nvim.Buffer(23):getLines(1, 2, false))

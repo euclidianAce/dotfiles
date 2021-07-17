@@ -4,7 +4,7 @@ local dialog = require("euclidian.lib.dialog")
 local a = vim.api
 
 local key = ""
-local shell = "bash"
+local shell = vim.fn.has("win32") and "powershell.exe" or "bash"
 local termopenOpts = {}
 local Dialog = dialog.Dialog
 local floatterm = {SetupOpts = {}, }
@@ -35,9 +35,10 @@ local function addShowMappings()
 end
 
 local function addHideMappings()
-   d:ensureBuf():setKeymap("n", key, hideTerm, { noremap = true, silent = true })
-   d:ensureBuf():setKeymap("t", key, hideTerm, { noremap = true, silent = true })
-   nvim.autocmd("WinLeave", nil, hideTerm, { buffer = d:ensureBuf().id, once = true })
+   local b = d:ensureBuf()
+   b:setKeymap("n", key, hideTerm, { noremap = true, silent = true })
+   b:setKeymap("t", key, hideTerm, { noremap = true, silent = true })
+   nvim.autocmd("WinLeave", nil, hideTerm, { buffer = b.id, once = true })
 end
 
 local getBuf

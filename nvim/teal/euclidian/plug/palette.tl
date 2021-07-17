@@ -162,6 +162,12 @@ local function applyHighlights(
 	hi.WarningMsg              = { nil, normal.red }
 	hi.WildMenu                = { normal.bg, normal.yellow }
 
+	-- Lsp
+	hi.LspDiagnosticsDefaultError   = { bright.red }
+	hi.LspDiagnosticsDefaultHint    = { bright.fg }
+	hi.LspDiagnosticsDefaultInfo    = { bright.gray }
+	hi.LspDiagnosticsDefaultWarning = { bright.orange }
+
 	-- Git stuffs
 	hi.DiffAdd                     = { dark.green }
 	hi.DiffDelete                  = { dark.red }

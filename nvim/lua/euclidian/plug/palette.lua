@@ -163,6 +163,12 @@ local function applyHighlights(
    hi.WildMenu = { normal.bg, normal.yellow }
 
 
+   hi.LspDiagnosticsDefaultError = { bright.red }
+   hi.LspDiagnosticsDefaultHint = { bright.fg }
+   hi.LspDiagnosticsDefaultInfo = { bright.gray }
+   hi.LspDiagnosticsDefaultWarning = { bright.orange }
+
+
    hi.DiffAdd = { dark.green }
    hi.DiffDelete = { dark.red }
    hi.NeogitDiffAddHighlight = { normal.green }

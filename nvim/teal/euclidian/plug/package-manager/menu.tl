@@ -5,32 +5,33 @@ local z <const> = require("euclidian.lib.async.zig")
 
 -- local type NilFrame = z.Frame<nil>
 
-local record Menu
-	enum Kind
-		"accordion"
-	end
-	kind: Kind
-
-	type Item = string | {string, Item}
+local record Accordion
+	type Item = {string, function | {Item}}
 	items: {Item}
+	item_prefix: string
+	unexpanded_prefix: string
+	expanded_prefix: string
+end
+
+local new <const> = {}
+
+function new.accordion(items: {Accordion.Item}): Accordion
+	return setmetatable({
+		items = items,
+		item_prefix = "* ",
+		expanded_prefix = "v ",
+		unexpanded_prefix = "> ",
+	}, { __index = Accordion })
 end
 
 local menu <const> = {
-	Menu = Menu,
+	Accordion = Accordion,
+	new = new,
 }
 
-function menu.new(kind: Menu.Kind): Menu
-	return setmetatable({ kind = kind, items = {} }, { __index = Menu })
-end
-
-function Menu:add(item: Menu.Item): Menu
-	table.insert(self.items, item)
-	return self
-end
-
-function Menu:step(opts: dialog.Dialog.Opts): function({Menu.Item}): string
+-- TODO: use decorations to highlight branches/leaves differently
+function Accordion:run(opts: dialog.Dialog.Opts)
 	local d <const> = dialog.new(opts)
-	-- local buf <const> = d:ensureBuf()
 	local function waitForKey(...: string): string
 		local keys <const> = {...}
 		local function delKeymaps()
@@ -53,26 +54,27 @@ function Menu:step(opts: dialog.Dialog.Opts): function({Menu.Item}): string
 		return pressed
 	end
 
-	assert(self.kind == "accordion")
-
 	local record State
 		enabled: boolean
 		line: integer
 	end
-	local states <const>: {Menu.Item:State} = {}
-	local function appendItem(lines: {string}, item: Menu.Item, indent: integer)
+	local states <const>: {Accordion.Item:State} = {}
+	local function appendItem(lines: {string}, item: Accordion.Item, indent: integer)
 		local len <const> = #lines + 1
-		if item is string then
-			lines[len] = ("  "):rep(indent) .. item
-		else
-			lines[len] = ("  "):rep(indent) .. item[1]
-			if not states[item] then
-				states[item] = { enabled = false }
-			end
-			local s <const> = states[item]
-			s.line = len
-			if s.enabled then
-				appendItem(lines, item[2], indent + 1)
+		local second <const> = item[2]
+		if not states[item] then
+			states[item] = { enabled = false }
+		end
+		local s <const> = states[item]
+		s.line = len
+		lines[len] = ("  "):rep(indent)
+			.. (second is function and self.item_prefix
+					or s.enabled and self.expanded_prefix
+					or self.unexpanded_prefix)
+			.. item[1]
+		if second is {Accordion.Item} and s.enabled then
+			for _, child in ipairs(second) do
+				appendItem(lines, child, indent + 1)
 			end
 		end
 	end
@@ -84,24 +86,28 @@ function Menu:step(opts: dialog.Dialog.Opts): function({Menu.Item}): string
 		d:setLines(lines)
 	end
 
-	local function iter(): string
+	while true do
 		renderMenu()
-		local pressed <const> = waitForKey("<cr>", "<bs>")
-		if pressed == "<cr>" then
+		local pressed <const> = waitForKey("<cr>", "<tab>", "<bs>")
+		if pressed == "<cr>" or pressed == "<tab>" then
 			local row <const> = d:getCursor()
 			for item, state in pairs(states) do
-				if state.line == row and item is string then
-					d:close()
-					return item
+				local second <const> = item[2]
+				if state.line == row then
+					if second is function and pressed == "<cr>" then
+						d:close()
+						second()
+						return
+					else
+						state.enabled = not state.enabled
+					end
 				end
 			end
-			return ""
 		elseif pressed == "<bs>" then
 			d:close()
 			return
 		end
 	end
-	return iter
 end
 
 return menu

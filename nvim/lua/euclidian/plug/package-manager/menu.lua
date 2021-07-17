@@ -5,7 +5,7 @@ local z = require("euclidian.lib.async.zig")
 
 
 
-local Menu = {}
+local Accordion = {}
 
 
 
@@ -13,24 +13,25 @@ local Menu = {}
 
 
 
+local new = {}
 
+function new.accordion(items)
+   return setmetatable({
+      items = items,
+      item_prefix = "* ",
+      expanded_prefix = "v ",
+      unexpanded_prefix = "> ",
+   }, { __index = Accordion })
+end
 
 local menu = {
-   Menu = Menu,
+   Accordion = Accordion,
+   new = new,
 }
 
-function menu.new(kind)
-   return setmetatable({ kind = kind, items = {} }, { __index = Menu })
-end
 
-function Menu:add(item)
-   table.insert(self.items, item)
-   return self
-end
-
-function Menu:step(opts)
+function Accordion:run(opts)
    local d = dialog.new(opts)
-
    local function waitForKey(...)
       local keys = { ... }
       local function delKeymaps()
@@ -53,8 +54,6 @@ function Menu:step(opts)
       return pressed
    end
 
-   assert(self.kind == "accordion")
-
    local State = {}
 
 
@@ -62,17 +61,20 @@ function Menu:step(opts)
    local states = {}
    local function appendItem(lines, item, indent)
       local len = #lines + 1
-      if type(item) == "string" then
-         lines[len] = ("  "):rep(indent) .. item
-      else
-         lines[len] = ("  "):rep(indent) .. item[1]
-         if not states[item] then
-            states[item] = { enabled = false }
-         end
-         local s = states[item]
-         s.line = len
-         if s.enabled then
-            appendItem(lines, item[2], indent + 1)
+      local second = item[2]
+      if not states[item] then
+         states[item] = { enabled = false }
+      end
+      local s = states[item]
+      s.line = len
+      lines[len] = ("  "):rep(indent) ..
+      (type(second) == "function" and self.item_prefix or
+      s.enabled and self.expanded_prefix or
+      self.unexpanded_prefix) ..
+      item[1]
+      if type(second) == "table" and s.enabled then
+         for _, child in ipairs(second) do
+            appendItem(lines, child, indent + 1)
          end
       end
    end
@@ -84,24 +86,28 @@ function Menu:step(opts)
       d:setLines(lines)
    end
 
-   local function iter()
+   while true do
       renderMenu()
-      local pressed = waitForKey("<cr>", "<bs>")
-      if pressed == "<cr>" then
+      local pressed = waitForKey("<cr>", "<tab>", "<bs>")
+      if pressed == "<cr>" or pressed == "<tab>" then
          local row = d:getCursor()
          for item, state in pairs(states) do
-            if state.line == row and type(item) == "string" then
-               d:close()
-               return item
+            local second = item[2]
+            if state.line == row then
+               if type(second) == "function" and pressed == "<cr>" then
+                  d:close()
+                  second()
+                  return
+               else
+                  state.enabled = not state.enabled
+               end
             end
          end
-         return ""
       elseif pressed == "<bs>" then
          d:close()
          return
       end
    end
-   return iter
 end
 
 return menu

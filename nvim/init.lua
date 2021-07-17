@@ -200,14 +200,11 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 			settings = {},
 		},
 	}
-	lspconfig.teal.setup{
-		handlers = {
-			["textDocument/publishDiagnostics"] = vim.lsp.with(
-				vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
-		},
-	}
+	lspconfig.teal.setup{}
 end
 lspconfig.clangd.setup{}
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+	vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
 
 nvim.autocmd("CursorHold", "*", vim.lsp.diagnostic.show_line_diagnostics)
 

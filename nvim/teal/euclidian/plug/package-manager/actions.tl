@@ -1,6 +1,7 @@
 local command <const> = require("euclidian.lib.command")
 local configure <const> = require("euclidian.plug.package-manager.configure")
 local dialog <const> = require("euclidian.lib.dialog")
+local menu <const> = require("euclidian.plug.package-manager.menu")
 local nvim <const> = require("euclidian.lib.nvim")
 local packagespec <const> = require("euclidian.plug.package-manager.packagespec")
 local report <const> = require("euclidian.plug.package-manager.report")
@@ -21,8 +22,6 @@ local actions <const> = {
 	remove: Action = nil,
 	configure: Action = nil,
 }
-
-local namespace <const> = vim.api.nvim_create_namespace("euclidian:package-manager:highlight")
 
 local type Spec = packagespec.Spec
 local type Dialog = dialog.Dialog
@@ -66,45 +65,26 @@ local function waitForKey(d: Dialog, ...: string): string
 	return pressed
 end
 
-actions.listSets = createDialog(function(d: Dialog)
-	local augroupName <const> = "PackageManagerDialogHighlights"
-	-- TODO: this should show dependencies/dependents
-	repeat
-		local sets <const> = set.list()
-		table.sort(sets)
-
-		d:setLines(sets):fitText(35, 17):center()
-
-		local buf <const> = d:buf()
-		nvim.augroup(augroupName, {
-			{ "CursorMoved", nil, function()
-				buf:clearNamespace(namespace, 0, -1)
-				local ln <const> = d:getCursor()
-				local text <const> = d:getCurrentLine()
-				buf:addHighlight(namespace, "Special", ln - 1, 0, #text)
-			end, { buffer = buf.id } }
-		}, true)
-
-		if waitForKey(d, "<cr>", "<bs>") == "<bs>" then
-			break
+actions.listSets = function(): NilFrame
+	local menuOpts <const> = {}
+	for i, s in ipairs(set.list()) do
+		local pkgs <const> = set.load(s)
+		table.sort(pkgs, setCmp)
+		local names <const> = {}
+		for j, spec in ipairs(pkgs) do
+			names[j] = {spec:title()}
 		end
-
-		buf:clearNamespace(namespace, 0, -1)
-		local choice <const> = d:getCurrentLine()
-		local loaded <const> = set.load(choice)
-
-		table.sort(loaded, setCmp)
-		local txt = {}
-
-		for i, v in ipairs(loaded) do
-			txt[i] = v:title()
-		end
-
-		d:setLines(txt):fitText(35, 17):center()
-	until waitForKey(d, "<cr>", "<bs>") == "<cr>"
-
-	d:close()
-end)
+		menuOpts[i] = {s, names}
+	end
+	local m <const> = menu.new.accordion(menuOpts)
+	return z.async(m.run, m, {
+		centered = true,
+		wid = .75,
+		hei = .3,
+		interactive = true,
+		ephemeral = true,
+	}) as NilFrame
+end
 
 local function chooseAndLoadSet(d: Dialog): {Spec}, string
 	local pkgs <const> = set.list()

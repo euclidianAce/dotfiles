@@ -1,5 +1,4 @@
 
-local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 
 local Dialog = dialog.Dialog
@@ -12,6 +11,13 @@ local notification = {
    Opts = Opts,
 }
 
+local Container = {}
+
+
+
+
+local stack = {}
+
 local function longestLen(arr)
    local l = 0
    for _, v in ipairs(arr) do
@@ -20,83 +26,59 @@ local function longestLen(arr)
    return l
 end
 
-local Node = {}
+local function shift(d, n)
+   if n == 0 then return end
+   local win = d:win()
+   local c = win:getConfig()
+   c.row = (c.row)[false] + n
+   win:setConfig(c)
+end
 
+local borderOffset = 2
 
-
-local root = {}
-
-local function lastNode()
-   local n = root
-   while n.next do
-      n = n.next
+local function dismiss(c)
+   local height = c.d:win():getHeight() + borderOffset
+   c.d:close()
+   table.remove(stack, c.idx)
+   for i = c.idx, #stack do
+      stack[i].idx = i
+      shift(stack[i].d, height)
    end
-   return n
 end
 
 local function insert(d)
-   lastNode().next = { d = d }
+   local c = {
+      d = d,
+      idx = 1,
+   }
+   local height = d:win():getHeight() + borderOffset
+   table.insert(stack, 1, c)
+   for i = 2, #stack do
+      stack[i].idx = i
+      shift(stack[i].d, -height)
+   end
+   return c
 end
 
-local function moveDown(d, n)
-   if n > 0 then
-      local win = d:win()
-      local c = win:getConfig()
-      c.row = (c.row)[false] + n
-      win:setConfig(c)
-   end
-end
+function notification.create(str, opts)
+   opts = opts or {}
+   local msTimeout = opts.msTimeout or 2500
 
-local borderOffset = 3
-
-local function dismiss(d)
-   local n = root
-   local prev
-   while n and n.d ~= d do
-      prev = n
-      n = n.next
-   end
-
-   prev.next = n.next
-   local acc = 0
-
-   if n.d then
-      acc = n.d:win():getHeight() + borderOffset
-      n.d:close()
-   end
-   n = n.next
-
-   while n do
-      moveDown(n.d, acc)
-      n = n.next
-   end
-end
-
-function notification.create(txt, opts)
-   local msTimeout = opts and opts.msTimeout or 2500
-
-   local lines = vim.split(txt, "\n")
+   local lines = vim.split(str, "\n")
    local len = longestLen(lines)
 
-   local uiHeight = nvim.ui().height
    local dOpts = {
-      row = uiHeight - #lines - 5, col = -4 - len,
+      row = -#lines - 5, col = -4 - len,
       wid = len, hei = #lines,
       interactive = false,
    }
 
-   local n = lastNode()
-   if n.d then
-      local conf = n.d:win():getConfig()
-      dOpts.row = (conf.row)[false] - dOpts.hei - borderOffset
-   end
-
    local d = dialog.new(dOpts)
    d:setLines(lines)
-   insert(d)
+   local c = insert(d)
 
    vim.defer_fn(function()
-      dismiss(d)
+      dismiss(c)
    end, msTimeout)
 end
 

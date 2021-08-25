@@ -53,11 +53,11 @@ function packagemanager._reload()
 
 			report.msg("reloading...")
 			for name in pairs(package.loaded) do
-				if name:match("^euclidian%.lib%.package%-manager") then
+				if name:match("^euclidian%.plug%.package%-manager") then
 					package.loaded[name] = nil
 				end
 			end
-			req "euclidian.lib.package-manager"
+			req "euclidian.plug.package-manager"
 			report.msg("reloaded!")
 			done = true
 		end),

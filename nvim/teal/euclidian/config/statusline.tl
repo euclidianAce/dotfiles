@@ -20,6 +20,9 @@ local empty <const> = {}
 
 stl.add(alwaysActive, empty, function(winid: integer): string
 	local win <const> = nvim.Window(winid)
+	if not (win:getOption("number") or win:getOption("relativenumber")) then
+		return (" "):rep(6)
+	end
 	-- make buffer number section line up with line number column
 	local spaces <const> = win:getOption("numberwidth")
 		+ tonumber(win:getOption("signcolumn"):match("yes:(%d+)")) as integer or 0

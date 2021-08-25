@@ -132,7 +132,7 @@ for _, v in ipairs({
    map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
 end
 
-map("n", "<leader>k", vim.lsp.diagnostic.show_line_diagnostics)
+map("n", "<leader>k", function() vim.lsp.diagnostic.show_line_diagnostics({ focusable = false }) end)
 map("n", "K", vim.lsp.buf.hover)
 map("n", "<leader>N", vim.lsp.diagnostic.goto_next)
 map("n", "<leader>P", vim.lsp.diagnostic.goto_prev)

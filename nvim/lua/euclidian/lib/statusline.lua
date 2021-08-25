@@ -110,20 +110,22 @@ local function makeLine(tags, winId)
          end
       end
       if include then
-         table.insert(buf, ("%%#%s#"):format(component.hiGroup))
+         table.insert(buf, "%#" .. component.hiGroup .. "#")
          if component.isFunc then
             if component.preEval then
                local ok, res = pcall(statusline._funcs[component.funcId], winId)
                if ok then
                   table.insert(buf, res)
                else
+                  print(res)
                   table.insert(buf, "???")
                end
             else
                table.insert(
                buf,
-               ([[%%{luaeval("require'euclidian.lib.statusline'._funcs[%d](%d)")}]]):
-               format(component.funcId, winId))
+               [=[%{luaeval("require'euclidian.lib.statusline'._funcs[]=] ..
+               component.funcId ..
+               "](" .. winId .. [=[)")}]=])
 
             end
          else

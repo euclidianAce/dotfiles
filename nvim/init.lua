@@ -188,9 +188,8 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 	configs.teal = {
 		default_config = {
 			cmd = {
-				-- "nc", "localhost", "8081",
 				"teal-language-server",
-				"logging=on",
+				-- "logging=on",
 			},
 			filetypes = {
 				"teal",
@@ -206,7 +205,8 @@ lspconfig.clangd.setup{}
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
 	vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
 
-nvim.autocmd("CursorHold", "*", vim.lsp.diagnostic.show_line_diagnostics)
+nvim.autocmd("CursorHold", "*", vim.lsp.with(
+	vim.lsp.diagnostic.show_line_diagnostics, { focusable = false }))
 
 confload("statusline")
 confload("keymaps")

@@ -20,6 +20,9 @@ local empty = {}
 
 stl.add(alwaysActive, empty, function(winid)
    local win = nvim.Window(winid)
+   if not (win:getOption("number") or win:getOption("relativenumber")) then
+      return (" "):rep(6)
+   end
 
    local spaces = win:getOption("numberwidth") +
    tonumber(win:getOption("signcolumn"):match("yes:(%d+)")) or 0

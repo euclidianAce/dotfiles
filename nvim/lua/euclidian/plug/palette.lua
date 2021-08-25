@@ -114,7 +114,7 @@ local function applyHighlights(
    hi.Operator = { normal[primaryComplement] }
 
    hi.Type = { bright[primaryComplement] }
-   hi.Structure = { dark[secondaryComplement] }
+   hi.Structure = { dark[primaryComplement] }
    hi.StorageClass = { bright[primaryComplement], nil, "bold" }
 
    hi.Special = { bright[secondary] }

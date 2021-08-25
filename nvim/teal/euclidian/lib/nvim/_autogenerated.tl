@@ -45,7 +45,6 @@ local record Buffer
 	delExtmark: function(Buffer, integer, integer): boolean
 	addHighlight: function(Buffer, integer, string, integer, integer, integer): integer
 	clearNamespace: function(Buffer, integer, integer, integer)
-	setVirtualText: function(Buffer, integer, integer, {any}, {string:any}): integer
 	enum BooleanOpt
 		"autoindent"
 		"autoread"
@@ -232,6 +231,7 @@ local record Window
 		"breakindentopt"
 		"colorcolumn"
 		"concealcursor"
+		"cursorlineopt"
 		"fillchars"
 		"foldcolumn"
 		"foldexpr"

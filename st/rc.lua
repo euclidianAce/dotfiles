@@ -1,14 +1,15 @@
 
 -- st.font = "Fantasque Sans Mono:size=14:bold=false:antialias=true"
 -- st.font = "FiraCode Light:size=12:antialias=true"
--- st.font = "Fixedsys Excelsior:size=12:bold=false" -- this has problems with width
+-- st.font = "Fixedsys Excelsior:size=12:antialias=false:bold=false" -- this has problems with width
 -- st.font = "Hasklig:size=14:bold=false:antialias=true"
--- st.font = "Ubuntu Mono:size=10:antialias=true"
--- st.font = "terminus:size=12:antialias=true"
-st.font = "Julia Mono:size=12:antialias=true"
+-- st.font = "Ubuntu Mono:size=12:antialias=true"
+st.font = "terminus:size=12:antialias=true"
+-- st.font = "Julia Mono:size=12:antialias=true"
+-- st.font = "CozetteVector:size=11:antialias=false"
+-- st.font = "cozette:size=11:antialias=true"
 
 st.borderpx = 4
--- st.cwscale = 1.01
 
 st.colorname = {
 	"#181520",

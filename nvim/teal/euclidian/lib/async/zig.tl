@@ -74,8 +74,15 @@ local function await<Ret...>(frame: Frame<Ret>): Ret
 	return (unpack as function(any, integer, integer): Ret)(values[frame], 1, values[frame].n)
 end
 
+local function wrapCallable<Ret..., Args...>(fn: function(...: Args): Ret): function(Args): Ret
+	if type(fn) ~= "function" then
+		return function(...: Args): Ret return fn(...) end
+	end
+	return fn
+end
+
 local function nosuspend<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Ret
-	local frame <const> = { _t = coroutine.create(fn) }
+	local frame <const> = { _t = coroutine.create(wrapCallable(fn)) }
 	frames[frame._t] = frame
 	internalResume(frame as Frame<any>, ...)
 	if not isDead(frame) then
@@ -85,7 +92,7 @@ local function nosuspend<Ret..., Args...>(fn: (function(...: Args): Ret), ...: A
 end
 
 local function async<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Frame<Ret>
-	local co <const> = coroutine.create(fn)
+	local co <const> = coroutine.create(wrapCallable(fn))
 	local f <const> = { _t = co }
 	frames[co] = f
 	internalResume(f, ...)

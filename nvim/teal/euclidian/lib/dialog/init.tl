@@ -21,6 +21,7 @@ local record Dialog
 		hei: number
 		row: number
 		col: number
+		zindex: integer
 
 		notMinimal: boolean
 		interactive: boolean
@@ -70,6 +71,7 @@ local function copyOpts(o: Dialog.Opts): Dialog.Opts
 		hei = o.hei,
 		row = o.row,
 		col = o.col,
+		zindex = o.zindex,
 		notMinimal = o.notMinimal,
 		interactive = o.interactive,
 		hidden = o.hidden,
@@ -136,6 +138,7 @@ function dialog.optsToWinConfig(opts: Dialog.Opts): nvim.Window.Config
 		style = not opts.notMinimal and "minimal" or nil,
 		border = opts.border or defaultBorder,
 		focusable = opts.interactive,
+		zindex = opts.zindex,
 	}
 	local ui <const> = nvim.ui()
 
@@ -261,9 +264,10 @@ function Dialog:show(dontSwitch: boolean): Dialog
 
 	local opts <const> = copyOpts(origOpts[self])
 	opts.hidden = false
-	opts.interactive = not dontSwitch
-
 	wins[self] = setupWin(opts, self:ensureBuf())
+	if not dontSwitch then
+		vim.api.nvim_set_current_win(wins[self].id);
+	end
 
 	return self
 end
@@ -319,6 +323,14 @@ function Dialog:getCursor(): integer, integer
 	local pos <const> = self:ensureWin():getCursor()
 	return pos[1], pos[2]
 end
+function Dialog:getRow(): integer
+	local cfg <const> = self:ensureWin():getConfig()
+	return (cfg.row as {boolean:integer})[false]
+end
+function Dialog:getColumn(): integer
+	local cfg <const> = self:ensureWin():getConfig()
+	return (cfg.col as {boolean:integer})[false]
+end
 function Dialog:getLine(n: integer): string
 	return self:ensureBuf():getLines(n - 1, n, false)[1]
 end
@@ -338,19 +350,28 @@ function Dialog:setWinConfig(c: nvim.Window.Config): Dialog
 	win:setConfig(new as nvim.Window.Config)
 	return self
 end
+local function relativePosition(wina: nvim.Window.Config, winb: nvim.Window.Config): integer, integer
+	local row <const> = (wina.row as {boolean:integer})[false] - (winb.row as {boolean:integer})[false]
+	local col <const> = (wina.col as {boolean:integer})[false] - (winb.col as {boolean:integer})[false]
+	return row, col
+end
 function Dialog:moveAbsolute(row: integer, col: integer): Dialog
 	local win <const> = self:ensureWin()
-	local c <const> = win:getConfig()
-	c.row = row
-	c.col = col
-	win:setConfig(c)
+	local cfg <const> = win:getConfig()
+	for _, d in ipairs(links[self]) do
+		local r <const>, c <const> = relativePosition(cfg, d:ensureWin():getConfig())
+		d:moveAbsolute(row + r, col - c)
+	end
+	cfg.row = row
+	cfg.col = col
+	win:setConfig(cfg)
 	return self
 end
 function Dialog:moveRelative(drow: integer, dcol: integer): Dialog
 	local win <const> = self:ensureWin()
 	local c <const> = win:getConfig()
-	c.row = c.row + drow
-	c.col = c.col + dcol
+	c.row = (c.row as {boolean:integer})[false] + drow
+	c.col = (c.col as {boolean:integer})[false] + dcol
 	win:setConfig(c)
 	return self
 end
@@ -488,6 +509,7 @@ local linkedFns <const>: {string:boolean} = {
 	hide = true,
 	close = true,
 	show = true,
+	moveRelative = true,
 }
 local _Dialog <const> = Dialog as {string:function(...: any): any...}
 for k in pairs(linkedFns) do

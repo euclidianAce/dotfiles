@@ -39,6 +39,7 @@ local Dialog = {Opts = {Center = {}, }, }
 
 
 
+
 local bufs = setmetatable({}, { __mode = "k", __index = function() return nvim.Buffer(-1) end })
 local wins = setmetatable({}, { __mode = "k", __index = function() return nvim.Window(-1) end })
 local links = setmetatable({}, { __mode = "k", __index = function(self, k)
@@ -70,6 +71,7 @@ local function copyOpts(o)
       hei = o.hei,
       row = o.row,
       col = o.col,
+      zindex = o.zindex,
       notMinimal = o.notMinimal,
       interactive = o.interactive,
       hidden = o.hidden,
@@ -136,6 +138,7 @@ function dialog.optsToWinConfig(opts)
       style = not opts.notMinimal and "minimal" or nil,
       border = opts.border or defaultBorder,
       focusable = opts.interactive,
+      zindex = opts.zindex,
    }
    local ui = nvim.ui()
 
@@ -261,9 +264,10 @@ function Dialog:show(dontSwitch)
 
    local opts = copyOpts(origOpts[self])
    opts.hidden = false
-   opts.interactive = not dontSwitch
-
    wins[self] = setupWin(opts, self:ensureBuf())
+   if not dontSwitch then
+      vim.api.nvim_set_current_win(wins[self].id);
+   end
 
    return self
 end
@@ -319,6 +323,14 @@ function Dialog:getCursor()
    local pos = self:ensureWin():getCursor()
    return pos[1], pos[2]
 end
+function Dialog:getRow()
+   local cfg = self:ensureWin():getConfig()
+   return (cfg.row)[false]
+end
+function Dialog:getColumn()
+   local cfg = self:ensureWin():getConfig()
+   return (cfg.col)[false]
+end
 function Dialog:getLine(n)
    return self:ensureBuf():getLines(n - 1, n, false)[1]
 end
@@ -338,19 +350,28 @@ function Dialog:setWinConfig(c)
    win:setConfig(new)
    return self
 end
+local function relativePosition(wina, winb)
+   local row = (wina.row)[false] - (winb.row)[false]
+   local col = (wina.col)[false] - (winb.col)[false]
+   return row, col
+end
 function Dialog:moveAbsolute(row, col)
    local win = self:ensureWin()
-   local c = win:getConfig()
-   c.row = row
-   c.col = col
-   win:setConfig(c)
+   local cfg = win:getConfig()
+   for _, d in ipairs(links[self]) do
+      local r, c = relativePosition(cfg, d:ensureWin():getConfig())
+      d:moveAbsolute(row + r, col - c)
+   end
+   cfg.row = row
+   cfg.col = col
+   win:setConfig(cfg)
    return self
 end
 function Dialog:moveRelative(drow, dcol)
    local win = self:ensureWin()
    local c = win:getConfig()
-   c.row = c.row + drow
-   c.col = c.col + dcol
+   c.row = (c.row)[false] + drow
+   c.col = (c.col)[false] + dcol
    win:setConfig(c)
    return self
 end
@@ -488,6 +509,7 @@ local linkedFns = {
    hide = true,
    close = true,
    show = true,
+   moveRelative = true,
 }
 local _Dialog = Dialog
 for k in pairs(linkedFns) do

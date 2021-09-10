@@ -10,9 +10,12 @@ local record Accordion
 	item_prefix: string
 	unexpanded_prefix: string
 	expanded_prefix: string
+
+	metamethod __call: function(Accordion, dialog.Dialog.Opts): any...
 end
 
 local new <const> = {}
+local accordionMt <const>: metatable<Accordion> = { __index = Accordion }
 
 function new.accordion(items: {Accordion.Item}): Accordion
 	return setmetatable({
@@ -20,7 +23,7 @@ function new.accordion(items: {Accordion.Item}): Accordion
 		item_prefix = "* ",
 		expanded_prefix = "- ",
 		unexpanded_prefix = "+ ",
-	}, { __index = Accordion })
+	} as Accordion, accordionMt)
 end
 
 local menu <const> = {
@@ -52,7 +55,7 @@ end
 
 local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
-function Accordion:run(opts: dialog.Dialog.Opts): any...
+function accordionMt.__call(self: Accordion, opts: dialog.Dialog.Opts): any...
 	local d <const> = dialog.new(opts)
 
 	local record State

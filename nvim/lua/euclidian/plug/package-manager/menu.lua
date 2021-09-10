@@ -12,7 +12,10 @@ local Accordion = {}
 
 
 
+
+
 local new = {}
+local accordionMt = { __index = Accordion }
 
 function new.accordion(items)
    return setmetatable({
@@ -20,7 +23,7 @@ function new.accordion(items)
       item_prefix = "* ",
       expanded_prefix = "- ",
       unexpanded_prefix = "+ ",
-   }, { __index = Accordion })
+   }, accordionMt)
 end
 
 local menu = {
@@ -52,7 +55,7 @@ end
 
 local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
-function Accordion:run(opts)
+function accordionMt.__call(self, opts)
    local d = dialog.new(opts)
 
    local State = {}

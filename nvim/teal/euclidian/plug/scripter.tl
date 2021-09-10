@@ -156,15 +156,7 @@ openEditor = function()
 			return true
 		end,
 	})
-end
-
--- TODO: implement this as nvim.Window:getVarSafe or something
-local function getWinVar(win: nvim.Window, name: string): any
-	local var: any
-	pcall(function()
-		var = win:getVar(name)
-	end)
-	return var
+	mainDialog:addKeymap("n", "", function() mainDialog:hide() end, { silent = true, noremap = true })
 end
 
 openBrowser = function()
@@ -177,7 +169,7 @@ openBrowser = function()
 	win:setOption("cursorline", true)
 	win:setOption("number", false)
 	win:setOption("relativenumber", false)
-	buf:setOption("ft", "")
+	buf:setOption("filetype", "________not_a_real_file_type_but_other_stuff_causes_errors________")
 
 	clearMappings(mainDialog)
 	local scripts = {}
@@ -213,18 +205,13 @@ openBrowser = function()
 		currentScript = quick.prompt("New Script: ")
 		openEditor()
 	end), { noremap = true })
-	nvim.augroup("ScripterBrowserFloat", {
-		-- TODO: this schedule_wrap seems jank, but there doesn't seem to be a
-		--       good way to get the window that was entered
-		{ "WinLeave", nil, vim.schedule_wrap(function()
-			if not getWinVar(nvim.Window(), "QuickDialog") then
-				mainDialog:close()
-			end
-		end), { buffer = buf.id } }
-	}, true)
 end
 
 function scripter.open()
+	if mainDialog:win():isValid() then
+		mainDialog:focus()
+		return
+	end
 	if currentScript then
 		openEditor()
 	else

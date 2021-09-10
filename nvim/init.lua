@@ -62,7 +62,7 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	-- guicursor = "",
+	guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -86,7 +86,7 @@ set(vim.opt, {
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
-	listchars = { tab = "   ", space = "·", precedes = "<", extends = ">", nbsp = "+" },
+	listchars = { tab = "  |", precedes = "<", extends = ">", nbsp = "+" },
 	fillchars = { fold = " ", vert = " " },
 	inccommand = "nosplit",
 	laststatus = 2,
@@ -201,12 +201,12 @@ if not lspconfig.teal and isExecutable("teal-language-server") then
 	}
 	lspconfig.teal.setup{}
 end
-lspconfig.clangd.setup{}
+if isExecutable("clangd") then
+	lspconfig.clangd.setup{}
+end
+
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
 	vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
-
-nvim.autocmd("CursorHold", "*", vim.lsp.with(
-	vim.lsp.diagnostic.show_line_diagnostics, { focusable = false }))
 
 confload("statusline")
 confload("keymaps")
@@ -227,6 +227,8 @@ if vim.fn.exists(":GuiFont") == 2 then
 	-- apparently just "JuliaMono" doesn't have ligatures?
 	nvim.command[[GuiFont! JuliaMono Medium:h10]]
 end
+
+nvim.newCommand{ name = "Lua", complete = "lua", nargs = "*", body = "lua print(<args>)" }
 
 setmetatable(_G, {
 	__index = function(_, key)

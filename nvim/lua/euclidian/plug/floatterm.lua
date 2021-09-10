@@ -49,6 +49,7 @@ do
       shown = true
       getBuf()
       d:show():win():setOption("winblend", 8)
+      d:focus()
    end
 
    hideTerm = function()

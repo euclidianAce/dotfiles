@@ -23,8 +23,6 @@ local actions = {
    configure = nil,
 }
 
-
-
 local Spec = packagespec.Spec
 local Dialog = dialog.Dialog
 local function setCmp(a, b)
@@ -79,7 +77,7 @@ actions.listSets = function()
       menuOpts[i] = { s, names }
    end
    local m = menu.new.accordion(menuOpts)
-   return z.async(m.run, m, {
+   return z.async(m, {
       centered = true,
       wid = .75,
       hei = .3,
@@ -87,46 +85,6 @@ actions.listSets = function()
       ephemeral = true,
    })
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 local function chooseAndLoadSet(d)
    local pkgs = set.list()
@@ -375,12 +333,11 @@ local function runCmdForEachPkg(d, getcmd, loaded)
             running = running + 1
             command.spawn({
                command = cmd,
-
-
                onStdoutLine = updateTxt,
                onStderrLine = updateTxt,
                onExit = function()
                   running = running - 1
+                  r:set("Done!", true)
                   z.resume(mainTask)
                end,
             })
@@ -454,7 +411,7 @@ actions.remove = createDialog(function(d)
    local ln = d:getCursor()
    local selected = loaded[ln]
 
-   if next(selected.dependents or {}) then
+   if selected.dependents and next(selected.dependents) then
       local lns = { "Selected package: " .. selected:title() .. " is a dependency for:" }
       for _, p in ipairs(selected.dependents) do
          table.insert(lns, "   " .. assert(type(p) == "table" and p):title())

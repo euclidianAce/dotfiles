@@ -113,7 +113,7 @@ local record CommandOpts
 		"mapclear" "mapping" "menu" "messages"
 		"option" "packadd" "shellcmd" "sign"
 		"syntax" "syntime" "tag" "tag_listfiles"
-		"user" "var"
+		"user" "var" "lua"
 	end
 	type CompleteFunc = function(string, string, integer): string
 	type CompleteListFunc = function(string, string, integer): {string}

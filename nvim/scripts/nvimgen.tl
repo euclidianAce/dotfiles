@@ -163,6 +163,7 @@ local namespaces: {NamespaceName:Namespace} = {
 		col: integer
 		width: integer
 		height: integer
+		zindex: integer
 		bufpos: integer
 		focusable: boolean
 		external: boolean

@@ -162,6 +162,7 @@ local record Window
 		col: integer
 		width: integer
 		height: integer
+		zindex: integer
 		bufpos: integer
 		focusable: boolean
 		external: boolean

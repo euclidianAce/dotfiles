@@ -74,8 +74,15 @@ local function await(frame)
    return (unpack)(values[frame], 1, values[frame].n)
 end
 
+local function wrapCallable(fn)
+   if type(fn) ~= "function" then
+      return function(...) return fn(...) end
+   end
+   return fn
+end
+
 local function nosuspend(fn, ...)
-   local frame = { _t = coroutine.create(fn) }
+   local frame = { _t = coroutine.create(wrapCallable(fn)) }
    frames[frame._t] = frame
    internalResume(frame, ...)
    if not isDead(frame) then
@@ -85,7 +92,7 @@ local function nosuspend(fn, ...)
 end
 
 local function async(fn, ...)
-   local co = coroutine.create(fn)
+   local co = coroutine.create(wrapCallable(fn))
    local f = { _t = co }
    frames[co] = f
    internalResume(f, ...)

@@ -77,7 +77,7 @@ actions.listSets = function(): NilFrame
 		menuOpts[i] = {s, names}
 	end
 	local m <const> = menu.new.accordion(menuOpts)
-	return z.async(m.run, m, {
+	return z.async(m, {
 		centered = true,
 		wid = .75,
 		hei = .3,
@@ -333,12 +333,11 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 				running = running + 1
 				command.spawn{
 					command = cmd,
-					-- TODO: stderr and stdout can kind of race with each other
-					-- Make an explicit indicator that a cmd is done in the dialog
 					onStdoutLine = updateTxt,
 					onStderrLine = updateTxt,
 					onExit = function()
 						running = running - 1
+						r:set("Done!", true)
 						z.resume(mainTask)
 					end,
 				}
@@ -412,7 +411,7 @@ actions.remove = createDialog(function(d: Dialog)
 	local ln <const> = d:getCursor()
 	local selected <const> = loaded[ln]
 
-	if next(selected.dependents or {}) then
+	if selected.dependents and next(selected.dependents) then
 		local lns <const> = { "Selected package: " .. selected:title() .. " is a dependency for:" }
 		for _, p in ipairs(selected.dependents) do
 			table.insert(lns, "   " .. assert(p is Spec and p):title())

@@ -104,7 +104,7 @@ local function applyHighlights(
 	hi.NonText                 = { bright.bg }
 	hi.MatchParen              = { normal[secondary], dark[secondary], "bold" }
 
-	hi.Comment                 = { dark[secondary] }
+	hi.Comment                 = { dark[secondary], nil, "italic" }
 	hi.Constant                = { normal[secondary] }
 
 	hi.Identifier              = { normal.fg }

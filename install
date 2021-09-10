@@ -20,6 +20,17 @@ else
 	fd:close()
 end
 
+local cc = os.getenv("CC")
+if not cc then
+	io.stderr:write("No c complier found ($CC is not defined)\n")
+	os.exit(1)
+end
+
+print("Compiling ps1Getter.c")
+local pipe = io.popen(subEnvVar "$CC -O3 -o ps1 ps1Getter.c")
+pipe:read("*a")
+pipe:close()
+
 do -- remove old links
 	local fd = io.open(dotFileDir .. ".prev_locations.txt", "r")
 	if fd then

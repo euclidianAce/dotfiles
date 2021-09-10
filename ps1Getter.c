@@ -89,7 +89,7 @@ static struct winsize w;
 		{ body } \
 	} while (0)
 
-size_t compute_length() {
+size_t compute_length(void) {
 	size_t result = 0;
 	FOR_EACH_COMPONENT(i, comp, {
 		result += comp->len;
@@ -185,7 +185,7 @@ int main(void) {
 	return 0;
 }
 
-static void setup_time_component() {
+static void setup_time_component(void) {
 	Component *time_component = next_component();
 	time_t now = time(0);
 	struct tm *timeinfo = localtime(&now);
@@ -194,7 +194,7 @@ static void setup_time_component() {
 	time_component->color = ANSI_GRAY;
 }
 
-static void setup_username_component() {
+static void setup_username_component(void) {
 	Component *username_component = next_component();
 	char hostname_buf[MAX_COMPONENT_LENGTH] = {0};
 	if (gethostname(hostname_buf, MAX_COMPONENT_LENGTH) == -1) {
@@ -217,7 +217,7 @@ static void setup_username_component() {
 	}
 }
 
-static void setup_cwd_component() {
+static void setup_cwd_component(void) {
 	static const size_t minlen = 7;
 	const size_t maxlen = w.ws_col / 2;
 
@@ -266,7 +266,7 @@ static void setup_cwd_component() {
 	}
 }
 
-static void setup_git_branch_component() {
+static void setup_git_branch_component(void) {
 	static char branch[MAX_COMPONENT_LENGTH] = {0};
 	FILE *pipe = popen("git branch --show-current 2>/dev/null", "r");
 	if (!pipe) {

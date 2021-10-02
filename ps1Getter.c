@@ -69,10 +69,10 @@ static inline void strcpy_component(Component *comp, const char *src) {
 
 static inline void put_color(Ansi_Color col) { printf("\\[" ESC "%dm\\]", col); }
 
-static void setup_time_component();
-static void setup_username_component();
-static void setup_cwd_component();
-static void setup_git_branch_component();
+static void setup_time_component(void);
+static void setup_username_component(void);
+static void setup_cwd_component(void);
+static void setup_git_branch_component(void);
 static const char *username;
 
 static Ansi_Color line_color = ANSI_CYAN;
@@ -266,13 +266,18 @@ static void setup_cwd_component(void) {
 	}
 }
 
-static void setup_git_branch_component(void) {
-	static char branch[MAX_COMPONENT_LENGTH] = {0};
-	FILE *pipe = popen("git branch --show-current 2>/dev/null", "r");
+static FILE *popen_or_exit(char const *command, char const *type) {
+	FILE *pipe = popen(command, type);
 	if (!pipe) {
 		perror("popen");
 		exit(EXIT_FAILURE);
 	}
+	return pipe;
+}
+
+static void setup_git_branch_component(void) {
+	static char branch[MAX_COMPONENT_LENGTH] = {0};
+	FILE *pipe = popen_or_exit("git branch --show-current 2>/dev/null", "r");
 
 	size_t i = 0;
 	char c;
@@ -284,6 +289,18 @@ static void setup_git_branch_component(void) {
 
 	if (pclose(pipe) != 0)
 		return;
+
+	if (i == 0) {
+		// git branch --show-current shows nothing with a detached head
+		pipe = popen_or_exit("git rev-parse --short HEAD", "r");
+		while ((c = getc(pipe)) != EOF) {
+			if (c == '\n')
+				break;
+			branch[i++] = c;
+		}
+		if (pclose(pipe) != 0)
+			return;
+	}
 
 	Component *git_component = next_component();
 	sprintf_component(git_component, "* %s", branch);

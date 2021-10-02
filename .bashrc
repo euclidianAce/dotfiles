@@ -73,9 +73,9 @@ function update_ps1 {
 update_ps1
 PROMPT_COMMAND=update_ps1
 
-# if [[ -z $TMUX && -z $NO_TMUX ]]; then
-	# exec tmux
-# fi
+if [[ -z $TMUX && -z $NO_TMUX ]]; then
+	exec tmux
+fi
 
 # This is silly
 # if [[ -z $NVIM_STARTED ]]; then

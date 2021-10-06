@@ -53,7 +53,7 @@ done
 #### PS1 STUFFS ####
 ####################
 
-# offload getting ps1 to lua script
+# offload getting ps1 to script
 SET_DEFAULT_PS1=0
 export MY_PS1=$PS1
 function ps1swap {
@@ -65,7 +65,7 @@ function update_ps1 {
 		return 0
 	fi
 
-	PS1=$($DOTFILE_DIR/ps1 2> /tmp/ps1ErrLog.log)
+	PS1=$($DOTFILE_DIR/ps1-bash 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$MY_PS1
 	fi

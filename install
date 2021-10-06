@@ -27,9 +27,16 @@ if not cc then
 end
 
 print("Compiling ps1Getter.c")
-local pipe = io.popen(subEnvVar "$CC -O3 -o ps1 ps1Getter.c")
-pipe:read("*a")
-pipe:close()
+do
+	local pipe = io.popen(subEnvVar "$CC -O3 -o ps1 ps1Getter.c")
+	pipe:read("*a")
+	pipe:close()
+end
+do
+	local pipe = io.popen(subEnvVar "$CC -O3 -o ps1-bash -DBASH ps1Getter.c")
+	pipe:read("*a")
+	pipe:close()
+end
 
 do -- remove old links
 	local fd = io.open(dotFileDir .. ".prev_locations.txt", "r")

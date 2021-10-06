@@ -51,7 +51,11 @@ typedef struct {
 	char data[MAX_COMPONENT_LENGTH];
 } Component;
 
+#ifdef BASH
 #define CMP_FMT "\\[" ESC "%dm\\]%.*s\\[" ESC "0m\\]"
+#else
+#define CMP_FMT ESC "%dm%.*s" ESC "0m"
+#endif
 #define CMP_ARG(cmp) (int)(cmp).color, (int)(cmp).len, (cmp).data
 
 static size_t sprintf_component(Component *comp, const char *fmt, ...) {
@@ -67,7 +71,13 @@ static inline void strcpy_component(Component *comp, const char *src) {
 		*dest = *src;
 }
 
-static inline void put_color(Ansi_Color col) { printf("\\[" ESC "%dm\\]", col); }
+static inline void put_color(Ansi_Color col) {
+#ifdef BASH
+	printf("\\[" ESC "%dm\\]", col);
+#else
+	printf(ESC "%dm", col);
+#endif
+}
 
 static void setup_time_component(void);
 static void setup_username_component(void);
@@ -97,7 +107,7 @@ size_t compute_length(void) {
 	return result;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
 	username = getenv("USER");
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) != 0) {
 		perror("ioctl");

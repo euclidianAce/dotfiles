@@ -106,7 +106,7 @@ set(vim.opt, {
 plugreq "package-manager"
 plugreq "floatterm" {
 	toggle = "",
-	shell = "bash",
+	shell = windows and "nu" or "bash",
 	termopenOpts = { env = { FLOATTERM = 1 } },
 }
 plugreq "scripter" {

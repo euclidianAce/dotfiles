@@ -1,19 +1,10 @@
+local color <const> = require("euclidian.lib.color")
+local Color <const> = color.Color
+local ColorName <const> = color.ColorName
+local Gradient <const> = color.Gradient
+local Palette <const> = color.Palette
 
-local enum Color
-	"fg"
-	"bg"
-	"gray"
-	"red"
-	"green"
-	"yellow"
-	"blue"
-	"purple"
-	"orange"
-end
-local type Palette = {Color:integer}
-local type Gradient = {integer, integer, integer}
-
-local p <const>: {Color:Gradient} = {
+local p <const>: {ColorName:Gradient} = {
 	bg     = { 0x16131F, 0x181520, 0x2B2735 },
 	fg     = { 0x817998, 0xD8CEE4, 0xEFEFEF },
 	blue   = { 0x395081, 0x799AE0, 0xAAC3FD },
@@ -25,7 +16,7 @@ local p <const>: {Color:Gradient} = {
 	yellow = { 0xB5AA60, 0xD5C876, 0xF0E7AC },
 }
 
-local function extract(grads: {Color:Gradient}, idx: integer): Palette
+local function extract(grads: {ColorName:Gradient}, idx: integer): Palette
 	local res <const> = {}
 	for k, v in pairs(grads) do
 		res[k] = v[idx]
@@ -37,7 +28,6 @@ local dark <const> = extract(p, 1)
 local normal <const> = extract(p, 2)
 local bright <const> = extract(p, 3)
 
-local color <const> = require("euclidian.lib.color")
 local hi <const> = color.scheme.hi
 
 local min <const>, max <const> = math.min, math.max
@@ -46,7 +36,7 @@ local function clamp<T>(n: T, a: number, b: number): T
 end
 
 local darkenFactor <const> = 128
-local function invert(fgColor: integer): color.Color
+local function invert(fgColor: integer): Color
 	local r <const>, g <const>, b <const> = color.hexToRgb(fgColor)
 	return {
 		color.rgbToHex(
@@ -59,10 +49,10 @@ local function invert(fgColor: integer): color.Color
 end
 
 local function applyHighlights(
-	primary: Color,
-	primaryComplement: Color,
-	secondary: Color,
-	secondaryComplement: Color
+	primary: ColorName,
+	primaryComplement: ColorName,
+	secondary: ColorName,
+	secondaryComplement: ColorName
 )
 	vim.g.colors_name = "euclidian"
 	primary = primary or "fg"

@@ -1,17 +1,8 @@
-
-local Color = {}
-
-
-
-
-
-
-
-
-
-
-local Palette = {}
-local Gradient = {}
+local color = require("euclidian.lib.color")
+local Color = color.Color
+local ColorName = color.ColorName
+local Gradient = color.Gradient
+local Palette = color.Palette
 
 local p = {
    bg = { 0x16131F, 0x181520, 0x2B2735 },
@@ -37,7 +28,6 @@ local dark = extract(p, 1)
 local normal = extract(p, 2)
 local bright = extract(p, 3)
 
-local color = require("euclidian.lib.color")
 local hi = color.scheme.hi
 
 local min, max = math.min, math.max

@@ -2,8 +2,25 @@
 local nvim = require("euclidian.lib.nvim")
 
 local Color = {}
+local ColorName = {}
+
+
+
+
+
+
+
+
+
+
+local Palette = {}
+local Gradient = {}
+
 local color = {
    Color = Color,
+   ColorName = ColorName,
+   Palette = Palette,
+   Gradient = Gradient,
    scheme = {
       hi = {},
       groups = nil,

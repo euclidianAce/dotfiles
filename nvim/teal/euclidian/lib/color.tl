@@ -2,8 +2,25 @@
 local nvim <const> = require("euclidian.lib.nvim")
 
 local type Color = {integer, integer, string}
+local enum ColorName
+	"fg"
+	"bg"
+	"gray"
+	"red"
+	"green"
+	"yellow"
+	"blue"
+	"purple"
+	"orange"
+end
+local type Palette = {ColorName:integer}
+local type Gradient = {integer, integer, integer}
+
 local color <const> = {
 	Color = Color,
+	ColorName = ColorName,
+	Palette = Palette,
+	Gradient = Gradient,
 	scheme = {
 		hi: {string:Color} = {},
 		groups: function(): (function(): string, integer, integer, string) = nil,

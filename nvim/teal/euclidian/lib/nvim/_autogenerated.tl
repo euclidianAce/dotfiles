@@ -38,6 +38,8 @@ local record Buffer
 	isLoaded: function(Buffer): boolean
 	delete: function(Buffer, {string:any})
 	isValid: function(Buffer): boolean
+	delMark: function(Buffer, string): boolean
+	setMark: function(Buffer, string, integer, integer): boolean
 	getMark: function(Buffer, string): {integer,integer}
 	getExtmarkById: function(Buffer, integer, integer, {string:any}): {integer}
 	getExtmarks: function(Buffer, integer, any, any, {string:any}): {any}
@@ -242,6 +244,7 @@ local record Window
 		"foldtext"
 		"listchars"
 		"rightleftcmd"
+		"showbreak"
 		"signcolumn"
 		"statusline"
 		"winhighlight"

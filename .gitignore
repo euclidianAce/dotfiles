@@ -4,6 +4,7 @@ nvim/plugged
 nvim/ftdetect
 nvim/syntax
 nvim/teal-types
+nvim/.scripter
 .netrwhist
 nvim/.last_nvim_commit
 ps1

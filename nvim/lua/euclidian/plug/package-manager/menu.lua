@@ -1,6 +1,7 @@
 
 local dialog = require("euclidian.lib.dialog")
 local z = require("euclidian.lib.async.zig")
+local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 
 
@@ -52,8 +53,6 @@ local function waitForKey(d, ...)
    end))
    return pressed
 end
-
-local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 function accordionMt.__call(self, opts)
    local d = dialog.new(opts)

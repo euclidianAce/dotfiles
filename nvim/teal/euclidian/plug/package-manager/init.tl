@@ -60,7 +60,7 @@ function packagemanager._reload()
 			req "euclidian.plug.package-manager"
 			report.msg("reloaded!")
 			done = true
-		end),
+		end) as function(integer),
 	}
 	repeat vim.wait(10)
 	until done

@@ -1,6 +1,7 @@
 
 local dialog <const> = require("euclidian.lib.dialog")
 local z <const> = require("euclidian.lib.async.zig")
+local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 -- TODO: find a way to make this generic over the function return so
 --       run can return the result of the function with the correct type
@@ -49,11 +50,9 @@ local function waitForKey(d: dialog.Dialog, ...: string): string
 				z.resume(me)
 			end, keyopts)
 		end
-	end))
+	end) as function(): nil)
 	return pressed
 end
-
-local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 function accordionMt.__call(self: Accordion, opts: dialog.Dialog.Opts): any...
 	local d <const> = dialog.new(opts)

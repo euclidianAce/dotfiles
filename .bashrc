@@ -73,8 +73,17 @@ function update_ps1 {
 update_ps1
 PROMPT_COMMAND=update_ps1
 
+function find-detached-session {
+	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
+	if [[ -z "$s" ]]; then
+		echo "tmux"
+	else
+		echo "tmux attach -t $s"
+	fi
+}
+
 if [[ -z $TMUX && -z $NO_TMUX ]]; then
-	exec tmux
+	exec $(find-detached-session)
 fi
 
 # This is silly

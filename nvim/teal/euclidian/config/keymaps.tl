@@ -147,6 +147,45 @@ map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
+map({"i","n"}, "<M-n>", function()
+	local win <const>, buf <const> = nvim.winBuf()
+	local cursorPos <const> = win:getCursor()
+	local line <const> = buf:getLines(cursorPos[1] - 1, cursorPos[1], false)[1]
+
+	local cursor_word = { line:find("%S+", cursorPos[2]) }
+		as {integer, integer}
+	if not cursor_word[1] then return end
+
+	local prev_word = { line:sub(1, cursor_word[1]):find("%S+()%s*()%S+$") }
+		as {integer, integer, integer, integer}
+
+	local c_range <const> = { line:sub(prev_word[4], -1):find("%S+") }
+	c_range[1] = c_range[1] + prev_word[4] - 1
+	c_range[2] = c_range[2] + prev_word[4] - 1
+	local p_range <const> = { prev_word[1], prev_word[3] - 1 }
+
+	local row <const> = cursorPos[1] - 1
+	buf:setText(
+		row,
+		c_range[1]-1,
+		row,
+		c_range[2],
+		{ line:sub(p_range[1], p_range[2]) }
+	)
+
+	buf:setText(
+		row,
+		p_range[1]-1,
+		row,
+		p_range[2],
+		{ line:sub(c_range[1], c_range[2]) }
+	)
+
+	local mode = vim.api.nvim_get_mode().mode as string
+	local pos <const> = {cursorPos[1], c_range[2] - (mode == "i" and 0 or 1)}
+	win:setCursor(pos)
+end)
+
 map("n", "<leader>head", function()
 	local buf <const> = nvim.Buffer()
 	local lines = buf:getLines(0, -1, false)

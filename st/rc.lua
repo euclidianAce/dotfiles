@@ -10,6 +10,7 @@ st.font = "Ubuntu Mono:size=12:antialias=true"
 -- st.font = "cozette:size=11:antialias=true"
 
 st.borderpx = 4
+st.cursorthickness = 1
 
 st.colorname = {
 	"#181520",

@@ -5,16 +5,19 @@ local ansi <const> = require("cyan.ansi")
 
 local logCmd <const> = log.create_logger(
 	io.stdout,
+	"normal",
 	cs.highlight({ansi.color.dark.green}, "Cmd Out")
 )
 
 local logCmdCont <const> = log.create_logger(
 	io.stdout,
+	"normal",
 	cs.highlight({ansi.color.dark.green}, "...")
 )
 
 local info <const> = log.create_logger(
 	io.stdout,
+	"normal",
 	cs.highlight({ansi.color.bright.blue}, "Nvim Gen"),
 	cs.highlight({ansi.color.bright.blue}, "...")
 )

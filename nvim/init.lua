@@ -62,7 +62,8 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "a:block",
+	guicursor = "i-c:ver1,o:hor1",
+	-- guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -86,7 +87,7 @@ set(vim.opt, {
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
-	listchars = { tab = "  |", precedes = "<", extends = ">", nbsp = "+" },
+	listchars = { tab = "   ", space = "·", precedes = "<", extends = ">", nbsp = "+" },
 	fillchars = { fold = " ", vert = " " },
 	inccommand = "nosplit",
 	laststatus = 2,
@@ -115,7 +116,7 @@ plugreq "scripter" {
 
 if not windows then
 	-- Treesitter is finicky on windows
-	local tsLangs = { "teal", "lua", "javascript", "c", "query", "cpp", "nix" }
+	local tsLangs = { "teal", "lua", "javascript", "c", "query", "nix" }
 	require("nvim-treesitter.configs").setup{
 		ensure_installed = tsLangs,
 		highlight = { enable = tsLangs },

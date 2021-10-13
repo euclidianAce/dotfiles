@@ -1,4 +1,5 @@
 
+local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 local z = require("euclidian.lib.async.zig")
 local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
@@ -6,6 +7,18 @@ local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 
 local Accordion = {}
+
+
+
+
+
+
+
+
+
+local Modifiable = {Item = {}, }
+
+
 
 
 
@@ -25,6 +38,14 @@ function new.accordion(items)
       expanded_prefix = "- ",
       unexpanded_prefix = "+ ",
    }, accordionMt)
+end
+
+local modifiableMt = { __index = Modifiable }
+
+function new.modifiable(items)
+   return setmetatable({
+      items = items,
+   }, modifiableMt)
 end
 
 local menu = {
@@ -149,6 +170,96 @@ function accordionMt.__call(self, opts)
          return
       end
    end
+end
+
+local function longestLength(arr)
+   local longest = 0
+   for _, v in ipairs(arr) do
+      local len = #(v)
+      if len > longest then
+         longest = len
+      end
+   end
+   return longest
+end
+
+function modifiableMt.__call(self, opts)
+   local d = dialog.new(opts)
+
+   local function render()
+      local lines = {}
+      for i, item in ipairs(self.items) do
+         lines[i] = item.name .. ": " .. tostring(item.value)
+      end
+      d:setLines(lines)
+   end
+
+   local function editDialog(item, resume)
+      local editor = dialog.new({
+         wid = 1,
+         hei = 1,
+         centered = true,
+         interactive = true,
+         ephemeral = true,
+      })
+      local lines = {
+         "(Name): " .. item.name,
+         "(Old Value): " .. tostring(item.value),
+      }
+      local width = longestLength(lines) + 10
+      editor:setLines(lines)
+      editor:buf():attach(false, {
+         on_lines = function()
+            editor:fitTextPadded(1, 0, width, 3, nil, nil):centerHorizontal()
+         end,
+      })
+      editor:fitText(width, 2):centerHorizontal()
+      local close = vim.schedule_wrap(function()
+         nvim.command("stopinsert")
+         editor:close()
+         z.resume(resume)
+      end)
+      local function accept(input)
+         item.value = input
+         close()
+      end
+      editor:setPrompt(
+      "(New Value): ",
+      function(input)
+         if item.validator then
+            local ok, err = item.validator(input)
+            if ok then
+               accept(input)
+            else
+               vim.api.nvim_err_writeln(
+               ("Invalid input for item %q: %s"):format(item.name, tostring(err)))
+
+               vim.schedule(function()
+                  editor:setLines(lines)
+               end)
+            end
+         else
+            accept(input)
+         end
+      end,
+      close)
+
+   end
+
+   while true do
+      render()
+      local pressed = waitForKey(d, "<cr>", "<bs>")
+      if pressed == "<cr>" then
+         local row = d:getCursor()
+         z.suspend(function(me)
+            editDialog(self.items[row], me)
+         end)
+      elseif pressed == "<bs>" then
+         break
+      end
+   end
+
+   d:close()
 end
 
 return menu

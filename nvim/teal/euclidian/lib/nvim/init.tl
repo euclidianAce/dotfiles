@@ -170,6 +170,11 @@ function nvim.createBuf(listed: boolean, scratch: boolean): nvim.Buffer
 	return nvim.Buffer(a.nvim_create_buf(listed, scratch))
 end
 
+function nvim.winBuf(n: integer): nvim.Window, nvim.Buffer
+	local win <const> = nvim.Window(n)
+	return win, nvim.Buffer(win:getBuf())
+end
+
 function nvim.command(fmt: string, ...: any)
 	a.nvim_command(string.format(fmt, ...))
 end

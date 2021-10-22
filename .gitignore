@@ -1,11 +1,5 @@
 awesome/customWidgets/wificonfig.lua
 .prev_locations.txt
-nvim/plugged
-nvim/ftdetect
-nvim/syntax
-nvim/teal-types
-nvim/.scripter
 .netrwhist
-nvim/.last_nvim_commit
 ps1
 ps1-bash

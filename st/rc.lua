@@ -1,4 +1,3 @@
-
 -- st.font = "Fantasque Sans Mono:size=14:bold=false:antialias=true"
 -- st.font = "FiraCode Light:size=12:antialias=true"
 -- st.font = "Fixedsys Excelsior:size=12:antialias=false:bold=false" -- this has problems with width
@@ -10,7 +9,8 @@ st.font = "Ubuntu Mono:size=12:antialias=true"
 -- st.font = "cozette:size=11:antialias=true"
 
 st.borderpx = 4
-st.cursorthickness = 1
+st.barcursorwidth = 1
+st.blinktimeout = 100
 
 st.colorname = {
 	"#181520",
@@ -32,7 +32,18 @@ st.colorname = {
 	"white",
 }
 
-st.shortcuts = {
-	{ mod.crtl, key.Up, function() term.zoom(2) end },
-	{ mod.crtl, key.Down, function() term.zoom(-2) end },
-}
+local function updatecursor()
+	st.underlinecursorheight = math.floor(term.usedfontsize() / 8 + 3)
+end
+
+updatecursor()
+
+st.keymap(mod.crtl, key.Up, function()
+	term.zoom(1)
+	updatecursor()
+end)
+
+st.keymap(mod.crtl, key.Down, function()
+	term.zoom(-1)
+	updatecursor()
+end)

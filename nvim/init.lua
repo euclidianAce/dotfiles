@@ -62,7 +62,7 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver1,o:hor1",
+	guicursor = "i-c:ver10,o:hor10",
 	-- guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",

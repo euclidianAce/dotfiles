@@ -7,6 +7,7 @@ local packagespec <const> = require("euclidian.plug.package-manager.packagespec"
 local report <const> = require("euclidian.plug.package-manager.report")
 local set <const> = require("euclidian.plug.package-manager.set")
 local tu <const> = require("euclidian.lib.textutils")
+-- local validate <const> = require("euclidian.lib.validate")
 local z <const> = require("euclidian.lib.async.zig")
 
 local type NilFrame = z.Frame<nil>
@@ -459,7 +460,7 @@ actions.configure = createDialog(function(d: Dialog)
 	if err then
 		-- TODO: allow some sort of recovery
 		d:setLines{ "There was an error loading your config:", err }
-		waitForKey(d, "<cr>")
+		waitForKey(d, "<cr>", "<bs>")
 		d:close()
 		return
 	end
@@ -513,6 +514,15 @@ actions.configure = createDialog(function(d: Dialog)
 			;(cfg as table)[field] = numResult as integer
 		end
 	end
+
+	-- local checkInt <const> = validate.type("number") + validate.new(function(val: any): boolean, string
+		-- if math.floor(val as number) ~= val then
+			-- return false, tostring(val) .. " is not an integer"
+		-- end
+		-- return true
+	-- end)
+	-- local checkUint <const> = checkInt + validate.range(0, math.huge)
+	-- local checkString <const> = validate.type("string")
 
 	local function appendToStringListHandler(prefix: string, field: string): function()
 		return function()

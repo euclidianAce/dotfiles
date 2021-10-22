@@ -7,6 +7,7 @@ local packagespec = require("euclidian.plug.package-manager.packagespec")
 local report = require("euclidian.plug.package-manager.report")
 local set = require("euclidian.plug.package-manager.set")
 local tu = require("euclidian.lib.textutils")
+
 local z = require("euclidian.lib.async.zig")
 
 local NilFrame = {}
@@ -459,7 +460,7 @@ actions.configure = createDialog(function(d)
    if err then
 
       d:setLines({ "There was an error loading your config:", err })
-      waitForKey(d, "<cr>")
+      waitForKey(d, "<cr>", "<bs>")
       d:close()
       return
    end
@@ -513,6 +514,15 @@ actions.configure = createDialog(function(d)
          (cfg)[field] = numResult
       end
    end
+
+
+
+
+
+
+
+
+
 
    local function appendToStringListHandler(prefix, field)
       return function()

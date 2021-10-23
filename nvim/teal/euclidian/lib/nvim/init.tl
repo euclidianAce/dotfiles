@@ -1,4 +1,3 @@
-
 local a <const> = vim.api
 
 local function failsafe<Args..., Rets...>(f: (function(Args): Rets), err_prefix: string): function(Args): Rets
@@ -57,6 +56,18 @@ end
 local function genMetatable<T>(t: T, prefix: string): metatable<T>
 	local cache <const>: {integer:T} = setmetatable({}, { __mode = "kv" })
 	local api <const> = vim.api as {string:function}
+	local index <const> = setmetatable({}, {
+		__index = function(self: {string:function}, key: string): function
+			local fn <const> = api["nvim_" .. prefix .. "_" .. unCamel(key)]
+			if fn then
+				local wrapped <const> = function(self: {string:integer}, ...: any): any
+					return fn(self.id, ...)
+				end
+				rawset(self, key, wrapped)
+				return wrapped
+			end
+		end
+	})
 	return {
 		__name = "nvim." .. prefix,
 		__call = function(_: T, n: integer): T
@@ -68,12 +79,7 @@ local function genMetatable<T>(t: T, prefix: string): metatable<T>
 			end
 			return cache[n]
 		end,
-		__index = function(_: {string:function}, key: string): function
-			local fn <const> = api["nvim_" .. prefix .. "_" .. unCamel(key)]
-			return fn and function(self: {string:integer}, ...: any): any
-				return fn(self.id, ...)
-			end
-		end,
+		__index = index,
 		__eq = function(self: any, other: any): boolean
 			if not (self is table) or not (other is table) then
 				return false

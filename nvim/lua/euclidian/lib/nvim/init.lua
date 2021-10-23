@@ -1,4 +1,3 @@
-
 local a = vim.api
 
 local function failsafe(f, err_prefix)
@@ -57,6 +56,18 @@ end
 local function genMetatable(t, prefix)
    local cache = setmetatable({}, { __mode = "kv" })
    local api = vim.api
+   local index = setmetatable({}, {
+      __index = function(self, key)
+         local fn = api["nvim_" .. prefix .. "_" .. unCamel(key)]
+         if fn then
+            local wrapped = function(self, ...)
+               return fn(self.id, ...)
+            end
+            rawset(self, key, wrapped)
+            return wrapped
+         end
+      end,
+   })
    return {
       __name = "nvim." .. prefix,
       __call = function(_, n)
@@ -68,12 +79,7 @@ local function genMetatable(t, prefix)
          end
          return cache[n]
       end,
-      __index = function(_, key)
-         local fn = api["nvim_" .. prefix .. "_" .. unCamel(key)]
-         return fn and function(self, ...)
-            return fn(self.id, ...)
-         end
-      end,
+      __index = index,
       __eq = function(self, other)
          if not (type(self) == "table") or not (type(other) == "table") then
             return false

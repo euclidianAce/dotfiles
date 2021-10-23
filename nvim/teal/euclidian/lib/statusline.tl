@@ -1,4 +1,3 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 
 local function set<T>(t: {T}): {T:boolean}

@@ -7,6 +7,7 @@ local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.package-manager
 -- TODO: find a way to make this generic over the function return so
 --       run can return the result of the function with the correct type
 local record Accordion
+	-- TODO: allow an item to be just a string
 	type Item = {string, {Item} | function(): any...}
 	items: {Item}
 	item_prefix: string

@@ -34,28 +34,30 @@ stl.add(active, inactive, function(): string
 end, stl.higroup)
 
 -- {{{ Teehee funi speeeen
--- local idx = 1
--- local loop <const> = {
-	-- "⠏ ", "⠋ ",
-	-- "⠙ ", "⠹ ",
-	-- "⠸ ", "⠼ ",
-	-- "⠴ ", "⠦ ",
-	-- "⠧ ", "⠇ ",
--- }
+-- do
+	-- local idx = 1
+	-- local loop <const> = {
+		-- "⠏ ", "⠋ ",
+		-- "⠙ ", "⠹ ",
+		-- "⠸ ", "⠼ ",
+		-- "⠴ ", "⠦ ",
+		-- "⠧ ", "⠇ ",
+	-- }
 
--- stl.add(active, inactive, function(): string
-	-- return loop[idx]
--- end, stl.higroup)
+	-- stl.add(active, inactive, function(): string
+		-- return loop[idx]
+	-- end, stl.higroup)
 
--- local uv = vim.loop
--- local t = uv.new_timer()
--- t:start(100, 75, function()
-	-- idx = idx + 1
-	-- if idx > #loop then
-		-- idx = 1
-	-- end
-	-- vim.schedule(stl.updateWindow)
--- end)
+	-- local uv = vim.loop
+	-- local t = uv.new_timer()
+	-- t:start(100, 75, function()
+		-- idx = idx + 1
+		-- if idx > #loop then
+			-- idx = 1
+		-- end
+		-- vim.schedule(stl.updateWindow)
+	-- end)
+-- end
 -- }}}
 -- git stuffs {{{
 local gitActive <const>, gitInactive <const> = {"Git"}, {"Inactive"}
@@ -139,8 +141,7 @@ stl.add(inactive, active, " %= ", "StatusLineNC")
 local insFmt <const> = tu.insertFormatted
 local minWid <const> = 100
 stl.add(alwaysActive, empty, function(winid: integer): string
-	local win <const> = nvim.Window(winid)
-	local buf <const> = nvim.Buffer(win:getBuf())
+	local win <const>, buf <const> = nvim.winBuf(winid)
 
 	local wid <const> = win:getWidth()
 	local line <const>, col <const> = unpack(win:getCursor())

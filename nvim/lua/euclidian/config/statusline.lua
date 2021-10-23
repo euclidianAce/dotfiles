@@ -58,6 +58,8 @@ end, stl.higroup)
 
 
 
+
+
 local gitActive, gitInactive = { "Git" }, { "Inactive" }
 local maxBranchWid = 20
 local currentBranch = ""
@@ -139,8 +141,7 @@ stl.add(inactive, active, " %= ", "StatusLineNC")
 local insFmt = tu.insertFormatted
 local minWid = 100
 stl.add(alwaysActive, empty, function(winid)
-   local win = nvim.Window(winid)
-   local buf = nvim.Buffer(win:getBuf())
+   local win, buf = nvim.winBuf(winid)
 
    local wid = win:getWidth()
    local line, col = unpack(win:getCursor())

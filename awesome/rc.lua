@@ -86,7 +86,7 @@ local tags = {"1","2","3","4"}
 
 awful.screen.connect_for_each_screen(function(s)
 	local spacer = wibox.widget.textbox("  ")
-	s.clock = wibox.widget.textclock()
+	s.clock = wibox.widget.textclock(" %a %b %d, %I:%M %p")
 	s.cpu = require("customWidgets.cpugraph")
 	s.ram = require("customWidgets.ramgraph")
 	s.wifi = require("customWidgets.wifi")

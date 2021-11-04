@@ -135,8 +135,8 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 	return " %f %m%r%h%w"
 end, "STLFname", true)
 
-stl.add(active, inactive, " %= ", "StatusLine")
-stl.add(inactive, active, " %= ", "StatusLineNC")
+stl.add(active, inactive, " %= 🌌🐢🌌 %= ", "StatusLine")
+stl.add(inactive, active, " %= 🌌🐢🌌 %= ", "StatusLineNC")
 
 local insFmt <const> = tu.insertFormatted
 local minWid <const> = 100

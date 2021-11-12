@@ -39,8 +39,7 @@ nvim.command[[colorscheme euclidian]]
 nvim.command[[filetype indent on]]
 nvim.command[[syntax enable]]
 
-hi.TrailingSpace = hi.Error
-nvim.command[[match TrailingSpace /\s\+$/]]
+plugreq"spacehighlighter".enable()
 
 local function set(t, options)
 	for opt, val in pairs(options) do
@@ -62,7 +61,7 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver10,o-r-v:hor10",
+	guicursor = "i-c:ver10,o-r-v:hor10,a:blinkoff250-blinkon250-Cursor",
 	-- guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
@@ -109,6 +108,9 @@ plugreq "floatterm" {
 	toggle = "",
 	shell = windows and "nu" or "bash",
 	termopenOpts = { env = { FLOATTERM = 1 } },
+
+	row = 1,
+	centered = { horizontal = true },
 }
 plugreq "scripter" {
 	open = "<leader>lua",

@@ -7,6 +7,21 @@
 ##  ##   ## #   ##        # #     # #       #     #
 ##  ######   ###  # ######  #     # #        #####
 
+# cursor blink
+echo -ne "\x1b[\x30 q"
+
+function find-detached-session {
+	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
+	if [[ -z "$s" ]]; then
+		echo "tmux"
+	else
+		echo "tmux attach -t $s"
+	fi
+}
+
+if [[ -z $TMUX && -z $NO_TMUX ]]; then
+	exec $(find-detached-session)
+fi
 
 shopt -s autocd # Automatically does a cd when you type a directory
 shopt -s checkwinsize # resize window automatically after each command
@@ -39,7 +54,7 @@ if ! [[ "$SHELL" =~ /nix/store.* ]]; then
 fi
 
 # xterm-kitty doesn't work over ssh
-export TERM=xterm-256color
+# export TERM=xterm-256color
 
 #################
 #### ALIASES ####
@@ -56,6 +71,7 @@ done
 # offload getting ps1 to script
 SET_DEFAULT_PS1=0
 export MY_PS1=$PS1
+export PS2=" \[\e[90m\]│\[\e[0m\] "
 function ps1swap {
 	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
 }
@@ -72,24 +88,3 @@ function update_ps1 {
 }
 update_ps1
 PROMPT_COMMAND=update_ps1
-
-function find-detached-session {
-	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
-	if [[ -z "$s" ]]; then
-		echo "tmux"
-	else
-		echo "tmux attach -t $s"
-	fi
-}
-
-if [[ -z $TMUX && -z $NO_TMUX ]]; then
-	exec $(find-detached-session)
-fi
-
-# This is silly
-# if [[ -z $NVIM_STARTED ]]; then
-# 	export NVIM_STARTED=1
-# 	exec nvim "+term" "+startinsert"
-# else
-# 	alias nvim="echo no;# "
-# fi

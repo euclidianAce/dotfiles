@@ -29,17 +29,11 @@ end
 
 hi = libreq("color").scheme.hi
 
-libreq("printmode")
-	.set("inspect")
-	.override()
-
 local nvim = libreq("nvim")
 nvim.command[[colorscheme euclidian]]
 
 nvim.command[[filetype indent on]]
 nvim.command[[syntax enable]]
-
-plugreq"spacehighlighter".enable()
 
 local function set(t, options)
 	for opt, val in pairs(options) do
@@ -49,7 +43,6 @@ end
 
 set(vim.g, {
 	mapleader = " ",
-	no_man_maps = 1,
 	loaded_gzip = 1,
 	loaded_tar = 1,
 	loaded_tarPlugin = 1,
@@ -115,6 +108,13 @@ plugreq "floatterm" {
 plugreq "scripter" {
 	open = "<leader>lua",
 }
+plugreq "spacehighlighter"
+	.enable()
+libreq "printmode"
+	.set "inspect"
+	.override()
+plugreq "manfolder"
+
 
 if not windows then
 	-- Treesitter is finicky on windows

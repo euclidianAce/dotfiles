@@ -107,7 +107,7 @@ size_t compute_length(void) {
 	return result;
 }
 
-int main(int argc, char **argv) {
+int main(void) {
 	username = getenv("USER");
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) != 0) {
 		perror("ioctl");
@@ -200,7 +200,16 @@ static void setup_time_component(void) {
 	time_t now = time(0);
 	struct tm *timeinfo = localtime(&now);
 
-	sprintf_component(time_component, "%02d:%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	int hour = timeinfo->tm_hour % 12;
+	if (hour == 0) hour = 12;
+
+	sprintf_component(
+		time_component,
+		"%02d:%02d:%02d %s",
+		hour,
+		timeinfo->tm_min,
+		timeinfo->tm_sec,
+		timeinfo->tm_hour < 12 ? "AM" : "PM");
 	time_component->color = ANSI_GRAY;
 }
 

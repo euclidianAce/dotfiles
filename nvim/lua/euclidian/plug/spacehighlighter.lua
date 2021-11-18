@@ -18,7 +18,7 @@ local function enable()
                ephemeral = true,
                end_line = row,
                end_col = finish,
-               hl_group = "Error",
+               hl_group = "TrailingWhitespace",
             })
          end
 

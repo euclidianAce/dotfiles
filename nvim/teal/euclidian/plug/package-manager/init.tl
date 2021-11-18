@@ -44,7 +44,7 @@ function packagemanager._reload()
 		onExit = vim.schedule_wrap(function(code: integer)
 			if not code or code ~= 0 then
 				report.err("cyan build exited with code %s, did not reload", tostring(code))
-				local p <const> = require("euclidian.lib.printmode").printfn("buffer")
+				local p <const> = require("euclidian.plug.printmode").printfn("buffer")
 				for _, ln in ipairs(err) do
 					p((ln:gsub(string.char(27) .. "%[%d+m", "")))
 				end

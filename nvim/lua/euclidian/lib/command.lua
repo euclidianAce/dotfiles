@@ -75,7 +75,7 @@ local function spawn(opts)
    if stdout then stdout:read_start(lineReader(opts.onStdoutLine)) end
    if stderr then stderr:read_start(lineReader(opts.onStderrLine)) end
 
-   timeoutTimer:start(opts.timeout or 30e3, 0, closer)
+   timeoutTimer:start((opts.timeout or 30e3), 0, closer)
    return handle
 end
 

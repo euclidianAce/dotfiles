@@ -110,7 +110,7 @@ plugreq "scripter" {
 }
 plugreq "spacehighlighter"
 	.enable()
-libreq "printmode"
+plugreq "printmode"
 	.set "inspect"
 	.override()
 plugreq "manfolder"

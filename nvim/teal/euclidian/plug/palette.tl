@@ -180,6 +180,8 @@ local function applyHighlights(
 	hi.STLReplace              = invert(normal.red)
 	hi.STLTerminal             = invert(normal.orange)
 
+	hi.TrailingWhitespace      = { dark.red, dark.red }
+
 	local function hex(col: integer): string
 		return ("#%06X"):format(col)
 	end

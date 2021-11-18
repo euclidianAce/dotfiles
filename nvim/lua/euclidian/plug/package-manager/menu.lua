@@ -51,6 +51,7 @@ end
 
 local menu = {
    Accordion = Accordion,
+   Modifiable = Modifiable,
    new = new,
 }
 

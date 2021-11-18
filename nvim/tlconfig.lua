@@ -1,5 +1,6 @@
 return {
 	include_dir = { "teal", "teal/types" },
+	exclude = { "euclidian/lib/async/js.tl" },
 	global_env_def = "env",
 
 	gen_compat = "off",

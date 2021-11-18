@@ -153,10 +153,10 @@ local function applyHighlights(
 	hi.WildMenu                = { normal.bg, normal.yellow }
 
 	-- Lsp
-	hi.LspDiagnosticsDefaultError   = { bright.red }
-	hi.LspDiagnosticsDefaultHint    = { bright.fg }
-	hi.LspDiagnosticsDefaultInfo    = { bright.gray }
-	hi.LspDiagnosticsDefaultWarning = { bright.orange }
+	hi.DiagnosticSignError   = { bright.red }
+	hi.DiagnosticSignHint    = { bright.fg }
+	hi.DiagnosticSignInfo    = { bright.gray }
+	hi.DiagnosticSignWarning = { bright.orange }
 
 	-- Git stuffs
 	hi.DiffAdd                     = { dark.green }

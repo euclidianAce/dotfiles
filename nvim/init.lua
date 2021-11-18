@@ -91,9 +91,9 @@ set(vim.opt, {
 
 	list = true,
 	signcolumn = "yes:1",
-	numberwidth = 4,
-	number = true,
-	relativenumber = true,
+	-- numberwidth = 4,
+	-- number = true,
+	-- relativenumber = true,
 })
 
 plugreq "package-manager"
@@ -114,6 +114,10 @@ libreq "printmode"
 	.set "inspect"
 	.override()
 plugreq "manfolder"
+plugreq "opnum"
+	.add "<leader>c"
+	.add "<leader>a"
+	.enable()
 
 
 if not windows then

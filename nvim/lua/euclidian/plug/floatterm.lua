@@ -133,6 +133,12 @@ return setmetatable(floatterm, {
          overwrite = true,
       })
 
+      nvim.augroup("FloatTerm", {
+         { "QuitPre", nil,
+function() d:close() end,
+{ buffer = d:ensureBuf().id }, },
+      }, true)
+
       return self
    end,
 })

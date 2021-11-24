@@ -1,7 +1,7 @@
 -- st.font = "Fixedsys Excelsior:size=12:antialias=false:bold=false" -- this has problems with width
--- st.font = "Ubuntu Mono:size=12:antialias=true"
+st.font = "Ubuntu Mono:size=12:antialias=true"
 -- st.font = "Julia Mono:size=10:antialias=true"
-st.font = "terminus:size=12:antialias=true"
+-- st.font = "terminus:size=12:antialias=true"
 
 st.borderpx = 4
 st.barcursorwidth = 1

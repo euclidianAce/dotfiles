@@ -1,6 +1,7 @@
 
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
+local z = require("euclidian.lib.async.zig")
 local a = vim.api
 local uv = vim.loop
 
@@ -186,14 +187,26 @@ map({ "i", "n" }, "<M-n>", function()
    win:setCursor(pos)
 end)
 
-map("n", "<leader>head", function()
+local function asyncInput(opts)
+   local result
+   z.suspend(function(me)
+      vim.ui.input(opts, function(i)
+         result = i
+         z.resume(me)
+      end)
+   end)
+   return result
+end
+
+map("n", "<leader>head", z.asyncFn(function()
    local buf = nvim.Buffer()
    local lines = buf:getLines(0, -1, false)
    if #lines ~= 1 or lines[1] ~= "" then
       vim.api.nvim_err_writeln("Cannot insert header guard: Buffer is not empty")
       return
    end
-   local guard = vim.fn.input("Insert Header Guard: ")
+   local guard = asyncInput({ prompt = "Insert Header Guard: " })
+   if not guard then return end
    guard = guard:upper()
    if not guard:match("_H$") then
       guard = guard .. "_H"
@@ -204,7 +217,15 @@ map("n", "<leader>head", function()
       "",
       "#endif // " .. guard,
    })
-end)
+end))
+
+vim.ui.input = function(opts, confirm)
+   local quick = require("euclidian.lib.dialog.quick")
+   z.async(function()
+      local result = quick.prompt(opts.prompt)
+      confirm(result)
+   end)
+end
 
 do
    local function execBuffer(b)
@@ -333,7 +354,9 @@ do
                vim.schedule(function()
                   local newLn = (#head > 0 and head .. "/" or "") .. matches[1] .. "/"
                   input:setLines({ newLn })
-                  input:setCursor(1, #newLn)
+                  vim.schedule(function()
+                     input:setCursor(1, #newLn)
+                  end)
                end)
             else
                vim.schedule(function()

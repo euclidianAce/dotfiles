@@ -8,7 +8,7 @@ local Dialog = dialog.Dialog
 local Opts = dialog.Dialog.Opts
 
 function quick.prompt(txt, opts)
-   local origId = nvim.Window().id
+   local originalWindow = nvim.Window()
    local d = dialog.new(opts or {
       wid = 45, hei = 1,
       centered = true,
@@ -21,21 +21,29 @@ function quick.prompt(txt, opts)
          d:fitTextPadded(1, 0, 45, nil, nil, 1):centerHorizontal()
       end,
    })
-   d:addKeymap(
-   "n", "<esc>",
-   function() d:close() end,
-   { silent = true, noremap = true })
-
    local res
    z.suspend(function(me)
-      d:setPrompt(txt, function(result)
-         res = result
-         a.nvim_set_current_win(origId)
+      local function close()
          d:close()
          z.resume(me)
-      end)
+      end
+      d:addKeymap(
+      "n", "<esc>",
+      close,
+      { silent = true, noremap = true })
+
+      d:setPrompt(
+      txt,
+      function(result)
+         res = result
+         if originalWindow:isValid() then
+            a.nvim_set_current_win(originalWindow.id)
+         end
+         close()
+      end,
+      close)
+
    end)
-   d:unsetPrompt()
    return res
 end
 

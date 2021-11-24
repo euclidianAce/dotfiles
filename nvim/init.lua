@@ -86,14 +86,16 @@ set(vim.opt, {
 	scrolloff = 2,
 	virtualedit = "block",
 	foldmethod = "marker",
+	foldenable = true,
 
 	formatoptions = "lroj",
 
 	list = true,
+
 	signcolumn = "yes:1",
-	-- numberwidth = 4,
-	-- number = true,
-	-- relativenumber = true,
+	numberwidth = 4,
+	number = true,
+	relativenumber = true,
 })
 
 plugreq "package-manager"
@@ -114,11 +116,6 @@ plugreq "printmode"
 	.set "inspect"
 	.override()
 plugreq "manfolder"
-plugreq "opnum"
-	.add "<leader>c"
-	.add "<leader>a"
-	.enable()
-
 
 if not windows then
 	-- Treesitter is finicky on windows

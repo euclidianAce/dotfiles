@@ -19,14 +19,19 @@ local inactive <const> = {"Inactive"}
 local empty <const> = {}
 
 stl.add(alwaysActive, empty, function(winid: integer): string
-	local win <const> = nvim.Window(winid)
-	if not (win:getOption("number") or win:getOption("relativenumber")) then
-		return (" "):rep(6)
-	end
+	local win <const>, buf <const> = nvim.winBuf(winid)
 	-- make buffer number section line up with line number column
-	local spaces <const> = win:getOption("numberwidth")
-		+ tonumber(win:getOption("signcolumn"):match("yes:(%d+)")) as integer or 0
-	return tu.rightAlign(tostring(win:getBuf()), spaces) .. " "
+	local nu <const> = win:getOption("number")
+	local rnu <const> = win:getOption("relativenumber")
+	local scl <const> = win:getOption("signcolumn"):match("yes:(%d+)")
+
+	if not (nu or rnu or scl as boolean) then
+		return (" % 4d "):format(buf.id)
+	end
+
+	local spaces <const> = ((nu or rnu) and win:getOption("numberwidth") or 0)
+		+ (tonumber(scl) as integer or 0)
+	return tu.rightAlign(tostring(buf.id), spaces) .. " "
 end, "STLBufferInfo", true)
 
 stl.add(active, inactive, function(): string
@@ -136,7 +141,7 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 end, "STLFname", true)
 
 stl.add(active, inactive, " %= 🌌🐢🌌 %= ", "StatusLine")
-stl.add(inactive, active, " %= 🌌🐢🌌 %= ", "StatusLineNC")
+stl.add(inactive, active, " %= ", "StatusLineNC")
 
 local insFmt <const> = tu.insertFormatted
 local minWid <const> = 100

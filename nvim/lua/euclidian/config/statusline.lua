@@ -19,14 +19,19 @@ local inactive = { "Inactive" }
 local empty = {}
 
 stl.add(alwaysActive, empty, function(winid)
-   local win = nvim.Window(winid)
-   if not (win:getOption("number") or win:getOption("relativenumber")) then
-      return (" "):rep(6)
+   local win, buf = nvim.winBuf(winid)
+
+   local nu = win:getOption("number")
+   local rnu = win:getOption("relativenumber")
+   local scl = win:getOption("signcolumn"):match("yes:(%d+)")
+
+   if not (nu or rnu or scl) then
+      return (" % 4d "):format(buf.id)
    end
 
-   local spaces = win:getOption("numberwidth") +
-   tonumber(win:getOption("signcolumn"):match("yes:(%d+)")) or 0
-   return tu.rightAlign(tostring(win:getBuf()), spaces) .. " "
+   local spaces = ((nu or rnu) and win:getOption("numberwidth") or 0) +
+   (tonumber(scl) or 0)
+   return tu.rightAlign(tostring(buf.id), spaces) .. " "
 end, "STLBufferInfo", true)
 
 stl.add(active, inactive, function()
@@ -136,7 +141,7 @@ stl.add(alwaysActive, empty, function(winid)
 end, "STLFname", true)
 
 stl.add(active, inactive, " %= 🌌🐢🌌 %= ", "StatusLine")
-stl.add(inactive, active, " %= 🌌🐢🌌 %= ", "StatusLineNC")
+stl.add(inactive, active, " %= ", "StatusLineNC")
 
 local insFmt = tu.insertFormatted
 local minWid = 100

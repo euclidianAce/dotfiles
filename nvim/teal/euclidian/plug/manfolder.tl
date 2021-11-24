@@ -14,7 +14,7 @@ __euclidian.manfolder = function(): string | integer
 		or line:match("^%s") as boolean
 	then
 		return "="
-	elseif line:match("^[A-Z%s]+") as boolean then -- if the line is a title, it starts a fold
+	elseif line:match("^[A-Z][A-Z%s]+$") as boolean then -- if the line is a title, it starts a fold
 		return ">1"
 	else -- otherwise, not folded
 		return 0
@@ -22,7 +22,7 @@ __euclidian.manfolder = function(): string | integer
 end
 
 nvim.augroup("ManFolder", {
-	{ "FileType", "man", "setlocal foldexpr=v:lua.__euclidian.manfolder() | setlocal foldmethod=expr" }
+	{ "FileType", "man", "setlocal foldexpr=v:lua.__euclidian.manfolder() | setlocal foldmethod=expr" },
 }, true)
 
 return __euclidian.manfolder

@@ -14,7 +14,7 @@ __euclidian.manfolder = function()
       line:match("^%s") then
 
       return "="
-   elseif line:match("^[A-Z%s]+") then
+   elseif line:match("^[A-Z][A-Z%s]+$") then
       return ">1"
    else
       return 0

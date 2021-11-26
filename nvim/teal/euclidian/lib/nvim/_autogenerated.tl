@@ -130,6 +130,7 @@ local record Buffer
 		"tagfunc"
 		"tags"
 		"thesaurus"
+		"thesaurusfunc"
 		"varsofttabstop"
 		"vartabstop"
 	end

@@ -147,7 +147,7 @@ end
 
 if isExecutable("rustfmt") then
 	nvim.augroup("RustFormatOnSave", {
-		{ "BufWritePre", "*.rs", function() runFormatter("rustfmt") end }
+		{ "BufWritePre", "*.rs", function() runFormatter("%%!rustfmt") end }
 	})
 end
 

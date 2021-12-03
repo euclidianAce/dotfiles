@@ -30,6 +30,18 @@ local d: Dialog
 local openTerm: function()
 local hideTerm: function()
 
+function floatterm.open()
+	openTerm()
+end
+
+function floatterm.hide()
+	hideTerm()
+end
+
+function floatterm.buffer(): nvim.Buffer
+	return d:ensureBuf()
+end
+
 local function addShowMappings()
 	nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })
 end
@@ -114,7 +126,15 @@ return setmetatable(floatterm, {
 		addShowMappings()
 
 		nvim.newCommand{
-			name = "FloatingTerminal",
+			name = "FloatingTerminalOpen",
+			body = openTerm,
+			nargs = 0,
+			bar = true,
+			overwrite = true,
+		}
+
+		nvim.newCommand{
+			name = "FloatingTerminalClose",
 			body = openTerm,
 			nargs = 0,
 			bar = true,

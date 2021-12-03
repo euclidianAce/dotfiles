@@ -8,8 +8,21 @@ function locationjump.parseLocation(loc: string): string, integer
 	return file, tonumber(line) as integer
 end
 
-function locationjump.jumpTo(filename: string, line: integer)
-	nvim.command("edit +%d %s", line, filename)
+function locationjump.jump(filename: string, line: integer)
+	if line then
+		nvim.command("edit +%d %s", line, filename)
+	elseif filename then
+		nvim.command("edit %s", filename)
+	end
+end
+
+function locationjump.parseAndJump(loc: string)
+	local file <const>, line <const> = locationjump.parseLocation(loc)
+	if file and line then
+		nvim.command("edit +%d %s", line, file)
+	else
+		vim.api.nvim_err_writeln("locationjump: Unable to parse file location from '" .. loc .. "'")
+	end
 end
 
 function locationjump.jumpToVisualSelection()
@@ -22,12 +35,7 @@ function locationjump.jumpToVisualSelection()
 		return
 	end
 	local text <const> = lines[1]:sub(a[2] + 1, b[2] + 1)
-	local file <const>, line <const> = locationjump.parseLocation(text)
-	if file and line then
-		nvim.command("edit +%d %s", line, file)
-	else
-		vim.api.nvim_err_writeln("locationjump: Unable to parse file location from '" .. text .. "'")
-	end
+	locationjump.parseAndJump(text)
 end
 
 function locationjump.setVisualMap(key: string)
@@ -37,6 +45,10 @@ function locationjump.setVisualMap(key: string)
 		"<esc>:lua require('euclidian.plug.locationjump').jumpToVisualSelection()<cr>",
 		{ noremap = true, silent = true }
 	)
+end
+
+function locationjump.jumpExpand(expandArg: string)
+	locationjump.parseAndJump(vim.fn.expand(expandArg) as string)
 end
 
 return locationjump

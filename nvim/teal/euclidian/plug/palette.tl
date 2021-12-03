@@ -152,11 +152,11 @@ local function applyHighlights(
 	hi.WarningMsg              = { nil, normal.red }
 	hi.WildMenu                = { normal.bg, normal.yellow }
 
-	-- Lsp
-	hi.DiagnosticSignError   = { bright.red }
-	hi.DiagnosticSignHint    = { bright.fg }
-	hi.DiagnosticSignInfo    = { bright.gray }
-	hi.DiagnosticSignWarning = { bright.orange }
+	-- Diagnostics
+	hi.DiagnosticError   = { bright.red }
+	hi.DiagnosticHint    = { bright.fg }
+	hi.DiagnosticInfo    = { bright.gray }
+	hi.DiagnosticWarning = { bright.orange }
 
 	-- Git stuffs
 	hi.DiffAdd                     = { dark.green }

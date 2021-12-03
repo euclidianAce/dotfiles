@@ -153,10 +153,10 @@ local function applyHighlights(
    hi.WildMenu = { normal.bg, normal.yellow }
 
 
-   hi.DiagnosticSignError = { bright.red }
-   hi.DiagnosticSignHint = { bright.fg }
-   hi.DiagnosticSignInfo = { bright.gray }
-   hi.DiagnosticSignWarning = { bright.orange }
+   hi.DiagnosticError = { bright.red }
+   hi.DiagnosticHint = { bright.fg }
+   hi.DiagnosticInfo = { bright.gray }
+   hi.DiagnosticWarning = { bright.orange }
 
 
    hi.DiffAdd = { dark.green }

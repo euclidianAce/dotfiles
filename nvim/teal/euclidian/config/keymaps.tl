@@ -410,6 +410,20 @@ do -- cd dialog
 	map("n", "<leader>cd", cdDialog)
 end
 
+do -- hit `J` on a location in my floatterm to jump to it in a new window
+	local floatterm <const> = require("euclidian.plug.floatterm")
+	local locationjump <const> = require("euclidian.plug.locationjump")
+	floatterm.buffer():setKeymap("n", "J", function()
+		local expanded <const> = vim.fn.expand("<cWORD>") as string
+		local file <const>, line <const> = locationjump.parseLocation(expanded)
+		if file then
+			floatterm.hide()
+			nvim.command("new")
+			locationjump.jump(file, line)
+		end
+	end, {})
+end
+
 -- gui font resizing
 -- local function getGuiFontInfo(): string, string
 	-- return (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")

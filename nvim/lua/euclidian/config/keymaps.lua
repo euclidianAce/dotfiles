@@ -409,3 +409,17 @@ do
 
    map("n", "<leader>cd", cdDialog)
 end
+
+do
+   local floatterm = require("euclidian.plug.floatterm")
+   local locationjump = require("euclidian.plug.locationjump")
+   floatterm.buffer():setKeymap("n", "J", function()
+      local expanded = vim.fn.expand("<cWORD>")
+      local file, line = locationjump.parseLocation(expanded)
+      if file then
+         floatterm.hide()
+         nvim.command("new")
+         locationjump.jump(file, line)
+      end
+   end, {})
+end

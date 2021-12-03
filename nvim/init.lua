@@ -116,6 +116,7 @@ plugreq "printmode"
 	.set "inspect"
 	.override()
 plugreq "manfolder"
+plugreq "locationjump".setVisualMap("J")
 
 if not windows then
 	-- Treesitter is finicky on windows

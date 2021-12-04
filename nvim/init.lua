@@ -112,9 +112,9 @@ plugreq "scripter" {
 }
 plugreq "spacehighlighter"
 	.enable()
-plugreq "printmode"
-	.set "inspect"
-	.override()
+plugreq "printmode" {
+	mode = "inspect",
+}
 plugreq "manfolder"
 plugreq "locationjump" {
 	vmap = "J",

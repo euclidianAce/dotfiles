@@ -411,7 +411,7 @@ do
 end
 
 do
-   local floatterm = require("euclidian.plug.floatterm")
+   local floatterm = require("euclidian.plug.floatterm.api")
    local locationjump = require("euclidian.plug.locationjump")
    floatterm.buffer():setKeymap("n", "J", function()
       local expanded = vim.fn.expand("<cWORD>")

@@ -1,128 +1,36 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
-local a <const> = vim.api
+local floatterm <const> = require("euclidian.plug.floatterm.api")
+local type Dialog = dialog.Dialog
 
 local key = ""
 local shell = vim.fn.has("win32") and "powershell.exe" or "bash"
 local termopenOpts: {string:any} = {}
-local type Dialog = dialog.Dialog
-local record floatterm
-	record SetupOpts
-		toggle: string
 
-		wid: number
-		hei: number
-		row: number
-		col: number
+local record SetupOpts
+	toggle: string
 
-		centered: boolean | Dialog.Opts.Center
-		border: nvim.Window.Config.Border
+	wid: number
+	hei: number
+	row: number
+	col: number
 
-		shell: string
-		termopenOpts: {string:any}
-	end
+	centered: boolean | Dialog.Opts.Center
+	border: nvim.Window.Config.Border
 
-	metamethod __call: function(floatterm, floatterm.SetupOpts): floatterm
+	shell: string
+	termopenOpts: {string:any}
 end
 
-local d: Dialog
-local openTerm: function()
-local hideTerm: function()
-
-function floatterm.open()
-	openTerm()
-end
-
-function floatterm.hide()
-	hideTerm()
-end
-
-function floatterm.buffer(): nvim.Buffer
-	return d:ensureBuf()
-end
-
-local function addShowMappings()
-	nvim.setKeymap("n", key, openTerm, { noremap = true, silent = true })
-end
-
-local function addHideMappings()
-	local b <const> = d:ensureBuf()
-	b:setKeymap("n", key, hideTerm, { noremap = true, silent = true })
-	b:setKeymap("t", key, hideTerm, { noremap = true, silent = true })
-	nvim.autocmd("WinLeave", nil, hideTerm, { buffer = b.id, once = true })
-end
-
-local getBuf: function(): nvim.Buffer
-
-do
-	local shown = false
-	openTerm = function()
-		shown = true
-		getBuf()
-		d:show():win():setOption("winblend", 8)
-		d:focus()
-	end
-
-	hideTerm = function()
-		if shown then
-			shown = false
-			d:hide()
-			addShowMappings()
-		end
-	end
-end
-
-local channelId: integer
-
-getBuf = function(): nvim.Buffer
-	local buf <const> = d:ensureBuf()
-	if buf:getOption("buftype") ~= "terminal" then
-		buf:setOption("modified", false)
-		buf:call(function()
-			channelId = vim.fn.termopen(shell, termopenOpts) as integer
-			-- if channelId == 0 then
-				-- invalid args
-			-- elseif channelId == -1 then
-				-- not executable
-			-- else
-				-- success
-			-- end
-		end)
-		addHideMappings()
-	end
-	return buf
-end
-
-
-function floatterm.channel(): integer
-	return channelId
-end
-
-local chansend <const> = a.nvim_chan_send
-
-function floatterm.send(s: string): boolean
-	local buf <const> = getBuf()
-	if not buf:isValid() then
-		return false
-	end
-	chansend(channelId, s)
-	return true
-end
-
-return setmetatable(floatterm, {
-	__call = function(self: floatterm, opts: floatterm.SetupOpts): floatterm
+return function(opts: SetupOpts)
 		opts = opts or {}
-		key = opts.toggle or key
-		shell = opts.shell or shell
-		termopenOpts = opts.termopenOpts or termopenOpts
 
-		if d then
-			d:close()
-			d = nil
-		end
+		floatterm.setToggleKey(opts.toggle or key)
+		floatterm.setShell(opts.shell or shell)
+		floatterm.setTermOptions(opts.termopenOpts or termopenOpts)
 
-		d = dialog.new{
+		floatterm.deinit()
+		floatterm.init{
 			wid = opts.wid or 0.9, hei = opts.hei or 0.85,
 			row = opts.row, col = opts.col,
 			centered = opts.centered or true,
@@ -132,11 +40,9 @@ return setmetatable(floatterm, {
 			hidden = true,
 		}
 
-		addShowMappings()
-
 		nvim.newCommand{
 			name = "FloatingTerminalShow",
-			body = openTerm,
+			body = floatterm.show,
 			nargs = 0,
 			bar = true,
 			overwrite = true,
@@ -144,7 +50,7 @@ return setmetatable(floatterm, {
 
 		nvim.newCommand{
 			name = "FloatingTerminalHide",
-			body = hideTerm,
+			body = floatterm.hide,
 			nargs = 0,
 			bar = true,
 			overwrite = true,
@@ -153,15 +59,9 @@ return setmetatable(floatterm, {
 		nvim.newCommand{
 			name = "FloatingTerminalSend",
 			body = function(...: string)
-				local buf <const> = getBuf()
-				local channel <const> = buf:getOption("channel")
-				chansend(channel, table.concat({...}, " "))
-				chansend(channel, "\n")
+				floatterm.send(table.concat({...}, " ") .. "\n")
 			end,
 			nargs = "+",
 			overwrite = true,
 		}
-
-		return self
-	end,
-})
+end

@@ -1,14 +1,5 @@
 local nvim = require("euclidian.lib.nvim")
 
-local OpNum = {}
-
-
-
-
-
-
-
-
 local opnum = {
    leaders = {
 
@@ -28,6 +19,12 @@ local opnum = {
       "zf",
       "g@",
    },
+
+   add = nil,
+   enable = nil,
+
+   start = nil,
+   finish = nil,
 }
 
 local Saved = {}
@@ -37,7 +34,7 @@ local Saved = {}
 
 local old
 
-opnum._start = vim.schedule_wrap(function()
+opnum.start = vim.schedule_wrap(function()
    local win = nvim.Window()
    old = {
       win = win,
@@ -48,27 +45,26 @@ opnum._start = vim.schedule_wrap(function()
    win:setOption("relativenumber", true)
 end)
 
-opnum._finish = vim.schedule_wrap(function()
+opnum.finish = vim.schedule_wrap(function()
    if old and old.win:isValid() then
       old.win:setOption("number", old.number)
       old.win:setOption("relativenumber", old.relativenumber)
    end
 end)
 
-function opnum.add(leader)
-   table.insert(opnum.leaders, leader)
-   return opnum
-end
-
-function opnum.enable()
-   for _, leader in ipairs(opnum.leaders) do
-      nvim.setKeymap("n", leader, "<cmd>call v:lua.require'euclidian.plug.opnum'._start()<cr>" .. leader, { noremap = true, silent = true })
+function opnum.enable(...)
+   for i = 1, select("#", ...) do
+      table.insert(opnum.leaders, (select(i, ...)))
    end
-   nvim.setKeymap("o", "<esc>", "<cmd>call v:lua.require'euclidian.plug.opnum'._finish()<cr>", { noremap = true, silent = true })
-   nvim.setKeymap("o", "<c-c>", "<cmd>call v:lua.require'euclidian.plug.opnum'._finish()<cr>", { noremap = true, silent = true })
+
+   for _, leader in ipairs(opnum.leaders) do
+      nvim.setKeymap("n", leader, "<cmd>call v:lua.require'euclidian.plug.opnum.api'.start()<cr>" .. leader, { noremap = true, silent = true })
+   end
+   nvim.setKeymap("o", "<esc>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { noremap = true, silent = true })
+   nvim.setKeymap("o", "<c-c>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { noremap = true, silent = true })
 
    nvim.augroup("ResetLineNumberAfterOperator", {
-      { { "CursorMoved", "CursorMovedI", "BufLeave", "TextYankPost" }, "*", opnum._finish },
+      { { "CursorMoved", "CursorMovedI", "BufLeave", "TextYankPost" }, "*", opnum.finish },
    }, true)
 end
 

@@ -73,20 +73,30 @@ do
 	end
 end
 
+local channelId: integer
+
 getBuf = function(): nvim.Buffer
 	local buf <const> = d:ensureBuf()
 	if buf:getOption("buftype") ~= "terminal" then
 		buf:setOption("modified", false)
 		buf:call(function()
-			vim.fn.termopen(shell, termopenOpts)
+			channelId = vim.fn.termopen(shell, termopenOpts) as integer
+			-- if channelId == 0 then
+				-- invalid args
+			-- elseif channelId == -1 then
+				-- not executable
+			-- else
+				-- success
+			-- end
 		end)
 		addHideMappings()
 	end
 	return buf
 end
 
+
 function floatterm.channel(): integer
-	return getBuf():getOption("channel")
+	return channelId
 end
 
 local chansend <const> = a.nvim_chan_send
@@ -96,8 +106,7 @@ function floatterm.send(s: string): boolean
 	if not buf:isValid() then
 		return false
 	end
-	local channel <const> = buf:getOption("channel")
-	chansend(channel, s)
+	chansend(channelId, s)
 	return true
 end
 
@@ -126,7 +135,7 @@ return setmetatable(floatterm, {
 		addShowMappings()
 
 		nvim.newCommand{
-			name = "FloatingTerminalOpen",
+			name = "FloatingTerminalShow",
 			body = openTerm,
 			nargs = 0,
 			bar = true,
@@ -134,8 +143,8 @@ return setmetatable(floatterm, {
 		}
 
 		nvim.newCommand{
-			name = "FloatingTerminalClose",
-			body = openTerm,
+			name = "FloatingTerminalHide",
+			body = hideTerm,
 			nargs = 0,
 			bar = true,
 			overwrite = true,
@@ -152,12 +161,6 @@ return setmetatable(floatterm, {
 			nargs = "+",
 			overwrite = true,
 		}
-
-		nvim.augroup("FloatTerm", {
-			{ "QuitPre", nil,
-			function() d:close() end,
-			{ buffer = d:ensureBuf().id } }
-		}, true)
 
 		return self
 	end,

@@ -412,7 +412,7 @@ end
 
 do -- hit `J` on a location in my floatterm to jump to it in a new window
 	local floatterm <const> = require("euclidian.plug.floatterm.api")
-	local locationjump <const> = require("euclidian.plug.locationjump")
+	local locationjump <const> = require("euclidian.plug.locationjump.api")
 	floatterm.buffer():setKeymap("n", "J", function()
 		local expanded <const> = vim.fn.expand("<cWORD>") as string
 		local file <const>, line <const> = locationjump.parseLocation(expanded)

@@ -412,7 +412,7 @@ end
 
 do
    local floatterm = require("euclidian.plug.floatterm.api")
-   local locationjump = require("euclidian.plug.locationjump")
+   local locationjump = require("euclidian.plug.locationjump.api")
    floatterm.buffer():setKeymap("n", "J", function()
       local expanded = vim.fn.expand("<cWORD>")
       local file, line = locationjump.parseLocation(expanded)

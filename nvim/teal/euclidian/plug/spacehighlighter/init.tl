@@ -1,38 +1,10 @@
-local nvim <const> = require("euclidian.lib.nvim")
-local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.spacehighlighter")
+local sh <const> = require("euclidian.plug.spacehighlighter.api")
 
-local function enable()
-	vim.api.nvim_set_decoration_provider(ns, {
-		on_start = nil,
-		on_buf = nil,
-		on_win = function(): boolean
-			return true
-		end,
-		on_line = function(_, _winid: integer, bufnr: integer, row: integer): boolean
-			local buf <const> = nvim.Buffer(bufnr)
-
-			local ln <const> = buf:getLines(row, row + 1, false)[1];
-			local start <const>, finish <const> = ln:match("()%s+()$") as (integer, integer)
-			if start ~= finish then
-				buf:setExtmark(ns, row, start-1, {
-					ephemeral = true,
-					end_line = row,
-					end_col = finish,
-					hl_group = "TrailingWhitespace",
-				})
-			end
-
-			return true
-		end,
-		on_end = nil,
-	})
+local record Options
+	highlight: string
 end
 
-local function disable()
-	vim.api.nvim_set_decoration_provider(ns, {})
+return function(opts: Options)
+	opts = opts or {}
+	sh.enable(opts.highlight)
 end
-
-return {
-	enable = enable,
-	disable = disable,
-}

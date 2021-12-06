@@ -110,8 +110,9 @@ plugreq "floatterm" {
 plugreq "scripter" {
 	open = "<leader>lua",
 }
-plugreq "spacehighlighter"
-	.enable()
+plugreq "spacehighlighter" {
+	highlight = "TrailingWhitespace",
+}
 plugreq "printmode" {
 	mode = "inspect",
 }

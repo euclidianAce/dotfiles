@@ -190,8 +190,8 @@ nvim.augroup("Custom", {
 })
 
 local lspconfig = require("lspconfig")
-local configs = require("lspconfig/configs") -- THIS HAS TO BE A SLASH
-if not lspconfig.teal and isExecutable("teal-language-server") then
+local configs = require("lspconfig.configs")
+if not configs.teal and isExecutable("teal-language-server") then
 	configs.teal = {
 		default_config = {
 			cmd = {

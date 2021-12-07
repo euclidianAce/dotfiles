@@ -12,7 +12,7 @@ return function(opts)
       nvim.setKeymap(
       "v",
       opts.vmap,
-      "<esc>:lua require('euclidian.plug.locationjump').jumpToVisualSelection()<cr>",
+      "<esc>:lua require('euclidian.plug.locationjump.api').jumpToVisualSelection()<cr>",
       { noremap = true, silent = true })
 
    end

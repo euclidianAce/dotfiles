@@ -12,6 +12,8 @@ local enum ColorName
 	"blue"
 	"purple"
 	"orange"
+	"cyan"
+	"magenta"
 end
 local type Palette = {ColorName:integer}
 local type Gradient = {integer, integer, integer}

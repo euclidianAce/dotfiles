@@ -5,15 +5,17 @@ local Gradient <const> = color.Gradient
 local Palette <const> = color.Palette
 
 local p <const>: {ColorName:Gradient} = {
-	bg     = { 0x16131F, 0x181520, 0x2B2735 },
-	fg     = { 0x817998, 0xD8CEE4, 0xEFEFEF },
-	blue   = { 0x395081, 0x799AE0, 0xAAC3FD },
-	gray   = { 0x332F3C, 0x464252, 0x817998 },
-	green  = { 0x48C878, 0x62F5A2, 0x98EBA5 },
-	orange = { 0xC88B43, 0xE8AB73, 0xFFC590 },
-	purple = { 0x6554A0, 0x9876D9, 0xC7B1F2 },
-	red    = { 0x77405F, 0xD16161, 0xE69090 },
-	yellow = { 0xB5AA60, 0xD5C876, 0xF0E7AC },
+	bg      = { 0x16131F, 0x181520, 0x2B2735 },
+	fg      = { 0x817998, 0xD8CEE4, 0xEFEFEF },
+	blue    = { 0x395081, 0x799AE0, 0xAAC3FD },
+	gray    = { 0x332F3C, 0x464252, 0x817998 },
+	green   = { 0x32754B, 0x53B67E, 0x7BCE8F },
+	orange  = { 0xC88B43, 0xE8AB73, 0xFFC590 },
+	purple  = { 0x6554A0, 0x9876D9, 0xC7B1F2 },
+	red     = { 0x77405F, 0xD16161, 0xE69090 },
+	yellow  = { 0xB5AA60, 0xD5C876, 0xF0E7AC },
+	cyan    = { 0x387072, 0x429DA0, 0x70C3C6 },
+	magenta = { 0x8A294D, 0xC24472, 0xEF6194 },
 }
 
 local function extract(grads: {ColorName:Gradient}, idx: integer): Palette
@@ -50,8 +52,8 @@ end
 
 local function applyHighlights(
 	primary: ColorName,
-	primaryComplement: ColorName,
 	secondary: ColorName,
+	primaryComplement: ColorName,
 	secondaryComplement: ColorName
 )
 	vim.g.colors_name = "euclidian"
@@ -169,7 +171,7 @@ local function applyHighlights(
 
 	-- Custom Statusline Groups
 	hi.STLBufferInfo           = invert(dark[secondary])
-	hi.STLGit                  = invert(dark.green)
+	hi.STLGit                  = invert(normal.green)
 	hi.STLFname                = invert(bright.gray)
 
 	hi.STLNormal               = invert(normal[primary])
@@ -190,8 +192,8 @@ local function applyHighlights(
 	vim.g.terminal_color_2  = hex(normal.green)
 	vim.g.terminal_color_3  = hex(normal.yellow)
 	vim.g.terminal_color_4  = hex(normal.blue)
-	vim.g.terminal_color_5  = hex(normal.purple)
-	vim.g.terminal_color_6  = "cyan3"
+	vim.g.terminal_color_5  = hex(normal.magenta)
+	vim.g.terminal_color_6  = hex(normal.cyan)
 	vim.g.terminal_color_7  = hex(bright.gray)
 
 	vim.g.terminal_color_8  = hex(bright.bg)
@@ -199,14 +201,29 @@ local function applyHighlights(
 	vim.g.terminal_color_10 = hex(bright.green)
 	vim.g.terminal_color_11 = hex(bright.yellow)
 	vim.g.terminal_color_12 = hex(bright.blue)
-	vim.g.terminal_color_13 = "magenta"
-	vim.g.terminal_color_14 = "cyan"
-	vim.g.terminal_color_15 = "white"
+	vim.g.terminal_color_13 = hex(bright.magenta)
+	vim.g.terminal_color_14 = hex(bright.cyan)
+	vim.g.terminal_color_15 = hex(bright.fg)
+end
+
+local themes: {string:{ColorName, ColorName, ColorName, ColorName}} = {
+	default = {"blue", "red", "purple", "orange"},
+	watermelon = {"cyan", "magenta"},
+
+	blue = {"blue", "purple"},
+	red = {"red", "orange"},
+	cyan = {"cyan", "green"},
+}
+
+local function applyTheme(name: string)
+	applyHighlights(unpack(themes[name]))
 end
 
 return {
+	themes = themes,
 	normal = normal,
 	dark = dark,
 	bright = bright,
 	applyHighlights = applyHighlights,
+	applyTheme = applyTheme,
 }

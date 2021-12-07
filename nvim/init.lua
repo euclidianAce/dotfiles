@@ -120,6 +120,9 @@ plugreq "manfolder"
 plugreq "locationjump" {
 	vmap = "J",
 }
+plugreq "palette" {
+	theme = "watermelon",
+}
 
 if not windows then
 	-- Treesitter is finicky on windows

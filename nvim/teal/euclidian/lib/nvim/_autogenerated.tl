@@ -154,6 +154,8 @@ local record Window
 			"none"
 			"single"
 			"double"
+			"rounded"
+			"solid"
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }

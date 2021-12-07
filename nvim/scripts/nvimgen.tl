@@ -152,6 +152,8 @@ local namespaces: {NamespaceName:Namespace} = {
 			"none"
 			"single"
 			"double"
+			"rounded"
+			"solid"
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }

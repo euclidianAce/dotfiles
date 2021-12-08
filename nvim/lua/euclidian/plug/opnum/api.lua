@@ -50,6 +50,7 @@ opnum.finish = vim.schedule_wrap(function()
       old.win:setOption("number", old.number)
       old.win:setOption("relativenumber", old.relativenumber)
    end
+   old = nil
 end)
 
 function opnum.enable(...)

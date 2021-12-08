@@ -73,10 +73,10 @@ local function applyHighlights(
    hi.StatusLineNC = invert(normal.gray)
 
    hi.VertSplit = { nil, normal.gray }
-   hi.TabLine = { dark.red, normal.gray }
-   hi.TabLineSel = { normal.red, normal.gray }
+   hi.TabLine = { dark[secondary], normal.gray }
+   hi.TabLineSel = { normal[secondary], normal.gray }
    hi.TabLineFill = { nil, dark.gray }
-   hi.Title = { dark.red }
+   hi.Title = { dark[secondary] }
 
    hi.FloatBorder = { dark.fg, bright.bg }
 
@@ -209,11 +209,13 @@ end
 local themes = {
    default = { "blue", "red", "purple", "orange" },
    watermelon = { "cyan", "magenta" },
-
-   blue = { "blue", "purple" },
-   red = { "red", "orange" },
-   cyan = { "cyan", "green" },
 }
+
+for k in pairs(p) do
+   if k ~= "bg" and k ~= "fg" then
+      themes[k] = { k, "fg" }
+   end
+end
 
 local function applyTheme(name)
    applyHighlights(unpack(themes[name]))

@@ -208,16 +208,20 @@ end
 
 local themes: {string:{ColorName, ColorName, ColorName, ColorName}} = {
 	default = {"blue", "red", "purple", "orange"},
-	watermelon = {"cyan", "magenta"},
+	watermelon = {"cyan", "magenta", "cyan", "cyan"},
+
+	blue = {"blue", "blue", "purple"},
+	red = {"red", "red", "orange", "red"},
+	purple = {"purple", "blue", "purple", "fg"},
+	cyan = {"cyan", "fg", "cyan", "gray"},
 }
 
-for k in pairs(p) do
-	if k ~= "bg" and k ~= "fg" then
-		themes[k] = {k, "fg"}
-	end
-end
-
 local function applyTheme(name: string)
+	if name == "random" then
+		local keys <const> = vim.tbl_keys(themes)
+		name = keys[math.random(1, #keys)]
+		print("Random theme: " .. name)
+	end
 	applyHighlights(unpack(themes[name]))
 end
 

@@ -121,7 +121,7 @@ plugreq "locationjump" {
 	vmap = "J",
 }
 plugreq "palette" {
-	theme = "watermelon",
+	theme = "random",
 }
 
 if not windows then

@@ -66,8 +66,8 @@ local function applyHighlights(
 	hi.Visual                  = { -1, dark.gray }
 	hi.ErrorMsg                = { nil, normal.red }
 	hi.Question                = { dark.green }
-	hi.Search                  = { dark.green, -1, "bold" }
-	hi.IncSearch               = { bright.green, nil, "bold,underline" }
+	hi.Search                  = { dark[secondary], -1, "bold,reverse" }
+	hi.IncSearch               = { bright[secondary], nil, "bold,underline,reverse" }
 
 	hi.StatusLine              = invert(dark[secondary])
 	hi.StatusLineNC            = invert(normal.gray)
@@ -182,7 +182,7 @@ local function applyHighlights(
 	hi.STLReplace              = invert(normal.red)
 	hi.STLTerminal             = invert(normal.orange)
 
-	hi.TrailingWhitespace      = { dark.red, dark.red }
+	hi.TrailingWhitespace      = { dark[secondary], dark[secondary] }
 
 	local function hex(col: integer): string
 		return ("#%06X"):format(col)
@@ -208,7 +208,7 @@ end
 
 local themes: {string:{ColorName, ColorName, ColorName, ColorName}} = {
 	default = {"blue", "red", "purple", "orange"},
-	watermelon = {"cyan", "magenta", "cyan", "cyan"},
+	watermelon = {"cyan", "magenta"},
 
 	blue = {"blue", "blue", "purple"},
 	red = {"red", "red", "orange", "red"},

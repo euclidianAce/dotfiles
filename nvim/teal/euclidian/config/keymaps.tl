@@ -230,7 +230,7 @@ end
 do
 	local function execBuffer(b: nvim.Buffer)
 		b = b or nvim.Buffer()
-		local lines <const> = b:getLines(0, -1, false);
+		local lines <const> = b:getLines(0, -1, false)
 		local txt <const> = table.concat(lines, "\n")
 
 		local chunk <const>, loaderr <const> = loadstring(txt)
@@ -249,7 +249,7 @@ end
 
 do -- cd dialog
 	-- TODO: turn this into a telescope lens
-
+	local pathSeparator <const> = package.config:sub(1, 1)
 	local input, result: dialog.Dialog, dialog.Dialog
 	local currentlyMatching = false
 	local function init()
@@ -301,7 +301,7 @@ do -- cd dialog
 
 		local function currentInput(): string, string
 			local ln <const> = input:getLine(1)
-			local head <const>, tail <const> = ln:match("(.*)/([^/]*)$")
+			local head <const>, tail <const> = ln:match("(.*)" .. pathSeparator .. "([^" .. pathSeparator .. "]*)$")
 			if not tail then
 				return "", ln
 			end
@@ -311,7 +311,7 @@ do -- cd dialog
 		local function currentDir(): string
 			local components <const>: {string} = {}
 			for _, path in ipairs{ uv.cwd(), (currentInput()) } do
-				for chunk in vim.gsplit(path, "/", true) do
+				for chunk in vim.gsplit(path, pathSeparator, true) do
 					if chunk == ".." then
 						table.remove(components)
 					else
@@ -320,7 +320,7 @@ do -- cd dialog
 				end
 			end
 
-			return table.concat(components, "/")
+			return table.concat(components, pathSeparator)
 		end
 
 		local function isDir(path: string): boolean
@@ -329,13 +329,13 @@ do -- cd dialog
 		end
 
 		b:setKeymap("n", "<esc>", close, {})
-		b:setKeymap("i", "<esc>", function() nvim.command[[stopinsert]] close() end, {})
+		b:setKeymap("i", "<esc>", function() nvim.command("stopinsert") close() end, {})
 		b:setKeymap("i", "<cr>", function()
 			local res <const> = input:getLine(1)
 			close()
-			nvim.command [[stopinsert]]
-			nvim.command("cd " .. res)
-			print("cd: " .. res)
+			nvim.command("stopinsert")
+			nvim.command("tcd %s", res)
+			print("tcd: " .. res)
 		end, {})
 
 		local function updateResultText()
@@ -345,14 +345,14 @@ do -- cd dialog
 				local matches <const> = {}
 				local patt <const> = "^" .. vim.pesc(tail)
 				for _, v in ipairs(ls(cd)) do
-					if v:match(patt) and isDir((#head > 0 and head .. "/" or "") .. v) then
+					if v:match(patt) and isDir((#head > 0 and head .. pathSeparator or "") .. v) then
 						table.insert(matches, v)
 					end
 				end
 				if #matches == 1 then
 					currentlyMatching = false
 					vim.schedule(function()
-						local newLn <const> = (#head > 0 and head .. "/" or "") .. matches[1] .. "/"
+						local newLn <const> = (#head > 0 and head .. pathSeparator or "") .. matches[1] .. pathSeparator
 						input:setLines{ newLn }
 						vim.schedule(function()
 							input:setCursor(1, #newLn)
@@ -361,7 +361,7 @@ do -- cd dialog
 				else
 					vim.schedule(function()
 						result:setLines{
-							"ls: " .. cd .. (cd:match("/$") and "" or "/") .. "...",
+							"ls: " .. cd .. (cd:match(pathSeparator .. "$") and "" or pathSeparator) .. "...",
 							("-- %d Director%s matching %q --"):format(
 								#matches,
 								#matches == 1 and "y" or "ies",
@@ -374,7 +374,7 @@ do -- cd dialog
 			else
 				local dirs <const>, files <const> = {}, {}
 				for _, v in ipairs(ls(cd)) do
-					table.insert(isDir(cd .. "/" .. v) and dirs or files, v)
+					table.insert(isDir(cd .. pathSeparator .. v) and dirs or files, v)
 				end
 				vim.schedule(function()
 					result:setLines{

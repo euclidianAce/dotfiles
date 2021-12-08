@@ -10,6 +10,7 @@ end
 
 -- default format `filename:linenumber`
 function locationjump.parseLocation(loc: string): string, integer
+	assert(loc)
 	local file, line = loc:match(pattern)
 	return file, tonumber(line) as integer
 end

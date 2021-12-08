@@ -413,7 +413,7 @@ end
 do -- hit `J` on a location in my floatterm to jump to it in a new window
 	local floatterm <const> = require("euclidian.plug.floatterm.api")
 	local locationjump <const> = require("euclidian.plug.locationjump.api")
-	floatterm.buffer():setKeymap("n", "J", function()
+	local function jumpcWORD()
 		local expanded <const> = vim.fn.expand("<cWORD>") as string
 		local file <const>, line <const> = locationjump.parseLocation(expanded)
 		if file then
@@ -421,7 +421,31 @@ do -- hit `J` on a location in my floatterm to jump to it in a new window
 			nvim.command("new")
 			locationjump.jump(file, line)
 		end
-	end, {})
+	end
+
+	local function getLastVisualSelection(buf: nvim.Buffer): string
+		local left <const> = buf:getMark("<")
+		local right <const> = buf:getMark(">")
+		local lines = buf:getLines(left[1] - 1, right[1], true)
+		if #lines ~= 1 then
+			return
+		end
+		return lines[1]:sub(left[2] + 1, right[2] + 1)
+	end
+
+	__euclidian.jumpHighlighted = function()
+		local buf <const> = floatterm.buffer()
+		local selection <const> = getLastVisualSelection(buf)
+		local file <const>, line <const> = locationjump.parseLocation(selection)
+		if file then
+			floatterm.hide()
+			nvim.command("new")
+			locationjump.jump(file, line)
+		end
+	end
+
+	floatterm.buffer():setKeymap("n", "J", jumpcWORD, { noremap = true, silent = true })
+	floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { noremap = true, silent = true })
 end
 
 -- gui font resizing

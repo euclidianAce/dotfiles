@@ -10,6 +10,7 @@ end
 
 
 function locationjump.parseLocation(loc)
+   assert(loc)
    local file, line = loc:match(pattern)
    return file, tonumber(line)
 end

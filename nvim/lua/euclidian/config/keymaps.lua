@@ -413,7 +413,7 @@ end
 do
    local floatterm = require("euclidian.plug.floatterm.api")
    local locationjump = require("euclidian.plug.locationjump.api")
-   floatterm.buffer():setKeymap("n", "J", function()
+   local function jumpcWORD()
       local expanded = vim.fn.expand("<cWORD>")
       local file, line = locationjump.parseLocation(expanded)
       if file then
@@ -421,5 +421,29 @@ do
          nvim.command("new")
          locationjump.jump(file, line)
       end
-   end, {})
+   end
+
+   local function getLastVisualSelection(buf)
+      local left = buf:getMark("<")
+      local right = buf:getMark(">")
+      local lines = buf:getLines(left[1] - 1, right[1], true)
+      if #lines ~= 1 then
+         return
+      end
+      return lines[1]:sub(left[2] + 1, right[2] + 1)
+   end
+
+   __euclidian.jumpHighlighted = function()
+      local buf = floatterm.buffer()
+      local selection = getLastVisualSelection(buf)
+      local file, line = locationjump.parseLocation(selection)
+      if file then
+         floatterm.hide()
+         nvim.command("new")
+         locationjump.jump(file, line)
+      end
+   end
+
+   floatterm.buffer():setKeymap("n", "J", jumpcWORD, { noremap = true, silent = true })
+   floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { noremap = true, silent = true })
 end

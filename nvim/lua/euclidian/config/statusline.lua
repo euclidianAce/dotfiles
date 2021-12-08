@@ -31,6 +31,9 @@ stl.add(alwaysActive, empty, function(winid)
 
    local spaces = ((nu or rnu) and win:getOption("numberwidth") or 0) +
    (tonumber(scl) or 0)
+   if spaces < 3 then
+      return (" % 4d "):format(buf.id)
+   end
    return tu.rightAlign(tostring(buf.id), spaces) .. " "
 end, "STLBufferInfo", true)
 

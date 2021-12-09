@@ -27,7 +27,9 @@ return function(opts)
       body = api.applyTheme,
 
       completelist = function(current)
-         return getCompletions(vim.tbl_keys(api.themes), current)
+         local comp = getCompletions(vim.tbl_keys(api.themes), current)
+         table.insert(comp, "random");
+         return comp
       end,
 
       nargs = 1,

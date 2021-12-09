@@ -216,10 +216,15 @@ local themes: {string:{ColorName, ColorName, ColorName, ColorName}} = {
 	cyan = {"cyan", "fg", "cyan", "gray"},
 }
 
+local last: string = nil
 local function applyTheme(name: string)
 	if name == "random" then
 		local keys <const> = vim.tbl_keys(themes)
-		name = keys[math.random(1, #keys)]
+		if #keys > 1 then
+			repeat name = keys[math.random(1, #keys)]
+			until name ~= last
+		end
+		last = name
 		print("Random theme: " .. name)
 	end
 	applyHighlights(unpack(themes[name]))

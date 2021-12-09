@@ -215,8 +215,24 @@ end
 	-- lspconfig.clangd.setup{}
 -- end
 
-vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
-	vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
+vim.diagnostic.config{
+	virtual_text = {
+		prefix = "",
+	}
+}
+
+nvim.newCommand{
+	name = "Make",
+	body = function()
+		local buf = nvim.Buffer()
+		nvim.command("make")
+		vim.diagnostic.set(
+			vim.api.nvim_create_namespace("euclidian.Make"),
+			buf.id,
+			vim.diagnostic.fromqflist(vim.fn.getqflist())
+		)
+	end,
+}
 
 confload("statusline")
 confload("keymaps")

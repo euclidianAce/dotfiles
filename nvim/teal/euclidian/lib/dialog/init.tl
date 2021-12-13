@@ -28,6 +28,8 @@ local record Dialog
 		hidden: boolean
 		ephemeral: boolean
 
+		winhl: {string:string}
+
 		record Center
 			horizontal: boolean
 			vertical: boolean
@@ -64,6 +66,18 @@ local function copyCenterOpts(o: boolean | Dialog.Opts.Center): Dialog.Opts.Cent
 	return cpy
 end
 
+local function copyWinHl(m: {string:string}): {string:string}
+	local copy = {}
+	if m then
+		for k, v in pairs(m) do
+			copy[k] = v
+		end
+	else
+		return { Normal = "Normal", NormalFloat = "Normal" }
+	end
+	return copy
+end
+
 local function copyOpts(o: Dialog.Opts): Dialog.Opts
 	-- TODO: We should totally steal zig's `inline for` for teal
 	return {
@@ -77,6 +91,7 @@ local function copyOpts(o: Dialog.Opts): Dialog.Opts
 		hidden = o.hidden,
 		border = o.border,
 		centered = copyCenterOpts(o.centered),
+		winhl = copyWinHl(o.winhl),
 	}
 end
 
@@ -192,7 +207,11 @@ local function setupWin(opts: Dialog.Opts, buf: nvim.Buffer): nvim.Window
 	local win <const> = nvim.openWin(buf, opts.interactive, cfg)
 
 	if win:isValid() then
-		win:setOption("winhighlight", "Normal:Normal,NormalFloat:Normal")
+		local strs <const> = {}
+		for k, v in pairs(opts.winhl) do
+			table.insert(strs, k .. ":" .. v)
+		end
+		win:setOption("winhighlight", table.concat(strs, ","))
 	end
 
 	return win

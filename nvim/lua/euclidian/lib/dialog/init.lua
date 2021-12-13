@@ -40,6 +40,8 @@ local Dialog = {Opts = {Center = {}, }, }
 
 
 
+
+
 local bufs = setmetatable({}, { __mode = "k", __index = function() return nvim.Buffer(-1) end })
 local wins = setmetatable({}, { __mode = "k", __index = function() return nvim.Window(-1) end })
 local links = setmetatable({}, { __mode = "k", __index = function(self, k)
@@ -64,6 +66,18 @@ local function copyCenterOpts(o)
    return cpy
 end
 
+local function copyWinHl(m)
+   local copy = {}
+   if m then
+      for k, v in pairs(m) do
+         copy[k] = v
+      end
+   else
+      return { Normal = "Normal", NormalFloat = "Normal" }
+   end
+   return copy
+end
+
 local function copyOpts(o)
 
    return {
@@ -77,6 +91,7 @@ local function copyOpts(o)
       hidden = o.hidden,
       border = o.border,
       centered = copyCenterOpts(o.centered),
+      winhl = copyWinHl(o.winhl),
    }
 end
 
@@ -192,7 +207,11 @@ local function setupWin(opts, buf)
    local win = nvim.openWin(buf, opts.interactive, cfg)
 
    if win:isValid() then
-      win:setOption("winhighlight", "Normal:Normal,NormalFloat:Normal")
+      local strs = {}
+      for k, v in pairs(opts.winhl) do
+         table.insert(strs, k .. ":" .. v)
+      end
+      win:setOption("winhighlight", table.concat(strs, ","))
    end
 
    return win

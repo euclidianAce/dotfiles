@@ -68,11 +68,19 @@ end
 map("n", "<leader>c", [[<cmd>set opfunc=v:lua.__euclidian.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua __euclidian.commentVisualSelection()<cr>]])
 
+local function asyncInput(opts: vim.ui.InputOpts): string
+	local result: string
+	z.suspend(function(me: z.Frame<nil>)
+		vim.ui.input(opts, function(i: string)
+			result = i
+			z.resume(me)
+		end)
+	end)
+	return result
+end
+
 local function getchar(): string
 	return string.char(vim.fn.getchar() as integer)
-end
-local function getchars(): string
-	return vim.fn.input("Append Characters:") as string
 end
 local append <const> = require("euclidian.lib.append")
 
@@ -90,23 +98,31 @@ end
 __euclidian.appendCharsMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
 	local b <const> = nvim.Buffer()
-	append.toRange(
-		b:getMark("[")[1],
-		b:getMark("]")[1],
-		getchars(),
-		b.id
-	)
+	local open <const> = b:getMark("[")[1]
+	local close <const> = b:getMark("]")[1]
+	vim.ui.input({ prompt = "Append Characters: " }, function(input: string)
+		if input then
+			append.toRange(open, close, input, b.id)
+		end
+	end)
 end
 
 __euclidian.appendToVisualSelection = function(multiple: boolean)
 	local b <const> = nvim.Buffer()
-	local inputfn <const> = multiple and getchars or getchar
-	append.toRange(
-		b:getMark("<")[1],
-		b:getMark(">")[1],
-		inputfn(),
-		b.id
-	)
+	local open <const> = b:getMark("<")[1]
+	local close <const> = b:getMark(">")[1]
+	if multiple then
+		vim.ui.input({ prompt = "Append Characters: " }, function(input: string)
+			if input then
+				append.toRange(open, close, input, b.id)
+			end
+		end)
+	else
+		local c <const> = getchar()
+		if c ~= "" then
+			append.toRange(open, close, c, b.id)
+		end
+	end
 end
 
 -- TODO: entering command mode here seems to be the most convenient way of
@@ -119,7 +135,13 @@ map("n", "<leader>a", [[<cmd>set opfunc=v:lua.__euclidian.appendCharMotion")<cr>
 map("n", "<leader>A", [[<cmd>set opfunc=v:lua.__euclidian.appendCharsMotion")<cr>g@]])
 
 map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
-map("n", "<leader>AA", function() append.toCurrentLine(getchars()) end)
+map("n", "<leader>AA", function()
+	vim.ui.input({ prompt = "Append Characters:" }, function(input: string)
+		if input then
+			append.toCurrentLine(input)
+		end
+	end)
+end)
 
 for _, v in ipairs{
 	{"h", "<"},
@@ -187,17 +209,6 @@ map({"i","n"}, "<M-n>", function()
 	win:setCursor(pos)
 end)
 
-local function asyncInput(opts: vim.ui.InputOpts): string
-	local result: string
-	z.suspend(function(me: z.Frame<nil>)
-		vim.ui.input(opts, function(i: string)
-			result = i
-			z.resume(me)
-		end)
-	end)
-	return result
-end
-
 map("n", "<leader>head", z.asyncFn(function()
 	local buf <const> = nvim.Buffer()
 	local lines = buf:getLines(0, -1, false)
@@ -211,6 +222,7 @@ map("n", "<leader>head", z.asyncFn(function()
 	if not guard:match("_H$") then
 		guard = guard .. "_H"
 	end
+	guard = guard:gsub("%s", "_")
 	buf:setLines(0, -1, false, {
 		"#ifndef " .. guard,
 		"#define " .. guard,
@@ -220,9 +232,19 @@ map("n", "<leader>head", z.asyncFn(function()
 end))
 
 vim.ui.input = function(opts: vim.ui.InputOpts, confirm: function(string))
+	assert(confirm)
 	local quick <const> = require("euclidian.lib.dialog.quick")
 	z.async(function()
-		local result <const> = quick.prompt(opts.prompt)
+		local result <const> = quick.prompt(opts.prompt, {
+			centered = { horizontal = true },
+			wid = #opts.prompt + 10,
+			hei = 1,
+			row = -2,
+			interactive = true,
+			ephemeral = true,
+			border = "none",
+			winhl = {},
+		})
 		confirm(result)
 	end)
 end

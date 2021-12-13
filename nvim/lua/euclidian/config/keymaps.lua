@@ -68,11 +68,19 @@ end
 map("n", "<leader>c", [[<cmd>set opfunc=v:lua.__euclidian.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua __euclidian.commentVisualSelection()<cr>]])
 
+local function asyncInput(opts)
+   local result
+   z.suspend(function(me)
+      vim.ui.input(opts, function(i)
+         result = i
+         z.resume(me)
+      end)
+   end)
+   return result
+end
+
 local function getchar()
    return string.char(vim.fn.getchar())
-end
-local function getchars()
-   return vim.fn.input("Append Characters:")
 end
 local append = require("euclidian.lib.append")
 
@@ -90,23 +98,31 @@ end
 __euclidian.appendCharsMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()
-   append.toRange(
-   b:getMark("[")[1],
-   b:getMark("]")[1],
-   getchars(),
-   b.id)
-
+   local open = b:getMark("[")[1]
+   local close = b:getMark("]")[1]
+   vim.ui.input({ prompt = "Append Characters: " }, function(input)
+      if input then
+         append.toRange(open, close, input, b.id)
+      end
+   end)
 end
 
 __euclidian.appendToVisualSelection = function(multiple)
    local b = nvim.Buffer()
-   local inputfn = multiple and getchars or getchar
-   append.toRange(
-   b:getMark("<")[1],
-   b:getMark(">")[1],
-   inputfn(),
-   b.id)
-
+   local open = b:getMark("<")[1]
+   local close = b:getMark(">")[1]
+   if multiple then
+      vim.ui.input({ prompt = "Append Characters: " }, function(input)
+         if input then
+            append.toRange(open, close, input, b.id)
+         end
+      end)
+   else
+      local c = getchar()
+      if c ~= "" then
+         append.toRange(open, close, c, b.id)
+      end
+   end
 end
 
 
@@ -119,7 +135,13 @@ map("n", "<leader>a", [[<cmd>set opfunc=v:lua.__euclidian.appendCharMotion")<cr>
 map("n", "<leader>A", [[<cmd>set opfunc=v:lua.__euclidian.appendCharsMotion")<cr>g@]])
 
 map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
-map("n", "<leader>AA", function() append.toCurrentLine(getchars()) end)
+map("n", "<leader>AA", function()
+   vim.ui.input({ prompt = "Append Characters:" }, function(input)
+      if input then
+         append.toCurrentLine(input)
+      end
+   end)
+end)
 
 for _, v in ipairs({
       { "h", "<" },
@@ -187,17 +209,6 @@ map({ "i", "n" }, "<M-n>", function()
    win:setCursor(pos)
 end)
 
-local function asyncInput(opts)
-   local result
-   z.suspend(function(me)
-      vim.ui.input(opts, function(i)
-         result = i
-         z.resume(me)
-      end)
-   end)
-   return result
-end
-
 map("n", "<leader>head", z.asyncFn(function()
    local buf = nvim.Buffer()
    local lines = buf:getLines(0, -1, false)
@@ -211,6 +222,7 @@ map("n", "<leader>head", z.asyncFn(function()
    if not guard:match("_H$") then
       guard = guard .. "_H"
    end
+   guard = guard:gsub("%s", "_")
    buf:setLines(0, -1, false, {
       "#ifndef " .. guard,
       "#define " .. guard,
@@ -220,9 +232,19 @@ map("n", "<leader>head", z.asyncFn(function()
 end))
 
 vim.ui.input = function(opts, confirm)
+   assert(confirm)
    local quick = require("euclidian.lib.dialog.quick")
    z.async(function()
-      local result = quick.prompt(opts.prompt)
+      local result = quick.prompt(opts.prompt, {
+         centered = { horizontal = true },
+         wid = #opts.prompt + 10,
+         hei = 1,
+         row = -2,
+         interactive = true,
+         ephemeral = true,
+         border = "none",
+         winhl = {},
+      })
       confirm(result)
    end)
 end

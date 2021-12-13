@@ -54,7 +54,7 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver10,o-r-v:hor10,a:blinkoff250-blinkon250-Cursor",
+	guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
 	-- guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
@@ -87,6 +87,8 @@ set(vim.opt, {
 	virtualedit = "block",
 	foldmethod = "marker",
 	foldenable = true,
+	cursorline = true,
+	cursorlineopt = "number",
 
 	formatoptions = "lroj",
 
@@ -251,7 +253,8 @@ if vim.fn.exists(":GuiRenderLigatures") == 2 then
 end
 if vim.fn.exists(":GuiFont") == 2 then
 	-- apparently just "JuliaMono" doesn't have ligatures?
-	nvim.command[[GuiFont! JuliaMono Medium:h10]]
+	-- nvim.command[[GuiFont! JuliaMono Medium:h10]]
+	nvim.command[[GuiFont! Ubuntu Mono:h12]]
 end
 
 nvim.newCommand{ name = "Lua", complete = "lua", nargs = "*", body = "lua print(<args>)" }

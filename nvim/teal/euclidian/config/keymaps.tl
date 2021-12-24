@@ -231,24 +231,6 @@ map("n", "<leader>head", z.asyncFn(function()
 	})
 end))
 
-vim.ui.input = function(opts: vim.ui.InputOpts, confirm: function(string))
-	assert(confirm)
-	local quick <const> = require("euclidian.lib.dialog.quick")
-	z.async(function()
-		local result <const> = quick.prompt(opts.prompt, {
-			centered = { horizontal = true },
-			wid = #opts.prompt + 10,
-			hei = 1,
-			row = -2,
-			interactive = true,
-			ephemeral = true,
-			border = "none",
-			winhl = {},
-		})
-		confirm(result)
-	end)
-end
-
 do
 	local function execBuffer(b: nvim.Buffer)
 		b = b or nvim.Buffer()
@@ -318,6 +300,9 @@ do -- cd dialog
 		input:show()
 		nvim.command[[startinsert]]
 
+		result:win():setOption("cursorline", true)
+		result:win():setOption("cursorlineopt", "line")
+
 		local b <const> = input:ensureBuf()
 		input:setModifiable(true)
 
@@ -350,6 +335,34 @@ do -- cd dialog
 			return stat and stat.type == "directory"
 		end
 
+		b:setKeymap("i", "<c-n>", function()
+			local win <const> = result:win()
+			local cursor = win:getCursor()
+			cursor[1] = cursor[1] + 1
+			pcall(function() win:setCursor(cursor) end)
+		end, {})
+
+		b:setKeymap("i", "<c-p>", function()
+			local win <const> = result:win()
+			local cursor = win:getCursor()
+			cursor[1] = cursor[1] - 1
+			pcall(function() win:setCursor(cursor) end)
+		end, {})
+
+		local function setInput(ln: string)
+			input:setLines{ ln }
+			vim.schedule(function() input:setCursor(1, #ln) end)
+		end
+
+		b:setKeymap("i", "<c-y>", function()
+			local new = currentInput()
+			local compl <const> = result:getCurrentLine()
+			if #new > 0 then
+				new = new .. pathSeparator
+			end
+			setInput(new .. compl .. pathSeparator)
+		end, {})
+
 		b:setKeymap("n", "<esc>", close, {})
 		b:setKeymap("i", "<esc>", function() nvim.command("stopinsert") close() end, {})
 		b:setKeymap("i", "<cr>", function()
@@ -375,10 +388,7 @@ do -- cd dialog
 					currentlyMatching = false
 					vim.schedule(function()
 						local newLn <const> = (#head > 0 and head .. pathSeparator or "") .. matches[1] .. pathSeparator
-						input:setLines{ newLn }
-						vim.schedule(function()
-							input:setCursor(1, #newLn)
-						end)
+						setInput(newLn)
 					end)
 				else
 					vim.schedule(function()
@@ -437,6 +447,7 @@ do -- hit `J` on a location in my floatterm to jump to it in a new window
 	local locationjump <const> = require("euclidian.plug.locationjump.api")
 	local function jumpcWORD()
 		local expanded <const> = vim.fn.expand("<cWORD>") as string
+
 		local file <const>, line <const> = locationjump.parseLocation(expanded)
 		if file then
 			floatterm.hide()
@@ -449,20 +460,22 @@ do -- hit `J` on a location in my floatterm to jump to it in a new window
 		local left <const> = buf:getMark("<")
 		local right <const> = buf:getMark(">")
 		local lines = buf:getLines(left[1] - 1, right[1], true)
-		if #lines ~= 1 then
-			return
+		if #lines == 0 then
+			return ""
 		end
-		return lines[1]:sub(left[2] + 1, right[2] + 1)
+		lines[1] = lines[1]:sub(left[2], #lines[1])
+		lines[#lines] = lines[#lines]:sub(1, right[2])
+		return table.concat(lines, "\n")
 	end
 
 	__euclidian.jumpHighlighted = function()
 		local buf <const> = floatterm.buffer()
 		local selection <const> = getLastVisualSelection(buf)
-		local file <const>, line <const> = locationjump.parseLocation(selection)
-		if file then
+		local results <const> = locationjump.parseAllLocations(selection)
+		if #results > 0 then
 			floatterm.hide()
 			nvim.command("new")
-			locationjump.jump(file, line)
+			locationjump.selectLocation(results)
 		end
 	end
 

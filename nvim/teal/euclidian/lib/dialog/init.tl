@@ -66,6 +66,10 @@ local function copyCenterOpts(o: boolean | Dialog.Opts.Center): Dialog.Opts.Cent
 	return cpy
 end
 
+local function defaultWinHl(): {string:string}
+	return { Normal = "Normal", NormalFloat = "Normal" }
+end
+
 local function copyWinHl(m: {string:string}): {string:string}
 	local copy = {}
 	if m then
@@ -73,7 +77,7 @@ local function copyWinHl(m: {string:string}): {string:string}
 			copy[k] = v
 		end
 	else
-		return { Normal = "Normal", NormalFloat = "Normal" }
+		return defaultWinHl()
 	end
 	return copy
 end
@@ -208,7 +212,7 @@ local function setupWin(opts: Dialog.Opts, buf: nvim.Buffer): nvim.Window
 
 	if win:isValid() then
 		local strs <const> = {}
-		for k, v in pairs(opts.winhl) do
+		for k, v in pairs(opts.winhl or defaultWinHl()) do
 			table.insert(strs, k .. ":" .. v)
 		end
 		win:setOption("winhighlight", table.concat(strs, ","))

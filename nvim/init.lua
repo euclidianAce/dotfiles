@@ -125,6 +125,7 @@ plugreq "locationjump" {
 plugreq "palette" {
 	theme = "random",
 }
+plugreq "ui"
 
 if not windows then
 	-- Treesitter is finicky on windows

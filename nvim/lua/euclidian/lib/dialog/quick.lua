@@ -7,7 +7,7 @@ local quick = {}
 local Dialog = dialog.Dialog
 local Opts = dialog.Dialog.Opts
 
-function quick.prompt(txt, opts)
+function quick.prompt(txt, opts, onOpen)
    local originalWindow = nvim.Window()
    local d = dialog.new(opts or {
       wid = 45, hei = 1,
@@ -21,6 +21,9 @@ function quick.prompt(txt, opts)
          d:fitTextPadded(1, 0, 45, nil, nil, 1):centerHorizontal()
       end,
    })
+   if onOpen then
+      onOpen(d)
+   end
    local res
    z.suspend(function(me)
       local function close()

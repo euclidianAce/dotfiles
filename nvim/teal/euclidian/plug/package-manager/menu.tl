@@ -77,7 +77,7 @@ local function waitForKey(d: dialog.Dialog, ...: string): string
 	return pressed
 end
 
-function accordionMt.__call(self: Accordion, opts: dialog.Dialog.Opts): any...
+function accordionMt.__call(self: Accordion, opts: dialog.Dialog.Opts, onOpen: function(dialog.Dialog)): any...
 	local d <const> = dialog.new(opts)
 
 	local record State
@@ -125,6 +125,9 @@ function accordionMt.__call(self: Accordion, opts: dialog.Dialog.Opts): any...
 	win:setOption("winhl", win:getOption("winhl") as string)
 	win:setOption("cursorline", true)
 	buf:clearNamespace(ns, 0, -1)
+
+	if onOpen then onOpen(d) end
+
 	vim.api.nvim_set_decoration_provider(ns, {
 		on_win = function(_: any, w: integer): boolean
 			if winid ~= w then

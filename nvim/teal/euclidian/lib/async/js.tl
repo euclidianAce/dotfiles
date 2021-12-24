@@ -74,12 +74,12 @@ local function newThreaded<T>(fn: function(function(T), function(T), ...: uv.Thr
 	thens[p] = {}
 	if fn then
 		local res, rej: uv.Async, uv.Async
-		res = uv.new_async(function(val: T)
-			onFulfilled(p, val)
+		res = uv.new_async(function(val: uv.Threadarg)
+			onFulfilled(p, val as T)
 			res:close()
 		end)
-		rej = uv.new_async(function(val: T)
-			onRejected(p, val)
+		rej = uv.new_async(function(val: uv.Threadarg)
+			onRejected(p, val as T)
 			res:close()
 		end)
 

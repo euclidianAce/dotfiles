@@ -155,10 +155,10 @@ for _, v in ipairs{
 	map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
 end
 
-map("n", "<leader>k", function() vim.lsp.diagnostic.show_line_diagnostics{focusable=false} end)
+map("n", "<leader>k", function() vim.diagnostic.show_line_diagnostics{focusable=false} end)
 map("n", "K", vim.lsp.buf.hover)
-map("n", "<leader>N", vim.lsp.diagnostic.goto_next)
-map("n", "<leader>P", vim.lsp.diagnostic.goto_prev)
+map("n", "<leader>N", vim.diagnostic.goto_next)
+map("n", "<leader>P", vim.diagnostic.goto_prev)
 
 map("n", "<leader>fz", function() require("telescope.builtin").find_files() end)
 map("n", "<leader>g",  function() require("telescope.builtin").live_grep() end)
@@ -167,10 +167,11 @@ map("n", "<leader>n", "<cmd>noh<cr>")
 
 map("i", "{<CR>", "{}<Esc>i<CR><CR><Esc>kS")
 map("i", "(<CR>", "()<Esc>i<CR><CR><Esc>kS")
+map("i", "<C-W>", "<C-S-W>")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
-map({"i","n"}, "<M-n>", function()
+map({"i", "n"}, "<M-n>", function()
 	local win <const>, buf <const> = nvim.winBuf()
 	local cursorPos <const> = win:getCursor()
 	local line <const> = buf:getLines(cursorPos[1] - 1, cursorPos[1], false)[1]

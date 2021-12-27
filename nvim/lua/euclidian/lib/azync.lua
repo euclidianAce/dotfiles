@@ -54,8 +54,14 @@ local function internalResume(frame, ...)
    end
 end
 
+local scheduledInternalResume = vim.schedule_wrap(internalResume)
+
 local function resume(frame)
    internalResume(frame)
+end
+
+local function resumeSchedule(frame)
+   scheduledInternalResume(frame)
 end
 
 local function currentFrame()
@@ -98,8 +104,18 @@ local function async(fn, ...)
    return f
 end
 
+local function asyncSchedule(fn, ...)
+   local co = coroutine.create(wrapCallable(fn))
+   local f = { _t = co }
+   frames[co] = f
+   vim.schedule_wrap(internalResume)(f, ...)
+   return f
+end
+
 local function asyncFn(fn)
-   return function(...) async(fn, ...) end
+   return function(...)
+      return async(fn, ...)
+   end
 end
 
 return {
@@ -110,6 +126,8 @@ return {
    nosuspend = nosuspend,
    currentFrame = currentFrame,
 
+   asyncSchedule = asyncSchedule,
+   resumeSchedule = resumeSchedule,
    asyncFn = asyncFn,
 
    Frame = Frame,

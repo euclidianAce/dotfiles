@@ -54,8 +54,14 @@ local function internalResume(frame: Frame<any>, ...: any): any...
 	end
 end
 
+local scheduledInternalResume <const> = vim.schedule_wrap(internalResume)
+
 local function resume<T...>(frame: Frame<T>)
 	internalResume(frame as Frame<any>)
+end
+
+local function resumeSchedule<T...>(frame: Frame<T>)
+	scheduledInternalResume(frame as Frame<any>)
 end
 
 local function currentFrame(): Frame<any>
@@ -98,8 +104,18 @@ local function async<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args)
 	return f
 end
 
-local function asyncFn<Ret..., Args...>(fn: (function(...: Args): Ret)): function(Args)
-	return function(...: Args) async(fn, ...) end
+local function asyncSchedule<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Frame<Ret>
+	local co <const> = coroutine.create(wrapCallable(fn))
+	local f <const> = { _t = co }
+	frames[co] = f
+	vim.schedule_wrap(internalResume)(f, ...)
+	return f
+end
+
+local function asyncFn<Ret..., Args...>(fn: (function(...: Args): Ret)): function(Args): Frame<Ret>
+	return function(...: Args): Frame<Ret>
+		return async(fn, ...)
+	end
 end
 
 return {
@@ -110,6 +126,8 @@ return {
 	nosuspend = nosuspend,
 	currentFrame = currentFrame,
 
+	asyncSchedule = asyncSchedule,
+	resumeSchedule = resumeSchedule,
 	asyncFn = asyncFn,
 
 	Frame = Frame,

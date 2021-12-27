@@ -235,6 +235,13 @@ function dialog.new(opts, maybeBuf)
    return d
 end
 
+function dialog.fromWindow(win)
+   local d = setmetatable({ regions = {} }, { __index = Dialog })
+   bufs[d] = nvim.Buffer(win:getBuf())
+   wins[d] = win
+   return d
+end
+
 
 function Dialog:link(...)
    local ls = links[self]

@@ -235,6 +235,13 @@ function dialog.new(opts: Dialog.Opts, maybeBuf: BufOrId): Dialog
 	return d
 end
 
+function dialog.fromWindow(win: nvim.Window): Dialog
+	local d <const> = setmetatable({ regions = {} }, { __index = Dialog })
+	bufs[d] = nvim.Buffer(win:getBuf())
+	wins[d] = win
+	return d
+end
+
 -- TODO: should probably keep linked dialogs in a set rather than a list
 function Dialog:link(...: Dialog): Dialog
 	local ls <const> = links[self]

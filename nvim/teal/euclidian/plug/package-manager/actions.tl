@@ -1,7 +1,7 @@
 local command <const> = require("euclidian.lib.command")
 local configure <const> = require("euclidian.plug.package-manager.configure")
 local dialog <const> = require("euclidian.lib.dialog")
-local menu <const> = require("euclidian.plug.package-manager.menu")
+local menu <const> = require("euclidian.lib.menu")
 local nvim <const> = require("euclidian.lib.nvim")
 local packagespec <const> = require("euclidian.plug.package-manager.packagespec")
 local report <const> = require("euclidian.plug.package-manager.report")
@@ -78,7 +78,7 @@ actions.listSets = function(): NilFrame
 		menuOpts[i] = {s, names}
 	end
 	local m <const> = menu.new.accordion(menuOpts)
-	return z.async(m, {
+	return z.async(m, dialog.new{
 		centered = true,
 		wid = .75,
 		hei = .3,

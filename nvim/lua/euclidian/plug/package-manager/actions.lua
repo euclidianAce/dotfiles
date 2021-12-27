@@ -1,7 +1,7 @@
 local command = require("euclidian.lib.command")
 local configure = require("euclidian.plug.package-manager.configure")
 local dialog = require("euclidian.lib.dialog")
-local menu = require("euclidian.plug.package-manager.menu")
+local menu = require("euclidian.lib.menu")
 local nvim = require("euclidian.lib.nvim")
 local packagespec = require("euclidian.plug.package-manager.packagespec")
 local report = require("euclidian.plug.package-manager.report")
@@ -78,13 +78,13 @@ actions.listSets = function()
       menuOpts[i] = { s, names }
    end
    local m = menu.new.accordion(menuOpts)
-   return z.async(m, {
+   return z.async(m, dialog.new({
       centered = true,
       wid = .75,
       hei = .3,
       interactive = true,
       ephemeral = true,
-   })
+   }))
 end
 
 local function chooseAndLoadSet(d)

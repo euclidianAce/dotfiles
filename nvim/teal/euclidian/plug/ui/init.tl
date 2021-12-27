@@ -2,9 +2,7 @@ local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
 local z <const> = require("euclidian.lib.azync")
 local quick <const> = require("euclidian.lib.dialog.quick")
-
--- TODO: rip this out of the package manager and into its own library
-local menu <const> = require("euclidian.plug.package-manager.menu")
+local menu <const> = require("euclidian.lib.menu")
 
 local function wait(ms: integer)
 	z.suspend(function(me: z.Frame<nil>)
@@ -62,26 +60,22 @@ vim.ui.select = function(items: {any}, opts: vim.ui.SelectOpts, confirm: functio
 	end
 
 	local hei <const> = clamp(#accordionItems, 4, nvim.ui().height // 4)
-	z.async(
-		menu.new.accordion(accordionItems),
-		{
-			centered = { horizontal = true },
-			interactive = true,
-			ephemeral = true,
-			wid = clamp(longest + 5, 20, nvim.ui().width // 2),
-			hei = hei,
-			row = -hei - 4,
-			border = "none",
-		},
-		function(d: dialog.Dialog)
-			flashWindow(d:win())
-			local function cancel()
-				confirm(nil, nil)
-				d:close()
-			end
-			local buf <const> = d:buf()
-			buf:setKeymap("n", "<c-c>", cancel, { noremap = true, silent = true })
-			buf:setKeymap("n", "<esc>", cancel, { noremap = true, silent = true })
-		end
-	)
+	local d <const> = dialog.new{
+		centered = { horizontal = true },
+		interactive = true,
+		ephemeral = true,
+		wid = clamp(longest + 5, 20, nvim.ui().width // 2),
+		hei = hei,
+		row = -hei - 4,
+		border = "none",
+	}
+	flashWindow(d:win())
+	local function cancel()
+		confirm(nil, nil)
+		d:close()
+	end
+	local buf <const> = d:buf()
+	buf:setKeymap("n", "<c-c>", cancel, { noremap = true, silent = true })
+	buf:setKeymap("n", "<esc>", cancel, { noremap = true, silent = true })
+	z.async(menu.new.accordion(accordionItems), d)
 end

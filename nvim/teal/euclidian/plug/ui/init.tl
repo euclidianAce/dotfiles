@@ -1,6 +1,6 @@
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 local quick <const> = require("euclidian.lib.dialog.quick")
 
 -- TODO: rip this out of the package manager and into its own library

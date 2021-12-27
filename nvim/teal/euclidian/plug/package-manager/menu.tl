@@ -1,7 +1,6 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 -- TODO: find a way to make this generic over the function return so

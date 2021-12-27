@@ -1,7 +1,6 @@
-
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 local ns = vim.api.nvim_create_namespace("euclidian.plug.package-manager.menu")
 
 

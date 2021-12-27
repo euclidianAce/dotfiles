@@ -8,7 +8,7 @@ local report <const> = require("euclidian.plug.package-manager.report")
 local set <const> = require("euclidian.plug.package-manager.set")
 local tu <const> = require("euclidian.lib.textutils")
 -- local validate <const> = require("euclidian.lib.validate")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 
 local type NilFrame = z.Frame<nil>
 local type Action = function(): NilFrame

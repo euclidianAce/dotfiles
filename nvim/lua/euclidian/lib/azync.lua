@@ -3,7 +3,6 @@
 
 
 
-
 local Frame = {}
 
 
@@ -100,9 +99,7 @@ local function async(fn, ...)
 end
 
 local function asyncFn(fn)
-   return function(...)
-      async(fn, ...)
-   end
+   return function(...) async(fn, ...) end
 end
 
 return {

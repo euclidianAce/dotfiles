@@ -1,6 +1,6 @@
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 local quick = require("euclidian.lib.dialog.quick")
 
 

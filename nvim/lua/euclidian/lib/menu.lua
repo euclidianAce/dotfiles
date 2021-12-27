@@ -1,11 +1,15 @@
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 local ns = vim.api.nvim_create_namespace("euclidian.lib.menu")
 
 
 
-local Accordion = {}
+local Accordion = {Options = {}, }
+
+
+
+
 
 
 
@@ -76,7 +80,9 @@ local function waitForKey(d, ...)
    return pressed
 end
 
-function accordionMt.__call(self, d)
+function accordionMt.__call(self, d, opts)
+   opts = opts or {}
+
    local State = {}
 
 
@@ -160,8 +166,12 @@ function accordionMt.__call(self, d)
             local second = item[2]
             if state.line == row then
                if type(second) == "function" and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-                  d:close()
-                  return second()
+                  if opts.persist then
+                     second()
+                  else
+                     d:close()
+                     return second()
+                  end
                else
                   state.enabled = not state.enabled
                end

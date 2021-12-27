@@ -8,7 +8,7 @@ local report = require("euclidian.plug.package-manager.report")
 local set = require("euclidian.plug.package-manager.set")
 local tu = require("euclidian.lib.textutils")
 
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 
 local NilFrame = {}
 local Action = {}

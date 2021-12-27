@@ -1,4 +1,3 @@
-
 -- An attempt to recreate Zig's 'colorless' async/await (+suspend/resume) on top of Lua's coroutines
 -- Since Zig's coroutines are pretty barebones (just implementing suspend and resume ops), it's real easy to implement with Lua's coroutines (which are also pretty barebones)
 -- honestly this is barely a wrapper and the only 'new' things are stuff like
@@ -100,9 +99,7 @@ local function async<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args)
 end
 
 local function asyncFn<Ret..., Args...>(fn: (function(...: Args): Ret)): function(Args)
-	return function(...: Args)
-		async(fn, ...)
-	end
+	return function(...: Args) async(fn, ...) end
 end
 
 return {
@@ -117,3 +114,4 @@ return {
 
 	Frame = Frame,
 }
+

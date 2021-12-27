@@ -1,7 +1,6 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 local a <const> = vim.api
 local uv <const> = vim.loop
 

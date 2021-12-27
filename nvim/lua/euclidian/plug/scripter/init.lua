@@ -4,7 +4,7 @@ local fs = require("euclidian.lib.fs")
 local notification = require("euclidian.lib.notification")
 local nvim = require("euclidian.lib.nvim")
 local quick = require("euclidian.lib.dialog.quick")
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 
 
 

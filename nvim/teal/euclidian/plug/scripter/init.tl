@@ -4,7 +4,7 @@ local fs <const> = require("euclidian.lib.fs")
 local notification <const> = require("euclidian.lib.notification")
 local nvim <const> = require("euclidian.lib.nvim")
 local quick <const> = require("euclidian.lib.dialog.quick")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 
 -- TODO: use libuv for file reads and writes
 

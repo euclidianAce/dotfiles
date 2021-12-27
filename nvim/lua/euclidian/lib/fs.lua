@@ -1,4 +1,4 @@
-local z = require("euclidian.lib.async.zig")
+local z = require("euclidian.lib.azync")
 local uv = vim.loop
 
 local fs = {}

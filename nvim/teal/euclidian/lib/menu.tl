@@ -1,6 +1,6 @@
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
-local z <const> = require("euclidian.lib.async.zig")
+local z <const> = require("euclidian.lib.azync")
 local ns <const> = vim.api.nvim_create_namespace("euclidian.lib.menu")
 
 -- TODO: find a way to make this generic over the function return so
@@ -13,7 +13,11 @@ local record Accordion
 	unexpanded_prefix: string
 	expanded_prefix: string
 
-	metamethod __call: function(Accordion, dialog.Dialog): any...
+	record Options
+		persist: boolean
+	end
+
+	metamethod __call: function(Accordion, dialog.Dialog, Options): any...
 end
 
 local record Modifiable
@@ -76,7 +80,9 @@ local function waitForKey(d: dialog.Dialog, ...: string): string
 	return pressed
 end
 
-function accordionMt.__call(self: Accordion, d: dialog.Dialog): any...
+function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.Options): any...
+	opts = opts or {}
+
 	local record State
 		enabled: boolean
 		line: integer
@@ -160,8 +166,12 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog): any...
 				local second <const> = item[2]
 				if state.line == row then
 					if second is function(): any... and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-						d:close()
-						return second()
+						if opts.persist then
+							second()
+						else
+							d:close()
+							return second()
+						end
 					else
 						state.enabled = not state.enabled
 					end

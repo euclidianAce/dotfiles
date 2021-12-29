@@ -6,7 +6,60 @@ local MapOpts = {}
 
 
 
+
+local CommandArgs = {}
+
+
+
+
+
+
+
+
+
+
+local CommandAttributes = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local Buffer = {}
+
+
 
 
 
@@ -268,9 +321,102 @@ local Tab = {}
 
 
 
+local api = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 return {
+   api = api,
    Buffer = Buffer,
    Window = Window,
    Tab = Tab,
    MapOpts = MapOpts,
+   CommandArgs = CommandArgs,
+   CommandAttributes = CommandAttributes,
 }

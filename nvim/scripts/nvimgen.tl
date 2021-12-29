@@ -50,7 +50,58 @@ local record MapOpts
 	expr: boolean
 	unique: boolean
 	noremap: boolean
-end]]
+end
+
+local record CommandArgs
+	args: string
+	bang: boolean
+	line1: string
+	line2: string
+	range: integer
+	count: integer
+	reg: string
+	mods: string
+end
+
+local record CommandAttributes
+	desc: string
+	bang: boolean
+	bar: boolean
+	register: boolean
+	buffer: boolean
+
+	enum ArgumentOpt
+		"*" "?" "+"
+	end
+	nargs: integer | ArgumentOpt
+
+	range: string | integer | boolean
+	count: integer | boolean
+
+	enum AddrOpt
+		"lines" "arguments" "buffers"
+		"loaded_buffers" "windows" "tabs"
+		"quickfix" "other"
+	end
+
+	addr: AddrOpt
+
+	enum CompleteOpt
+		"arglist" "augroup" "buffer" "behave"
+		"color" "command" "compiler" "cscope"
+		"dir" "environment" "event" "expression"
+		"file" "file_in_path" "filetype" "function"
+		"help" "highlight" "history" "locale"
+		"mapclear" "mapping" "menu" "messages"
+		"option" "packadd" "shellcmd" "sign"
+		"syntax" "syntime" "tag" "tag_listfiles"
+		"user" "var" "lua"
+	end
+
+	type CompleteListFunc = function(string, string, integer): {string}
+	complete: CompleteOpt | CompleteListFunc
+end
+]]
 
 local typeMap <const>: {string:string} = setmetatable({
 	["String"] = "string",
@@ -113,6 +164,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			setOption = true,
 			call = true,
 			setKeymap = true,
+			addUserCommand = true,
 		},
 		entries = {
 			"call: function<Rets...>(Buffer, function(): Rets): Rets",
@@ -128,6 +180,8 @@ local namespaces: {NamespaceName:Namespace} = {
 			"setOption: function(Buffer, string, integer | boolean | string)",
 
 			"setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)",
+
+			"addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)",
 		},
 	},
 	["Window"] = {
@@ -191,8 +245,12 @@ local namespaces: {NamespaceName:Namespace} = {
 		entries = {},
 	},
 	["Nvim"] = {
-		exclude = {},
-		entries = {},
+		exclude = {
+			addUserCommand = true,
+		},
+		entries = {
+			"addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)",
+		},
 	},
 }
 
@@ -305,13 +363,21 @@ write(pre)
 processNs("Buffer")
 processNs("Window")
 processNs("Tab")
+write("local record api")
+for _, func in ipairs(namespaces["Nvim"].entries) do
+	write("\t", func)
+end
+write("end")
 
 write[[
 return {
+	api = api,
 	Buffer = Buffer,
 	Window = Window,
 	Tab = Tab,
 	MapOpts = MapOpts,
+	CommandArgs = CommandArgs,
+	CommandAttributes = CommandAttributes,
 }]]
 
 fh:close()

@@ -40,28 +40,23 @@ return function(opts: SetupOpts)
 			hidden = true,
 		}
 
-		nvim.newCommand{
-			name = "FloatingTerminalShow",
-			body = floatterm.show,
-			nargs = 0,
-			bar = true,
-			overwrite = true,
-		}
+		nvim.api.addUserCommand(
+			"FloatingTerminalShow",
+			floatterm.show,
+			{
+				nargs = 0,
+				bar = true,
+				desc = "Show or focus the floating terminal",
+			}
+		)
 
-		nvim.newCommand{
-			name = "FloatingTerminalHide",
-			body = floatterm.hide,
-			nargs = 0,
-			bar = true,
-			overwrite = true,
-		}
-
-		nvim.newCommand{
-			name = "FloatingTerminalSend",
-			body = function(...: string)
-				floatterm.send(table.concat({...}, " ") .. "\n")
-			end,
-			nargs = "+",
-			overwrite = true,
-		}
+		nvim.api.addUserCommand(
+			"FloatingTerminalHide",
+			floatterm.show,
+			{
+				nargs = 0,
+				bar = true,
+				desc = "Hide the floating terminal",
+			}
+		)
 end

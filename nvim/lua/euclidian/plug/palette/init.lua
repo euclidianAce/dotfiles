@@ -1,4 +1,5 @@
 local nvim = require("euclidian.lib.nvim")
+local color = require("euclidian.lib.color")
 local api = require("euclidian.plug.palette.api")
 
 local Options = {}
@@ -22,27 +23,31 @@ return function(opts)
    opts = opts or {}
    api.applyTheme(opts.theme or "default")
 
-   nvim.newCommand({
-      name = "Theme",
-      body = api.applyTheme,
-
-      completelist = function(current)
+   nvim.api.addUserCommand(
+   "Theme",
+   function(args)
+      api.applyTheme(args.args)
+   end,
+   {
+      complete = function(current)
          local comp = getCompletions(vim.tbl_keys(api.themes), current)
          table.insert(comp, "random");
          return comp
       end,
-
       nargs = 1,
-   })
+   });
 
-   nvim.newCommand({
-      name = "CustomTheme",
-      body = api.applyHighlights,
 
-      completelist = function(current)
+   nvim.api.addUserCommand(
+   "CustomTheme",
+   function(args)
+      api.applyHighlights(unpack(vim.split(args.args, " ")))
+   end,
+   {
+      nargs = "+",
+      complete = function(current)
          return getCompletions(vim.tbl_keys(api.dark), current)
       end,
-
-      nargs = "+",
    })
+
 end

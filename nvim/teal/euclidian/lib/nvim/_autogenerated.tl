@@ -6,6 +6,57 @@ local record MapOpts
 	unique: boolean
 	noremap: boolean
 end
+
+local record CommandArgs
+	args: string
+	bang: boolean
+	line1: string
+	line2: string
+	range: integer
+	count: integer
+	reg: string
+	mods: string
+end
+
+local record CommandAttributes
+	desc: string
+	bang: boolean
+	bar: boolean
+	register: boolean
+	buffer: boolean
+
+	enum ArgumentOpt
+		"*" "?" "+"
+	end
+	nargs: integer | ArgumentOpt
+
+	range: string | integer | boolean
+	count: integer | boolean
+
+	enum AddrOpt
+		"lines" "arguments" "buffers"
+		"loaded_buffers" "windows" "tabs"
+		"quickfix" "other"
+	end
+
+	addr: AddrOpt
+
+	enum CompleteOpt
+		"arglist" "augroup" "buffer" "behave"
+		"color" "command" "compiler" "cscope"
+		"dir" "environment" "event" "expression"
+		"file" "file_in_path" "filetype" "function"
+		"help" "highlight" "history" "locale"
+		"mapclear" "mapping" "menu" "messages"
+		"option" "packadd" "shellcmd" "sign"
+		"syntax" "syntime" "tag" "tag_listfiles"
+		"user" "var" "lua"
+	end
+
+	type CompleteListFunc = function(string, string, integer): {string}
+	complete: CompleteOpt | CompleteListFunc
+end
+
 local record Buffer
 	type Id = integer
 	id: Id
@@ -19,6 +70,7 @@ local record Buffer
 	setOption: function(Buffer, IntegerOpt, integer)
 	setOption: function(Buffer, string, integer | boolean | string)
 	setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)
+	addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)
 	lineCount: function(Buffer): integer
 	attach: function(Buffer, boolean, {string:any}): boolean
 	detach: function(Buffer): boolean
@@ -41,6 +93,7 @@ local record Buffer
 	delMark: function(Buffer, string): boolean
 	setMark: function(Buffer, string, integer, integer, {string:any}): boolean
 	getMark: function(Buffer, string): {integer,integer}
+	delUserCommand: function(Buffer, string)
 	getExtmarkById: function(Buffer, integer, integer, {string:any}): {integer}
 	getExtmarks: function(Buffer, integer, any, any, {string:any}): {any}
 	setExtmark: function(Buffer, integer, integer, integer, {string:any}): integer
@@ -268,9 +321,102 @@ local record Tab
 	metamethod __call: function(Tab, integer): Tab
 	metamethod __eq: function(any, any): boolean
 end
+local record api
+	addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)
+	createNamespace: function(string): integer
+	getNamespaces: function(): {string:any}
+	setDecorationProvider: function(integer, {string:any})
+	uiAttach: function(integer, integer, {string:any})
+	uiDetach: function()
+	uiTryResize: function(integer, integer)
+	uiSetOption: function(string, any)
+	uiTryResizeGrid: function(integer, integer, integer)
+	uiPumSetHeight: function(integer)
+	uiPumSetBounds: function(number, number, number, number)
+	getHlByName: function(string, boolean): {string:any}
+	getHlById: function(integer, boolean): {string:any}
+	getHlIdByName: function(string): integer
+	setHl: function(integer, string, {string:any})
+	feedkeys: function(string, string, boolean)
+	input: function(string): integer
+	inputMouse: function(string, string, string, integer, integer, integer)
+	replaceTermcodes: function(string, boolean, boolean, boolean): string
+	execLua: function(string, {any}): any
+	notify: function(string, integer, {string:any}): any
+	strwidth: function(string): integer
+	listRuntimePaths: function(): {string}
+	getRuntimeFile: function(string, boolean): {string}
+	setCurrentDir: function(string)
+	getCurrentLine: function(): string
+	setCurrentLine: function(string)
+	delCurrentLine: function()
+	getVar: function(string): any
+	setVar: function(string, any)
+	delVar: function(string)
+	getVvar: function(string): any
+	setVvar: function(string, any)
+	getOption: function(string): any
+	getOptionValue: function(string, {string:any}): any
+	setOptionValue: function(string, any, {string:any})
+	getAllOptionsInfo: function(): {string:any}
+	getOptionInfo: function(string): {string:any}
+	setOption: function(string, any)
+	echo: function({any}, boolean, {string:any})
+	outWrite: function(string)
+	errWrite: function(string)
+	errWriteln: function(string)
+	listBufs: function(): {integer}
+	getCurrentBuf: function(): integer
+	setCurrentBuf: function(integer)
+	listWins: function(): {integer}
+	getCurrentWin: function(): integer
+	setCurrentWin: function(integer)
+	createBuf: function(boolean, boolean): integer
+	openTerm: function(integer, {string:any}): integer
+	chanSend: function(integer, string)
+	listTabpages: function(): {integer}
+	getCurrentTabpage: function(): integer
+	setCurrentTabpage: function(integer)
+	paste: function(string, boolean, integer): boolean
+	put: function({string}, string, boolean, boolean)
+	subscribe: function(string)
+	unsubscribe: function(string)
+	getColorByName: function(string): integer
+	getColorMap: function(): {string:any}
+	getContext: function({string:any}): {string:any}
+	loadContext: function({string:any}): any
+	getMode: function(): {string:any}
+	getKeymap: function(string): {{string:any}}
+	setKeymap: function(string, string, string, {string:any})
+	delKeymap: function(string, string)
+	getCommands: function({string:any}): {string:any}
+	getApiInfo: function(): {any}
+	setClientInfo: function(string, {string:any}, string, {string:any}, {string:any})
+	getChanInfo: function(integer): {string:any}
+	listChans: function(): {any}
+	callAtomic: function({any}): {any}
+	listUis: function(): {any}
+	getProcChildren: function(integer): {any}
+	getProc: function(integer): any
+	selectPopupmenuItem: function(integer, boolean, boolean, {string:any})
+	delMark: function(string): boolean
+	getMark: function(string, {string:any}): {any}
+	evalStatusline: function(string, {string:any}): {string:any}
+	delUserCommand: function(string)
+	exec: function(string, boolean): string
+	command: function(string)
+	eval: function(string): any
+	callFunction: function(string, {any}): any
+	callDictFunction: function(any, string, {any}): any
+	parseExpression: function(string, string, boolean): {string:any}
+	openWin: function(integer, boolean, {string:any}): integer
+end
 return {
+	api = api,
 	Buffer = Buffer,
 	Window = Window,
 	Tab = Tab,
 	MapOpts = MapOpts,
+	CommandArgs = CommandArgs,
+	CommandAttributes = CommandAttributes,
 }

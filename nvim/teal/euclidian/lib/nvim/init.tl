@@ -101,6 +101,17 @@ genSetMetatable(auto.Buffer, "buf")
 genSetMetatable(auto.Window, "win")
 genSetMetatable(auto.Tab, "tab")
 
+setmetatable(auto.api, {
+	__index = function(self: {string:any}, key: string): any
+		local api <const> = vim.api as {string:function}
+			local fn <const> = api["nvim_" .. unCamel(key)]
+			if fn then
+				rawset(self, key, fn)
+				return fn
+			end
+	end
+})
+
 local record CommandOpts
 	name: string
 	body: string | function
@@ -152,12 +163,16 @@ local record AutocmdOpts
 end
 
 local nvim <const> = {
+	api = auto.api,
 	Window = auto.Window,
 	Buffer = auto.Buffer,
 	Tab = auto.Tab,
 
 	UI = UI,
 	MapOpts = auto.MapOpts,
+	CommandArgs = auto.CommandArgs,
+	CommandAttributes = auto.CommandAttributes,
+
 	CommandOpts = CommandOpts,
 	AutocmdOpts = AutocmdOpts,
 
@@ -183,72 +198,6 @@ end
 
 function nvim.command(fmt: string, ...: any)
 	a.nvim_command(string.format(fmt, ...))
-end
-
-function nvim.newCommand(opts: CommandOpts)
-	local res <const>: {string} = { "command" }
-	if opts.overwrite then
-		table.insert(res, "!")
-	end
-
-	if opts.nargs then
-		table.insert(res, " -nargs=")
-		table.insert(res, tostring(opts.nargs))
-	end
-
-	local compl <const> = opts.complete
-	-- TODO: v:lua.require ... doesn't seem to work very well here
-	if compl is CommandOpts.CompleteFunc then
-		(_G as {string:function})["__" .. opts.name .. "completefunc"] = failsafe(compl, "Error in completion function:")
-		table.insert(res, " -complete=custom,v:lua.__" .. opts.name .. "completefunc")
-	elseif compl then
-		table.insert(res, " -complete=" .. compl)
-	elseif opts.completelist then
-		(_G as {string:function})["__" .. opts.name .. "completelistfunc"] = failsafe(opts.completelist, "Error in completion function:")
-		table.insert(res, " -complete=customlist,v:lua.__" .. opts.name .. "completelistfunc")
-	end
-
-	local range <const> = opts.range
-	local count <const> = opts.count
-
-	assert(not (range and count), "range and count are mutually exclusive options")
-
-	if range == true then
-		table.insert(res, " -range")
-	elseif range then
-		table.insert(res, " -range=")
-		table.insert(res, tostring(range))
-	elseif count == true then
-		table.insert(res, " -count")
-	elseif count then
-		table.insert(res, " -count=")
-		table.insert(res, tostring(count))
-	end
-
-	if opts.addr then
-		table.insert(res, " -addr=")
-		table.insert(res, opts.addr)
-	end
-
-	if opts.bang then table.insert(res, " -bang") end
-	if opts.bar then table.insert(res, " -bar") end
-	if opts.register then table.insert(res, " -register") end
-	if opts.buffer then table.insert(res, " -buffer") end
-
-	table.insert(res, " ")
-	table.insert(res, opts.name)
-
-	table.insert(res, " ")
-	local body <const> = assert(opts.body, "Command must have a body")
-	if body is string then
-		table.insert(res, body)
-	else
-		local key <const> = "usercmd" .. opts.name
-		nvim._exports[key] = body
-		table.insert(res, ([=[call luaeval('require("euclidian.lib.nvim")._exports[%q](unpack(_A))', [<f-args>])]=]):format(key))
-	end
-
-	a.nvim_command(table.concat(res))
 end
 
 local function toStrArr(s: string | {string}): {string}

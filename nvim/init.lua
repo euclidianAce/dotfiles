@@ -224,19 +224,6 @@ vim.diagnostic.config{
 	}
 }
 
-nvim.newCommand{
-	name = "Make",
-	body = function()
-		local buf = nvim.Buffer()
-		nvim.command("make")
-		vim.diagnostic.set(
-			vim.api.nvim_create_namespace("euclidian.Make"),
-			buf.id,
-			vim.diagnostic.fromqflist(vim.fn.getqflist())
-		)
-	end,
-}
-
 confload("statusline")
 confload("keymaps")
 
@@ -258,7 +245,20 @@ if vim.fn.exists(":GuiFont") == 2 then
 	nvim.command[[GuiFont! Ubuntu Mono:h12]]
 end
 
-nvim.newCommand{ name = "Lua", complete = "lua", nargs = "*", body = "lua print(<args>)" }
+nvim.api.addUserCommand("Lua", ":lua print(<args>)<cr>", { complete = "lua", nargs = "*" })
+nvim.api.addUserCommand(
+	"Make",
+	function()
+		local buf = nvim.Buffer()
+		nvim.command("make")
+		vim.diagnostic.set(
+			nvim.api.createNamespace("euclidian.Make"),
+			buf.id,
+			vim.diagnostic.fromqflist(vim.fn.getqflist())
+		)
+	end,
+	{}
+)
 
 setmetatable(_G, {
 	__index = function(_, key)

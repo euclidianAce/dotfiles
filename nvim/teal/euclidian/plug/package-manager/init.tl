@@ -68,21 +68,21 @@ end
 
 packagemanager.commands._Reload = packagemanager._reload
 
-nvim.newCommand{
-	name = "PackageManager",
-	nargs = 1,
-	completelist = getCommandCompletion,
-	body = function(cmd: string)
-		if not packagemanager.commands[cmd] then
-			report.err("Not a command: %s", tostring(cmd))
+nvim.api.addUserCommand(
+	"PackageManager",
+	function(args: nvim.CommandArgs)
+		if not packagemanager.commands[args.args] then
+			report.err("Not a command: %s", tostring(args.args))
 			return
 		end
-		packagemanager.commands[cmd]()
+		packagemanager.commands[args.args]()
 	end,
-	bar = true,
-
-	overwrite = true,
-}
+	{
+		nargs = 1,
+		bar = true,
+		complete= getCommandCompletion,
+	}
+)
 
 local cfg <const> = assert(configure.load())
 

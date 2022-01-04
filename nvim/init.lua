@@ -260,6 +260,14 @@ nvim.api.addUserCommand(
 	{}
 )
 
+nvim.api.addUserCommand(
+	"ToHex",
+	function(args)
+		print(("0x%x"):format(tonumber(args.args)))
+	end,
+	{ nargs = 1 }
+)
+
 setmetatable(_G, {
 	__index = function(_, key)
 		for _, r in ipairs{libreq, plugreq} do

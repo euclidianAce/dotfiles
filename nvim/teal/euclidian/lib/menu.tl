@@ -176,7 +176,7 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 		end,
 	})
 
-	while true do
+	repeat
 		renderMenu()
 		local pressed <const> = waitForKey(d, "<cr>", "<tab>", "<bs>", "<2-LeftMouse>")
 
@@ -197,11 +197,9 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 					end
 				end
 			end
-		elseif pressed == "<bs>" then
-			d:close()
-			return
 		end
-	end
+	until pressed == "<bs>"
+	d:close()
 end
 
 local function longestLength<T>(arr: {T}): integer
@@ -276,7 +274,7 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 		)
 	end
 
-	while true do
+	repeat
 		render()
 		local pressed <const> = waitForKey(d, "<cr>", "<bs>")
 		if pressed == "<cr>" then
@@ -287,7 +285,7 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 		elseif pressed == "<bs>" then
 			break
 		end
-	end
+	until pressed == "<bs>"
 
 	d:close()
 end
@@ -313,13 +311,11 @@ function checklistMt.__call(self: Checklist, d: dialog.Dialog): {string}
 		end
 	end
 
-	while true do
+	repeat
 		render()
-		local pressed <const> = waitForKey(d, "<cr>", "<bs>", "<c-y>")
-		if pressed == "<cr>" then
+		local pressed <const> = waitForKey(d, "<cr>", "<tab>", "<bs>", "<c-y>")
+		if pressed == "<cr>" or pressed == "<tab>" then
 			toggleItem((d:getCursor()))
-		elseif pressed == "<bs>" then
-			break
 		elseif pressed == "<c-y>" then
 			local ret <const>: {string} = {}
 			for _, v in ipairs(self.items) do
@@ -329,7 +325,7 @@ function checklistMt.__call(self: Checklist, d: dialog.Dialog): {string}
 			end
 			return ret
 		end
-	end
+	until pressed == "<bs>"
 end
 
 return menu

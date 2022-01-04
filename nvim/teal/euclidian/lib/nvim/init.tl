@@ -254,14 +254,31 @@ function nvim.augroup(name: string, lst: {{string | {string}, string | {string},
 	nvim.command("augroup END")
 end
 
-function nvim.setKeymap(mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
+local function copyMapOpts(opts: nvim.MapOpts): nvim.MapOpts
+	return {
+		nowait: boolean = opts.nowait,
+		silent: boolean = opts.silent,
+		script: boolean = opts.script,
+		expr: boolean = opts.expr,
+		unique: boolean = opts.unique,
+		noremap: boolean = opts.noremap,
+		desc: string = opts.desc,
+		callback: function = opts.callback,
+	}
+end
+
+local function keymapArgs(rhs: string | function, userSettings: nvim.MapOpts): string, nvim.MapOpts
 	if rhs is string then
-		a.nvim_set_keymap(mode, lhs, rhs, userSettings)
+		return rhs, userSettings
 	else
-		assert(not userSettings.callback)
-		userSettings.callback = rhs
-		a.nvim_set_keymap(mode, lhs, '', userSettings)
+		local copy <const> = copyMapOpts(userSettings)
+		copy.callback = rhs
+		return '', copy
 	end
+end
+
+function nvim.setKeymap(mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
+	a.nvim_set_keymap(mode, lhs, keymapArgs(rhs, userSettings))
 end
 
 function nvim.delKeymap(mode: vim.Mode, lhs: string)
@@ -269,13 +286,7 @@ function nvim.delKeymap(mode: vim.Mode, lhs: string)
 end
 
 nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
-	if rhs is string then
-		a.nvim_buf_set_keymap(self.id, mode, lhs, rhs, userSettings)
-	else
-		assert(not userSettings.callback)
-		userSettings.callback = rhs
-		a.nvim_buf_set_keymap(self.id, mode, lhs, '', userSettings)
-	end
+	a.nvim_buf_set_keymap(self.id, mode, lhs, keymapArgs(rhs, userSettings))
 end
 
 nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string)

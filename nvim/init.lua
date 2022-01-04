@@ -48,9 +48,9 @@ set(vim.g, {
 	loaded_tarPlugin = 1,
 	loaded_zipPlugin = 1,
 	loaded_2html_plugin = 1,
-	loaded_netrw = 1,
-	loaded_netrwPlugin = 1,
 	loaded_spec = 1,
+
+	netrw_banner = 0,
 })
 
 set(vim.opt, {

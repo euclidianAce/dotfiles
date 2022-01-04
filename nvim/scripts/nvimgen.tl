@@ -50,6 +50,8 @@ local record MapOpts
 	expr: boolean
 	unique: boolean
 	noremap: boolean
+	desc: string
+	callback: function
 end
 
 local record CommandArgs

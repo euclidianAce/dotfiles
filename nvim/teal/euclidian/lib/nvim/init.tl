@@ -254,26 +254,13 @@ function nvim.augroup(name: string, lst: {{string | {string}, string | {string},
 	nvim.command("augroup END")
 end
 
-local function getKeymapKey(mode: string, lhs: string, prefix: string): string
-	return (prefix or "")
-		.. "keymap:"
-		.. mode
-		.. ":"
-		.. a.nvim_replace_termcodes(lhs, true, true, true)
-end
-
 function nvim.setKeymap(mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
 	if rhs is string then
 		a.nvim_set_keymap(mode, lhs, rhs, userSettings)
 	else
-		local key <const> = getKeymapKey(mode, lhs)
-		nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
-		a.nvim_set_keymap(
-			mode,
-			lhs,
-			("<cmd>lua require'euclidian.lib.nvim'._exports[%q]()<cr>"):format(key),
-			userSettings
-		)
+		assert(not userSettings.callback)
+		userSettings.callback = rhs
+		a.nvim_set_keymap(mode, lhs, '', userSettings)
 	end
 end
 
@@ -285,16 +272,9 @@ nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string,
 	if rhs is string then
 		a.nvim_buf_set_keymap(self.id, mode, lhs, rhs, userSettings)
 	else
-		local key <const> = getKeymapKey(mode, lhs, "buf" .. tostring(self.id))
-		nvim._exports[key] = failsafe(rhs, "Error in keymap (" .. key .. "): ")
-		a.nvim_buf_set_keymap(
-			self.id,
-			mode,
-			lhs,
-			("<cmd>lua require'euclidian.lib.nvim'._exports[%q]()<cr>"):format(key),
-			userSettings
-		)
-		nvim.command("autocmd BufUnload <buffer=%d> ++once lua require'euclidian.lib.nvim'._exports[%q] = nil", self.id, key)
+		assert(not userSettings.callback)
+		userSettings.callback = rhs
+		a.nvim_buf_set_keymap(self.id, mode, lhs, '', userSettings)
 	end
 end
 

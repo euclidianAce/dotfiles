@@ -1,7 +1,7 @@
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
 local z <const> = require("euclidian.lib.azync")
-local ns <const> = vim.api.nvim_create_namespace("euclidian.lib.menu")
+local ns <const> = nvim.api.createNamespace("euclidian.lib.menu")
 
 -- TODO: find a way to make this generic over the function return so
 --       run can return the result of the function with the correct type
@@ -14,7 +14,7 @@ local record Accordion
 	expanded_prefix: string
 
 	record Options
-		persist: boolean
+		persist: boolean -- don't close dialog after selecting an item
 	end
 
 	metamethod __call: function(Accordion, dialog.Dialog, Options): any...
@@ -30,6 +30,15 @@ local record Modifiable
 	items: {Item}
 
 	metamethod __call: function(Modifiable, dialog.Dialog): any...
+end
+
+local record Checklist
+	type Item = {string, boolean} | string
+	items: {Item}
+	checked_prefix: string
+	unchecked_prefix: string
+
+	metamethod __call: function(Checklist, dialog.Dialog): {string}
 end
 
 local new <const> = {}
@@ -52,9 +61,20 @@ function new.modifiable(items: {Modifiable.Item}): Modifiable
 	} as Modifiable, modifiableMt)
 end
 
+local checklistMt <const>: metatable<Checklist> = { __index = Checklist }
+
+function new.checklist(items: {Checklist.Item}): Checklist
+	return setmetatable({
+		items = items,
+		checked_prefix = "[*] ",
+		unchecked_prefix = "[ ] ",
+	} as Checklist, checklistMt)
+end
+
 local menu <const> = {
 	Accordion = Accordion,
 	Modifiable = Modifiable,
+	Checklist = Checklist,
 	new = new,
 }
 
@@ -130,7 +150,7 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 	win:setOption("cursorline", true)
 	buf:clearNamespace(ns, 0, -1)
 
-	vim.api.nvim_set_decoration_provider(ns, {
+	nvim.api.setDecorationProvider(ns, {
 		on_win = function(_: any, w: integer): boolean
 			if winid ~= w then
 				return false
@@ -241,7 +261,7 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 					if ok then
 						accept(input)
 					else
-						vim.api.nvim_err_writeln(
+						nvim.api.errWriteln(
 							("Invalid input for item %q: %s"):format(item.name, tostring(err))
 						)
 						vim.schedule(function()
@@ -270,6 +290,46 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 	end
 
 	d:close()
+end
+
+function checklistMt.__call(self: Checklist, d: dialog.Dialog): {string}
+	local function render()
+		local lines <const> = {}
+		for i, item in ipairs(self.items) do
+			if item is string then
+				lines[i] = self.unchecked_prefix .. item
+			else
+				lines[i] = (item[2] and self.checked_prefix or self.unchecked_prefix) .. item[1]
+			end
+		end
+		d:setLines(lines)
+	end
+
+	local function toggleItem(i: integer)
+		if type(self.items[i]) == "string" then
+			self.items[i] = {self.items[i] as string, true}
+		else
+			(self.items[i] as {string, boolean})[2] = not (self.items[i] as {string, boolean})[2]
+		end
+	end
+
+	while true do
+		render()
+		local pressed <const> = waitForKey(d, "<cr>", "<bs>", "<c-y>")
+		if pressed == "<cr>" then
+			toggleItem((d:getCursor()))
+		elseif pressed == "<bs>" then
+			break
+		elseif pressed == "<c-y>" then
+			local ret <const>: {string} = {}
+			for _, v in ipairs(self.items) do
+				if v is {string, boolean} and v[2] then
+					table.insert(ret, v[1])
+				end
+			end
+			return ret
+		end
+	end
 end
 
 return menu

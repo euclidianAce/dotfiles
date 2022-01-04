@@ -1,7 +1,7 @@
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
 local z = require("euclidian.lib.azync")
-local ns = vim.api.nvim_create_namespace("euclidian.lib.menu")
+local ns = nvim.api.createNamespace("euclidian.lib.menu")
 
 
 
@@ -32,6 +32,15 @@ local Modifiable = {Item = {}, }
 
 
 
+local Checklist = {}
+
+
+
+
+
+
+
+
 local new = {}
 local accordionMt = { __index = Accordion }
 
@@ -52,9 +61,20 @@ function new.modifiable(items)
    }, modifiableMt)
 end
 
+local checklistMt = { __index = Checklist }
+
+function new.checklist(items)
+   return setmetatable({
+      items = items,
+      checked_prefix = "[*] ",
+      unchecked_prefix = "[ ] ",
+   }, checklistMt)
+end
+
 local menu = {
    Accordion = Accordion,
    Modifiable = Modifiable,
+   Checklist = Checklist,
    new = new,
 }
 
@@ -130,7 +150,7 @@ function accordionMt.__call(self, d, opts)
    win:setOption("cursorline", true)
    buf:clearNamespace(ns, 0, -1)
 
-   vim.api.nvim_set_decoration_provider(ns, {
+   nvim.api.setDecorationProvider(ns, {
       on_win = function(_, w)
          if winid ~= w then
             return false
@@ -241,7 +261,7 @@ function modifiableMt.__call(self, d)
             if ok then
                accept(input)
             else
-               vim.api.nvim_err_writeln(
+               nvim.api.errWriteln(
                ("Invalid input for item %q: %s"):format(item.name, tostring(err)))
 
                vim.schedule(function()
@@ -270,6 +290,46 @@ function modifiableMt.__call(self, d)
    end
 
    d:close()
+end
+
+function checklistMt.__call(self, d)
+   local function render()
+      local lines = {}
+      for i, item in ipairs(self.items) do
+         if type(item) == "string" then
+            lines[i] = self.unchecked_prefix .. item
+         else
+            lines[i] = (item[2] and self.checked_prefix or self.unchecked_prefix) .. item[1]
+         end
+      end
+      d:setLines(lines)
+   end
+
+   local function toggleItem(i)
+      if type(self.items[i]) == "string" then
+         self.items[i] = { self.items[i], true }
+      else
+         (self.items[i])[2] = not (self.items[i])[2]
+      end
+   end
+
+   while true do
+      render()
+      local pressed = waitForKey(d, "<cr>", "<bs>", "<c-y>")
+      if pressed == "<cr>" then
+         toggleItem((d:getCursor()))
+      elseif pressed == "<bs>" then
+         break
+      elseif pressed == "<c-y>" then
+         local ret = {}
+         for _, v in ipairs(self.items) do
+            if type(v) == "table" and v[2] then
+               table.insert(ret, v[1])
+            end
+         end
+         return ret
+      end
+   end
 end
 
 return menu

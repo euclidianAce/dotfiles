@@ -10,12 +10,18 @@ local printmode <const> = {
 	Mode = Mode,
 }
 
-local printDialog <const> = dialog.new{
-	centered = true,
-	wid = 50, hei = 0.75,
-	hidden = true,
-}
-printDialog:setLines{"=== print buffer ==="}
+local printDialog: dialog.Dialog
+local function getPrintDialog(): dialog.Dialog
+	if not printDialog then
+		printDialog = dialog.new{
+			centered = true,
+			wid = 50, hei = 0.75,
+			hidden = true,
+		}
+		printDialog:setLines{"=== print buffer ==="}
+	end
+	return printDialog
+end
 
 local inspectOpts <const> = { newline = " ", indent = "" }
 
@@ -37,7 +43,8 @@ local modes <const>: {Mode:function(...:any)} = {
 	buffer = function(...: any)
 		local args = { n = select("#", ...), ... }
 		vim.schedule(function()
-			printDialog:show()
+			local pd <const> = getPrintDialog()
+			pd:show()
 
 			local text <const> = {}
 			for i = 1, args.n do
@@ -50,7 +57,7 @@ local modes <const>: {Mode:function(...:any)} = {
 				table.insert(text, thing as string)
 			end
 
-			printDialog:appendLines(vim.split(table.concat(text, " "), "\n", true))
+			pd:appendLines(vim.split(table.concat(text, " "), "\n", true))
 		end)
 	end,
 }

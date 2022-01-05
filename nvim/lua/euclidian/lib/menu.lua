@@ -20,6 +20,8 @@ local Accordion = {Options = {}, }
 
 
 
+
+
 local Modifiable = {Item = {}, }
 
 
@@ -103,36 +105,58 @@ end
 function accordionMt.__call(self, d, opts)
    opts = opts or {}
 
+   local buf = d:buf()
+   local win = d:win()
+
    local State = {}
 
 
 
    local states = {}
    local lines = {}
-   local function appendItem(item, indent)
-      local len = #lines + 1
-      local second = item[2]
-      if not states[item] then
-         states[item] = { enabled = false }
-      end
-      local s = states[item]
-      s.line = len
-      local prefix = ""
-      if type(second) == "function" then
-         prefix = self.item_prefix
-      elseif second then
-         prefix = s.enabled and
-         self.expanded_prefix or
-         self.unexpanded_prefix
-      end
-      lines[len] = ("  "):rep(indent) .. prefix .. item[1]
-      if type(second) == "table" and s.enabled then
-         for _, child in ipairs(second) do
-            appendItem(child, indent + 1)
+   local function renderMenu()
+      local extmarks = {}
+
+      local function appendItem(item, indent)
+         local len = #lines + 1
+         if type(item) == "string" then
+            lines[len] = ("  "):rep(indent) .. item
+         else
+            local second = item[2]
+            if not states[item] then
+               states[item] = { enabled = false }
+            end
+            local s = states[item]
+            s.line = len
+            local prefix = ""
+            local hl = "Normal"
+            if type(second) == "function" then
+               prefix = self.item_prefix
+               hl = "Type"
+            elseif second then
+               prefix = s.enabled and
+               self.expanded_prefix or
+               self.unexpanded_prefix
+               hl = "Special"
+            end
+            lines[len] = ("  "):rep(indent) .. prefix .. item[1]
+            table.insert(
+            extmarks,
+            { len - 1, indent * 2, {
+               end_row = len - 1,
+               end_col = #lines[len],
+               hl_group = hl,
+            }, })
+
+            if type(second) == "table" and s.enabled then
+               for _, child in ipairs(second) do
+                  appendItem(child, indent + 1)
+               end
+            end
          end
       end
-   end
-   local function renderMenu()
+
+      buf:clearNamespace(ns, 0, -1)
       lines = {}
       for _, state in pairs(states) do
          state.line = -1
@@ -141,40 +165,17 @@ function accordionMt.__call(self, d, opts)
          appendItem(item, 0)
       end
       d:setLines(lines)
+      vim.schedule(function()
+         for _, mark in ipairs(extmarks) do
+            buf:setExtmark(ns, mark[1], mark[2], mark[3])
+         end
+      end)
    end
 
-   local buf = d:buf()
-   local win = d:win()
-   local winid = win.id
+   self.redraw = renderMenu
+
    win:setOption("winhl", win:getOption("winhl"))
    win:setOption("cursorline", true)
-   buf:clearNamespace(ns, 0, -1)
-
-   nvim.api.setDecorationProvider(ns, {
-      on_win = function(_, w)
-         if winid ~= w then
-            return false
-         end
-         return true
-      end,
-      on_line = function(_, _win, bufnr, row)
-         if bufnr ~= buf.id then
-            return false
-         end
-         local line = lines[row + 1]
-         local leadingws = #line:match("^(%s*)")
-         buf:setExtmark(ns, row, leadingws, {
-            ephemeral = true,
-            end_line = row,
-            end_col = #line,
-            hl_group = line:match("^%s*%*") and "Type" or
-            line:match("^%s*[+-]") and "Special" or
-            "Normal",
-         })
-
-         return true
-      end,
-   })
 
    repeat
       renderMenu()
@@ -183,23 +184,27 @@ function accordionMt.__call(self, d, opts)
       if pressed == "<cr>" or pressed == "<tab>" or pressed == "<2-LeftMouse>" then
          local row = d:getCursor()
          for item, state in pairs(states) do
-            local second = item[2]
-            if state.line == row then
-               if type(second) == "function" and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-                  if opts.persist then
-                     second()
+            if not (type(item) == "string") then
+               local second = item[2]
+               if state.line == row then
+                  if type(second) == "function" and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
+                     if opts.persist then
+                        second()
+                     else
+                        d:close()
+                        self.redraw = nil
+                        return second()
+                     end
                   else
-                     d:close()
-                     return second()
+                     state.enabled = not state.enabled
                   end
-               else
-                  state.enabled = not state.enabled
                end
             end
          end
       end
    until pressed == "<bs>"
    d:close()
+   self.redraw = nil
 end
 
 local function longestLength(arr)

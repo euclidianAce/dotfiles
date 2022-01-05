@@ -6,8 +6,7 @@ local ns <const> = nvim.api.createNamespace("euclidian.lib.menu")
 -- TODO: find a way to make this generic over the function return so
 --       run can return the result of the function with the correct type
 local record Accordion
-	-- TODO: allow an item to be just a string
-	type Item = {string, {Item} | function(): any...}
+	type Item = string | {string, {Item} | function(): any...}
 	items: {Item}
 	item_prefix: string
 	unexpanded_prefix: string
@@ -16,6 +15,8 @@ local record Accordion
 	record Options
 		persist: boolean -- don't close dialog after selecting an item
 	end
+
+	redraw: function()
 
 	metamethod __call: function(Accordion, dialog.Dialog, Options): any...
 end
@@ -103,36 +104,58 @@ end
 function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.Options): any...
 	opts = opts or {}
 
+	local buf <const> = d:buf()
+	local win <const> = d:win()
+
 	local record State
 		enabled: boolean
 		line: integer
 	end
 	local states: {Accordion.Item:State} = {}
 	local lines: {string} = {}
-	local function appendItem(item: Accordion.Item, indent: integer)
-		local len <const> = #lines + 1
-		local second <const> = item[2]
-		if not states[item] then
-			states[item] = { enabled = false }
-		end
-		local s <const> = states[item]
-		s.line = len
-		local prefix: string = ""
-		if second is function(): any... then
-			prefix = self.item_prefix
-		elseif second then
-			prefix = s.enabled
-				and self.expanded_prefix
-				or self.unexpanded_prefix
-		end
-		lines[len] = ("  "):rep(indent) .. prefix .. item[1]
-		if second is {Accordion.Item} and s.enabled then
-			for _, child in ipairs(second) do
-				appendItem(child, indent + 1)
+	local function renderMenu()
+		local extmarks <const>: {any} = {}
+
+		local function appendItem(item: Accordion.Item, indent: integer)
+			local len <const> = #lines + 1
+			if item is string then
+				lines[len] = ("  "):rep(indent) .. item
+			else
+				local second <const> = item[2]
+				if not states[item] then
+					states[item] = { enabled = false }
+				end
+				local s <const> = states[item]
+				s.line = len
+				local prefix = ""
+				local hl = "Normal"
+				if second is function(): any... then
+					prefix = self.item_prefix
+					hl = "Type"
+				elseif second then
+					prefix = s.enabled
+						and self.expanded_prefix
+						or self.unexpanded_prefix
+					hl = "Special"
+				end
+				lines[len] = ("  "):rep(indent) .. prefix .. item[1]
+				table.insert(
+					extmarks,
+					{ len - 1, indent * 2, {
+						end_row = len - 1,
+						end_col = #lines[len],
+						hl_group = hl,
+					} }
+				)
+				if second is {Accordion.Item} and s.enabled then
+					for _, child in ipairs(second) do
+						appendItem(child, indent + 1)
+					end
+				end
 			end
 		end
-	end
-	local function renderMenu()
+
+		buf:clearNamespace(ns, 0, -1)
 		lines = {}
 		for _, state in pairs(states) do
 			state.line = -1
@@ -141,40 +164,17 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 			appendItem(item, 0)
 		end
 		d:setLines(lines)
+		vim.schedule(function()
+			for _, mark in ipairs(extmarks as {{integer, integer, {string:any}}}) do
+				buf:setExtmark(ns, mark[1], mark[2], mark[3])
+			end
+		end)
 	end
 
-	local buf <const> = d:buf()
-	local win <const> = d:win()
-	local winid <const> = win.id
+	self.redraw = renderMenu
+
 	win:setOption("winhl", win:getOption("winhl") as string)
 	win:setOption("cursorline", true)
-	buf:clearNamespace(ns, 0, -1)
-
-	nvim.api.setDecorationProvider(ns, {
-		on_win = function(_: any, w: integer): boolean
-			if winid ~= w then
-				return false
-			end
-			return true
-		end,
-		on_line = function(_: any, _win: integer, bufnr: integer, row: integer): boolean
-			if bufnr ~= buf.id then
-				return false
-			end
-			local line <const> = lines[row+1]
-			local leadingws <const> = #line:match("^(%s*)")
-			buf:setExtmark(ns, row, leadingws, {
-				ephemeral = true,
-				end_line = row,
-				end_col = #line,
-				hl_group = line:match("^%s*%*") and "Type"
-					or line:match("^%s*[+-]") and "Special"
-					or "Normal",
-			})
-
-			return true
-		end,
-	})
 
 	repeat
 		renderMenu()
@@ -183,23 +183,27 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 		if pressed == "<cr>" or pressed == "<tab>" or pressed == "<2-LeftMouse>" then
 			local row <const> = d:getCursor()
 			for item, state in pairs(states) do
-				local second <const> = item[2]
-				if state.line == row then
-					if second is function(): any... and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-						if opts.persist then
-							second()
+				if not item is string then
+					local second <const> = item[2]
+					if state.line == row then
+						if second is function(): any... and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
+							if opts.persist then
+								second()
+							else
+								d:close()
+								self.redraw = nil
+								return second()
+							end
 						else
-							d:close()
-							return second()
+							state.enabled = not state.enabled
 						end
-					else
-						state.enabled = not state.enabled
 					end
 				end
 			end
 		end
 	until pressed == "<bs>"
 	d:close()
+	self.redraw = nil
 end
 
 local function longestLength<T>(arr: {T}): integer

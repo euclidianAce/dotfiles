@@ -77,6 +77,16 @@ actions.listSets = function(): NilFrame
 		end
 		menuOpts[i] = {s, names}
 	end
+
+	do
+		local world <const> = set.getWorld()
+		local names <const> = {}
+		for j, spec in ipairs(world) do
+			names[j] = {spec:title()}
+		end
+		table.insert(menuOpts, { "@World", names })
+	end
+
 	local m <const> = menu.new.accordion(menuOpts)
 	return z.async(m, dialog.new{
 		centered = true,

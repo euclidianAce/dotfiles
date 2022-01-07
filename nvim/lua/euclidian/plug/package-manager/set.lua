@@ -8,6 +8,7 @@ local Spec = packagespec.Spec
 
 local set = {
    loaded = {},
+   getWorld = nil,
 }
 
 local tiFmt = tu.insertFormatted
@@ -139,20 +140,35 @@ local function loadSet(name)
    return set.deserialize(content)
 end
 
-function set.load(name)
-   if not set.loaded[name] then
-      local s, err = loadSet(name)
-      if not s then
-         return nil, err
-      end
-      set.loaded[name] = s
+local function append(dest, src)
+   local i = #dest
+   for j, v in ipairs(src) do
+      dest[i + j] = v
    end
-   return set.loaded[name]
+end
+
+function set.load(name)
+   if name == "@World" then
+      return set.getWorld()
+   else
+      if not set.loaded[name] then
+         local s, err = loadSet(name)
+         if not s then
+            return nil, err
+         end
+         set.loaded[name] = s
+      end
+      return set.loaded[name]
+   end
 end
 
 function set.save(name, s)
    assert(name, "Can't save a set without a name")
    assert(s, "No set to save")
+
+   if name:sub(1, 1) == "@" then
+      return false, "Set names that begin with '@' are reserved"
+   end
 
    local fh, err = io.open(tree.set .. "/" .. name, "w")
    if not fh then
@@ -165,7 +181,7 @@ function set.save(name, s)
 end
 
 function set.list()
-   local list = {}
+   local list = { "@World" }
    local scanner = uv.fs_scandir(tree.set)
    if scanner then
       for name in uv.fs_scandir_next, scanner do
@@ -175,6 +191,21 @@ function set.list()
       end
    end
    return list
+end
+
+function set.getWorld()
+   local all_names = set.list()
+   local all_specs = {}
+
+   for _, name in ipairs(all_names) do
+      local loaded, err = set.load(name)
+      if not loaded then
+         return nil, err
+      end
+      append(all_specs, loaded)
+   end
+
+   return all_specs
 end
 
 return set

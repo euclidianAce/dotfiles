@@ -1,0 +1,154 @@
+#!/usr/bin/env sh
+### A silly incremental build script
+# Use environment variables to control compilation
+# CC, TARGET, CFLAGS, LDFLAGS
+set -e
+
+log () {
+	echo -n -e "\033[2mBuild: "
+	echo -n $@
+	echo -e "\033[0m"
+}
+
+logerr () {
+	echo -n -e "\033[31;1mError\033[0m: " 1>&2
+	echo $@ 1>&2
+}
+
+logwarn () {
+	echo -n -e "\033[33;1m Warn\033[0m: " 1>&2
+	echo $@ 1>&2
+}
+
+if [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; then
+	echo -e "$(basename $0): An incremental C build system"
+	echo -e "  Usage $(basename $0) {run|clean|all|val|gdb|export|help} ..."
+	echo -e "      run              Compile + run your compiled program"
+	echo -e "      clean            Remove any generated objects"
+	echo -e "      all              Equivalent to clean + run"
+	echo -e "      val              Like run, but use valgrind"
+	echo -e "      gdb              Like run, but use gdb"
+	echo -e "      export           export a Makefile"
+	echo -e "      help,  -h,"
+	echo -e "      -help, --help    Show this help and exit"
+	echo -e ""
+	echo -e "  Use environment variables to control build flags + targets"
+	echo -e "      \$CC              The command to invoke the compiler [current: '$CC']"
+	echo -e "      \$CFLAGS          Flags to pass to the compiler [current: '$CFLAGS']"
+	echo -e "      \$LDFLAGS         Flags to pass to the linker [current: '$LDFLAGS']"
+	echo -e "      \$TARGET          The name of the binary to produce [current: '$TARGET']"
+	exit
+fi
+
+
+if [[ -z "$CC" ]]; then
+	logerr "\$CC is not defined"
+	exit 1
+fi
+
+if [[ -z "$CFLAGS" ]]; then
+	logwarn "\$CFLAGS is not defined, defaulting to '-Wall'"
+	CFLAGS="-Wall"
+fi
+
+if [[ -z "$LDFLAGS" ]]; then
+	logwarn "\$LDFLAGS is not defined, defaulting to ''"
+	LDFLAGS=""
+fi
+
+if [[ -z "$TARGET" ]]; then
+	logwarn "\$TARGET is not defined, defaulting to 'out'"
+	TARGET="out"
+fi
+
+runCmd () {
+	log "exec \`$@\`..."
+	$@
+}
+
+runCmdShowExit () {
+	runCmd $@
+	if [[ "$?" == "0" ]]; then
+		log -e "\033[32m\`$@\` exited with code $?\033[0m"
+	else
+		logerr -e "\033[31m\`$@\` exited with code $?\033[0m"
+	fi
+}
+
+sourcesCmd="find -name \*.c | cut -b 3- -"
+objectsCmd="find -name .\*.o | cut -b 3- - | perl -pe 's/\//__/g'"
+build () {
+	local shouldCompile="false"
+	for f in $(find -name \*.c | cut -b 3- -); do
+		local obj=".$(echo $f | perl -pe 's/\//__/g').o"
+		if (( $(date +%s -r $obj 2>/dev/null || echo 0) < $(date +%s -r $f) )); then
+			runCmdShowExit $CC -c $f -o $obj $CFLAGS
+			shouldCompile="true"
+		fi
+	done
+	if [[ "$shouldCompile" == "true" ]]; then
+		runCmdShowExit $CC $(eval $objectsCmd) -o $TARGET $LDFLAGS
+	else
+		log "Nothing to compile"
+	fi;
+}
+
+genMakefile () {
+	echo -e ".PHONY: run clean\n"
+	echo -e "TARGET=$TARGET"
+	echo -e "CC=$CC"
+	echo -e "CFLAGS=$CFLAGS"
+	echo -e "LDFLAGS=$LDFLAGS"
+	echo
+
+	local objs=""
+	for f in $(find -name \*.c | cut -b 3- -); do
+		local obj=".$(echo $f | perl -pe 's/\//__/g').o"
+		objs="$objs $obj"
+		echo -n -e "$obj: $f\n\t"
+		echo -e "\$(CC) \$(CFLAGS) -c $< -o \$@"
+	done
+
+	echo
+	echo -n "\$(TARGET):$objs"
+	echo -e "\n\t\$(CC) -o \$@ \$^ \$(LDFLAGS)"
+	echo -e "run: \$(TARGET)\n\t./\$(TARGET)"
+	echo -n -e "clean:\n\trm -f \$(TARGET)$objs"
+	echo
+}
+
+clean () {
+	local objs=$(eval $objectsCmd)
+	if [[ -n "$objs" ]]; then
+		runCmd rm $objs
+	fi
+	runCmd rm -f ./$TARGET
+}
+
+case "$1" in
+	"") build;;
+	"clean") clean;;
+	"all") clean; build;;
+	"export") genMakefile;;
+	"run")
+		build
+		shift
+		runCmdShowExit ./$TARGET $@
+		;;
+	"val")
+		build
+		shift
+		runCmdShowExit valgrind $@ ./$TARGET
+		;;
+	"gdb")
+		build
+		shift
+		runCmdShowExit gdb $@ ./$TARGET
+		;;
+	*)
+		logerr "Unrecognized argument '$1'"
+		exit 1
+		;;
+esac
+
+# vim: ts=4 sw=4

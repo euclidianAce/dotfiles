@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+## Just keep running a command until it works
+##
+## useful for shitty internet connections :P
+
+tries=20
+waittime=3
+
+while getopts "w:t:h" o; do
+	case "${o}" in
+	'h')
+		echo "Usage: ,try [-w wait time] [-t max tries] <command>"
+		echo ""
+		echo "   Keeps running <command> until it exits with 0"
+		echo ""
+		echo "Options:"
+		echo "   -w <number>      how long to wait between invocations (default: 3)"
+		echo "   -t <integer>     the maximum number of invocations (default: 20)"
+		exit 0
+	;;
+	't') tries=$OPTARG;;
+	'w') waittime=$OPTARG;;
+	*) exit 1;;
+	esac
+	shift $((OPTIND - 1))
+done
+
+cmd="$@"
+
+if (($tries==0)); then
+	echo "Invalid number of tries ($tries)" 1>&2
+	exit 1
+fi
+
+if (($waittime==0)); then
+	echo "Invalid wait time ($waittime)" 1>&2
+	exit 1
+fi
+
+do-wait () {
+	if (( $1<$tries-1 )); then
+		sleep $waittime
+	fi
+}
+
+quit () {
+	echo -n -e "\n'$cmd': "
+	if [[ $1 == "0" ]]; then
+		echo -e "\e[1;32mSuccess\e[0m"
+	else
+		echo -e "\e[1;31mFailure ($1)\e[0m"
+	fi
+	exit $1
+}
+
+printf "Trying      : %s\n" "$cmd"
+printf "  max tries : %d\n" $tries
+printf "  wait time : %d\n" $waittime
+
+lastresult=0
+for ((i=0; i<$tries; ++i)); do
+	echo -n -e "\nAttempt #$((i+1)): "
+	$@
+	lastresult=$?
+	if (( lastresult == 0 )); then
+		quit 0
+	else
+		do-wait $i
+	fi
+done
+
+quit $lastresult

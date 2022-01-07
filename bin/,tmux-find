@@ -1,0 +1,12 @@
+#/usr/bin/env bash
+
+function find-detached-session {
+	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
+	if [[ -z "$s" ]]; then
+		echo "tmux"
+	else
+		echo "tmux attach -t $s"
+	fi
+}
+
+exec $(find-detached-session)

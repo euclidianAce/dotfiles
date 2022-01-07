@@ -64,6 +64,8 @@ for f in $DOTFILE_DIR/bash_aliases/*; do
 	source $f
 done
 
+export PATH="$DOTFILE_DIR/bin/:$PATH"
+
 ####################
 #### PS1 STUFFS ####
 ####################

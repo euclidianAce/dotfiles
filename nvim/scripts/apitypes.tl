@@ -43,7 +43,7 @@ local function runCmd(cmd: string, max_log_lines: integer): {string}
 	return res
 end
 
-local nvim_cmd <const> = "/usr/local/bin/nvim"
+local nvim_cmd <const> = os.getenv("NVIM_BIN") or "nvim"
 local src <const>, target <const> = fs.path.new("scripts/nvimgen.tl"), fs.path.new("scripts/.nvimgen.lua")
 local scriptUpdated <const> = src:mod_time() > (target:mod_time() or -1)
 if scriptUpdated then

@@ -231,6 +231,31 @@ map("n", "<leader>head", z.asyncFn(function()
    })
 end))
 
+map("n", "<leader>stb", z.asyncFn(function()
+   local buf = nvim.Buffer()
+   local lines = buf:getLines(0, -1, false)
+   if #lines ~= 1 or lines[1] ~= "" then
+      vim.api.nvim_err_writeln("Cannot insert STB style guard: Buffer is not empty")
+      return
+   end
+   local guard = asyncInput({ prompt = "Insert STB style guard: " })
+   if not guard then return end
+
+   local normalized = guard:upper():gsub("%s", "_")
+   local header = normalized .. "_H"
+   local impl = normalized .. "_IMPLEMENTATION"
+   guard = guard:gsub("%s", "_")
+   buf:setLines(0, -1, false, {
+      "#ifndef " .. header,
+      "#define " .. header,
+      "",
+      "#endif // " .. header,
+      "",
+      "#ifdef " .. impl,
+      "#endif // " .. impl,
+   })
+end))
+
 do
    local function execBuffer(b)
       b = b or nvim.Buffer()

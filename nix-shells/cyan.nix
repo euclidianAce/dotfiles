@@ -4,6 +4,7 @@ pkgs.mkShell {
     lua5_3
     lua53Packages.argparse
     lua53Packages.luafilesystem
+    lua53Packages.busted
   ];
   shellHook = ''
     append-to-path () {

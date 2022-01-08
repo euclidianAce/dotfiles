@@ -1,4 +1,3 @@
-local a = vim.api
 local nvim = require("euclidian.lib.nvim")
 
 local TextRegion = {Position = {}, }
@@ -527,7 +526,7 @@ function Dialog:hide()
    return self
 end
 function Dialog:focus()
-   a.nvim_set_current_win(self:win().id)
+   nvim.api.setCurrentWin(self:win().id)
    return self
 end
 function Dialog:close()

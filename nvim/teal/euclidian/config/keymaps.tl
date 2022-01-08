@@ -1,6 +1,8 @@
-local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
+local input <const> = require("euclidian.lib.input")
+local nvim <const> = require("euclidian.lib.nvim")
 local z <const> = require("euclidian.lib.azync")
+
 local a <const> = vim.api
 local uv <const> = vim.loop
 
@@ -34,17 +36,6 @@ end
 map("n", "<leader>c", [[<cmd>set opfunc=v:lua.__euclidian.commentMotion")<cr>g@]])
 map("v", "<leader>c", [[:lua __euclidian.commentVisualSelection()<cr>]])
 
-local function asyncInput(opts: vim.ui.InputOpts): string
-	local result: string
-	z.suspend(function(me: z.Frame<nil>)
-		vim.ui.input(opts, function(i: string)
-			result = i
-			z.resume(me)
-		end)
-	end)
-	return result
-end
-
 local function getchar(): string
 	return string.char(vim.fn.getchar() as integer)
 end
@@ -66,9 +57,9 @@ __euclidian.appendCharsMotion = function(kind: OperatorfuncMode)
 	local b <const> = nvim.Buffer()
 	local open <const> = b:getMark("[")[1]
 	local close <const> = b:getMark("]")[1]
-	vim.ui.input({ prompt = "Append Characters: " }, function(input: string)
-		if input then
-			append.toRange(open, close, input, b.id)
+	vim.ui.input({ prompt = "Append Characters: " }, function(userinput: string)
+		if userinput then
+			append.toRange(open, close, userinput, b.id)
 		end
 	end)
 end
@@ -78,9 +69,9 @@ __euclidian.appendToVisualSelection = function(multiple: boolean)
 	local open <const> = b:getMark("<")[1]
 	local close <const> = b:getMark(">")[1]
 	if multiple then
-		vim.ui.input({ prompt = "Append Characters: " }, function(input: string)
-			if input then
-				append.toRange(open, close, input, b.id)
+		vim.ui.input({ prompt = "Append Characters: " }, function(userinput: string)
+			if userinput then
+				append.toRange(open, close, userinput, b.id)
 			end
 		end)
 	else
@@ -102,9 +93,9 @@ map("n", "<leader>A", [[<cmd>set opfunc=v:lua.__euclidian.appendCharsMotion")<cr
 
 map("n", "<leader>aa", function() append.toCurrentLine(getchar()) end)
 map("n", "<leader>AA", function()
-	vim.ui.input({ prompt = "Append Characters:" }, function(input: string)
-		if input then
-			append.toCurrentLine(input)
+	vim.ui.input({ prompt = "Append Characters:" }, function(userinput: string)
+		if userinput then
+			append.toCurrentLine(userinput)
 		end
 	end)
 end)
@@ -182,7 +173,7 @@ map("n", "<leader>head", z.asyncFn(function()
 		vim.api.nvim_err_writeln("Cannot insert header guard: Buffer is not empty")
 		return
 	end
-	local guard = asyncInput{ prompt = "Insert Header Guard: " }
+	local guard = input.input{ prompt = "Insert Header Guard: " }
 	if not guard then return end
 	guard = guard:upper()
 	if not guard:match("_H$") then
@@ -204,7 +195,7 @@ map("n", "<leader>stb", z.asyncFn(function()
 		vim.api.nvim_err_writeln("Cannot insert STB style guard: Buffer is not empty")
 		return
 	end
-	local guard = asyncInput{ prompt = "Insert STB style guard: " }
+	local guard = input.input{ prompt = "Insert STB style guard: " }
 	if not guard then return end
 
 	local normalized <const> = guard:upper():gsub("%s", "_")
@@ -245,11 +236,11 @@ end
 do -- cd dialog
 	-- TODO: turn this into a telescope lens
 	local pathSeparator <const> = package.config:sub(1, 1)
-	local input, result: dialog.Dialog, dialog.Dialog
+	local inputDialog, result: dialog.Dialog, dialog.Dialog
 	local currentlyMatching = false
 	local function init()
-		if not input then
-			input = dialog.new{
+		if not inputDialog then
+			inputDialog = dialog.new{
 				row = .25,
 				wid = .4, hei = 1,
 				centered = { horizontal = true },
@@ -258,7 +249,7 @@ do -- cd dialog
 			}
 		end
 		if not result then
-			local cfg <const> = input:win():getConfig()
+			local cfg <const> = inputDialog:win():getConfig()
 			local row <const> = (cfg.row as {boolean:integer})[false] + cfg.height + 2
 			result = dialog.new{
 				row = row,
@@ -270,7 +261,7 @@ do -- cd dialog
 	end
 	local function close()
 		currentlyMatching = false
-		if input then input:close() end input = nil
+		if inputDialog then inputDialog:close() end inputDialog = nil
 		if result then result:close() end result = nil
 	end
 
@@ -288,17 +279,17 @@ do -- cd dialog
 	local function cdDialog()
 		init()
 		result:show(true)
-		input:show()
+		inputDialog:show()
 		nvim.command[[startinsert]]
 
 		result:win():setOption("cursorline", true)
 		result:win():setOption("cursorlineopt", "line")
 
-		local b <const> = input:ensureBuf()
-		input:setModifiable(true)
+		local b <const> = inputDialog:ensureBuf()
+		inputDialog:setModifiable(true)
 
 		local function currentInput(): string, string
-			local ln <const> = input:getLine(1)
+			local ln <const> = inputDialog:getLine(1)
 			local head <const>, tail <const> = ln:match("(.*)" .. pathSeparator .. "([^" .. pathSeparator .. "]*)$")
 			if not tail then
 				return "", ln
@@ -341,8 +332,8 @@ do -- cd dialog
 		end, {})
 
 		local function setInput(ln: string)
-			input:setLines{ ln }
-			vim.schedule(function() input:setCursor(1, #ln) end)
+			inputDialog:setLines{ ln }
+			vim.schedule(function() inputDialog:setCursor(1, #ln) end)
 		end
 
 		b:setKeymap("i", "<c-y>", function()
@@ -357,7 +348,7 @@ do -- cd dialog
 		b:setKeymap("n", "<esc>", close, {})
 		b:setKeymap("i", "<esc>", function() nvim.command("stopinsert") close() end, {})
 		b:setKeymap("i", "<cr>", function()
-			local res <const> = input:getLine(1)
+			local res <const> = inputDialog:getLine(1)
 			close()
 			nvim.command("stopinsert")
 			nvim.command("tcd %s", res)

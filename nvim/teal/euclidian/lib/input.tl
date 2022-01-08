@@ -25,4 +25,27 @@ function input.waitForKey(buf: nvim.Buffer, mode: vim.Mode, ...: string): string
 	return pressed
 end
 
+function input.input(opts: vim.ui.InputOpts): string
+	local result: string
+	z.suspend(function(me: z.Frame<nil>)
+		vim.ui.input(opts, function(i: string)
+			result = i
+			z.resume(me)
+		end)
+	end)
+	return result
+end
+
+function input.select(items: {any}, opts: vim.ui.SelectOpts): any, integer
+	local result, result_idx: any, integer
+	z.suspend(function(me: z.Frame<nil>)
+		vim.ui.select(items, opts, function(r: any, i: integer)
+			result = r
+			result_idx = i
+			z.resume(me)
+		end)
+	end)
+	return result, result_idx
+end
+
 return input

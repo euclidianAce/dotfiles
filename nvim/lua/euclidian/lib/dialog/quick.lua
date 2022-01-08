@@ -1,6 +1,6 @@
-local a = vim.api
-local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
+local input = require("euclidian.lib.input")
+local nvim = require("euclidian.lib.nvim")
 local z = require("euclidian.lib.azync")
 local quick = {}
 
@@ -8,6 +8,8 @@ local Dialog = dialog.Dialog
 local Opts = dialog.Dialog.Opts
 
 function quick.prompt(txt, opts, onOpen)
+   local res
+   local me = assert(z.currentFrame())
    local originalWindow = nvim.Window()
    local d = dialog.new(opts or {
       wid = 45, hei = 1,
@@ -15,63 +17,35 @@ function quick.prompt(txt, opts, onOpen)
       interactive = true,
       ephemeral = true,
    })
+   local function close()
+      d:close()
+      z.resume(me)
+   end
    d:ensureWin():setVar("QuickDialog", true)
    d:ensureBuf():attach(false, {
       on_lines = function()
          d:fitTextPadded(1, 0, 45, nil, nil, 1):centerHorizontal()
       end,
    })
-   if onOpen then
-      onOpen(d)
-   end
-   local res
-   z.suspend(function(me)
-      local function close()
-         d:close()
-         z.resume(me)
+   d:addKeymap(
+   "n", "<esc>",
+   close,
+   { silent = true })
+
+   d:setPrompt(
+   txt,
+   function(result)
+      res = result
+      if originalWindow:isValid() then
+         nvim.api.setCurrentWin(originalWindow.id)
       end
-      d:addKeymap(
-      "n", "<esc>",
-      close,
-      { silent = true })
+      close()
+   end,
+   close)
 
-      d:setPrompt(
-      txt,
-      function(result)
-         res = result
-         if originalWindow:isValid() then
-            a.nvim_set_current_win(originalWindow.id)
-         end
-         close()
-      end,
-      close)
-
-   end)
-   return res
-end
-
-local function waitForKey(d, ...)
-   local keys = { ... }
-   local function delKeymaps()
-      vim.schedule(function()
-         for _, key in ipairs(keys) do
-            d:delKeymap("n", key)
-         end
-      end)
-   end
-   local pressed
-   local me = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
-   vim.schedule(function()
-      for _, key in ipairs(keys) do
-         d:addKeymap("n", key, function()
-            pressed = key
-            delKeymaps()
-            z.resume(me)
-         end, { silent = true })
-      end
-   end)
+   if onOpen then vim.schedule_wrap(function() onOpen(d) end) end
    z.suspend()
-   return pressed
+   return res
 end
 
 function quick.yesOrNo(pre, affirm, deny, opts)
@@ -93,13 +67,12 @@ function quick.yesOrNo(pre, affirm, deny, opts)
    d:win():setOption("cursorline", true)
    local ln
    repeat
-      waitForKey(d, "<cr>")
+      input.waitForKey(d:buf(), "n", "<cr>")
       ln = d:getCursor()
    until ln > 1
-   a.nvim_set_current_win(origId)
+   nvim.api.setCurrentWin(origId)
    d:close()
    return ln == 2
 end
-
 
 return quick

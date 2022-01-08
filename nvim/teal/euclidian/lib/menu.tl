@@ -1,7 +1,7 @@
 local dialog <const> = require("euclidian.lib.dialog")
 local input <const> = require("euclidian.lib.input")
 local nvim <const> = require("euclidian.lib.nvim")
-local z <const> = require("euclidian.lib.azync")
+-- local z <const> = require("euclidian.lib.azync")
 local ns <const> = nvim.api.createNamespace("euclidian.lib.menu")
 
 -- TODO: find a way to make this generic over the function return so
@@ -16,7 +16,6 @@ local record Accordion
 	record Options
 		persist: boolean -- don't close dialog after selecting an item
 	end
-
 	redraw: function()
 
 	metamethod __call: function(Accordion, dialog.Dialog, Options): any...
@@ -185,17 +184,6 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 	self.redraw = nil
 end
 
-local function longestLength<T>(arr: {T}): integer
-	local longest = 0
-	for _, v in ipairs(arr) do
-		local len <const> = #(v as table)
-		if len > longest then
-			longest = len
-		end
-	end
-	return longest
-end
-
 function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 	local function render()
 		local lines <const> = {}
@@ -205,42 +193,22 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 		d:setLines(lines)
 	end
 
-	local function editDialog(item: Modifiable.Item, resume: z.Frame<nil>)
-		local editor <const> = dialog.new{
-			wid = 1,
-			hei = 1,
-			centered = true,
-			interactive = true,
-			ephemeral = true,
-		}
-		local lines = {
-			"(Name): " .. item.name,
-			"(Old Value): " .. tostring(item.value),
-		}
-		local width <const> = longestLength(lines) + 10
-		editor:setLines(lines)
-		editor:buf():attach(false, {
-			on_lines = function()
-				editor:fitTextPadded(1, 0, width, 3, nil, nil):centerHorizontal()
-			end,
-		})
-		editor:fitText(width, 2):centerHorizontal()
-		local close <const> = vim.schedule_wrap(function()
-			nvim.command("stopinsert")
-			editor:close()
-			z.resume(resume)
-		end)
-		local function accept(userinput: string)
-			item.value = userinput
-			close()
-		end
-		editor:setPrompt(
-			"(New Value): ",
-			function(userinput: string)
-				if item.validator then
-					local ok <const>, err <const> = item.validator(userinput)
+	repeat
+		render()
+		local pressed <const> = input.waitForKey(d:buf(), "n", "<cr>", "<bs>")
+		if pressed == "<cr>" then
+			d:focus()
+			local row <const> = d:getCursor()
+			local item <const> = self.items[row]
+			local val: string
+			repeat
+				val = input.input{ prompt = "New Value for " .. item.name .. ": " }
+				local ok = true
+				if not rawequal(val, nil) then
+					local err: string
+					ok, err = item.validator(val)
 					if ok then
-						accept(userinput)
+						item.value = val
 					else
 						nvim.api.errWriteln(
 							("Invalid input for item %q: %s"):format(
@@ -248,26 +216,9 @@ function modifiableMt.__call(self: Modifiable, d: dialog.Dialog)
 								assert(err, "no error message was returned from the validator")
 							)
 						)
-						vim.schedule(function()
-							editor:setLines(lines)
-						end)
 					end
-				else
-					accept(userinput)
 				end
-			end,
-			close
-		)
-	end
-
-	repeat
-		render()
-		local pressed <const> = input.waitForKey(d:buf(), "n", "<cr>", "<bs>")
-		if pressed == "<cr>" then
-			local row <const> = d:getCursor()
-			z.suspend(function(me: z.Frame<nil>)
-				editDialog(self.items[row], me)
-			end)
+			until ok
 		elseif pressed == "<bs>" then
 			break
 		end

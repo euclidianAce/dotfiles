@@ -14,9 +14,17 @@ local function flashWindow(win: nvim.Window)
 	local orig <const> = win:getOption("winhighlight")
 	z.async(function()
 		for _ = 1, 3 do
-			vim.schedule(function() win:setOption("winhighlight", "Normal:STLNormal,NormalFloat:STLInsert") end)
+			vim.schedule(function()
+				if win:isValid() then
+					win:setOption("winhighlight", "Normal:STLNormal,NormalFloat:STLInsert")
+				end
+			end)
 			wait(250)
-			vim.schedule(function() win:setOption("winhighlight", orig) end)
+			vim.schedule(function()
+				if win:isValid() then
+					win:setOption("winhighlight", orig)
+				end
+			end)
 			wait(150)
 		end
 	end)
@@ -33,7 +41,9 @@ vim.ui.input = function(opts: vim.ui.InputOpts, confirm: function(string))
 			interactive = true,
 			ephemeral = true,
 			border = "none",
-		}, function(d: dialog.Dialog) flashWindow(d:win()) end)
+		}, function(d: dialog.Dialog)
+			flashWindow(d:win())
+		end)
 		confirm(result)
 	end)
 end

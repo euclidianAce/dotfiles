@@ -181,7 +181,7 @@ function set.save(name, s)
 end
 
 function set.list()
-   local list = { "@World" }
+   local list = {}
    local scanner = uv.fs_scandir(tree.set)
    if scanner then
       for name in uv.fs_scandir_next, scanner do

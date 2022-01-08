@@ -181,7 +181,7 @@ function set.save(name: string, s: {Spec}): boolean, string
 end
 
 function set.list(): {string}
-	local list <const> = { "@World" }
+	local list <const> = {}
 	local scanner <const> = uv.fs_scandir(tree.set)
 	if scanner then
 		for name in uv.fs_scandir_next, scanner do

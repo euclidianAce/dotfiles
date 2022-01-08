@@ -4,40 +4,8 @@ local z = require("euclidian.lib.azync")
 local a = vim.api
 local uv = vim.loop
 
-local function combinations(xs, ys)
-   return coroutine.wrap(function()
-      for _, x in ipairs(xs) do
-         for _, y in ipairs(ys) do
-            coroutine.yield(x, y)
-         end
-      end
-   end)
-end
-
-local function ensureArray(t)
-
-   if type(t) ~= "table" then
-      return { t }
-   elseif t then
-      return t
-   else
-      return {}
-   end
-end
-
-local function map(m, lhs, rhs)
-   for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
-      nvim.setKeymap(mode, l, rhs, { noremap = true, silent = true })
-   end
-end
-local unmap = nvim.delKeymap
-
-
-
-
-
-
-
+local map = vim.keymap.set
+local unmap = vim.keymap.del
 
 map("n", "<leader>cc", function()
    require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
@@ -249,10 +217,10 @@ map("n", "<leader>stb", z.asyncFn(function()
       "#ifndef " .. header,
       "#define " .. header,
       "",
-      "#endif // " .. header,
+      "#endif /* " .. header .. " */",
       "",
       "#ifdef " .. impl,
-      "#endif // " .. impl,
+      "#endif /* " .. impl .. " */",
    })
 end))
 

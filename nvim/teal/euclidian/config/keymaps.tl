@@ -4,40 +4,8 @@ local z <const> = require("euclidian.lib.azync")
 local a <const> = vim.api
 local uv <const> = vim.loop
 
-local function combinations<X, Y>(xs: {X}, ys: {Y}): function(): X, Y
-	return coroutine.wrap(function(): X, Y
-		for _, x in ipairs(xs) do
-			for _, y in ipairs(ys) do
-				coroutine.yield(x, y)
-			end
-		end
-	end) as function(): (X, Y)
-end
-
-local function ensureArray<T>(t: T | {T}): {T}
-	-- for generics `t is T` always compiles to type(t) == "table"
-	if type(t) ~= "table" then
-		return {t as T}
-	elseif t then
-		return t as {T}
-	else
-		return {}
-	end
-end
-
-local function map(m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
-	for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
-		nvim.setKeymap(mode, l, rhs, {noremap = true, silent = true})
-	end
-end
-local unmap <const> = nvim.delKeymap
-
--- local function bufMap(bufid: integer, m: vim.Mode | {vim.Mode}, lhs: string | {string}, rhs: string | function)
-	-- local buf <const> = nvim.Buffer(bufid)
-	-- for mode, l in combinations(ensureArray(m), ensureArray(lhs)) do
-		-- buf:setKeymap(mode, l, rhs, {noremap = true, silent = true})
-	-- end
--- end
+local map <const> = vim.keymap.set
+local unmap <const> = vim.keymap.del
 
 map("n", "<leader>cc", function()
 	require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
@@ -249,10 +217,10 @@ map("n", "<leader>stb", z.asyncFn(function()
 		"#ifndef " .. header,
 		"#define " .. header,
 		"",
-		"#endif // " .. header,
+		"#endif /* " .. header .. " */",
 		"",
 		"#ifdef " .. impl,
-		"#endif // " .. impl,
+		"#endif /* " .. impl .. " */",
 	})
 end))
 

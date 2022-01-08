@@ -1,6 +1,7 @@
 local command <const> = require("euclidian.lib.command")
 local configure <const> = require("euclidian.plug.package-manager.configure")
 local dialog <const> = require("euclidian.lib.dialog")
+local input <const> = require("euclidian.lib.input")
 local menu <const> = require("euclidian.lib.menu")
 local nvim <const> = require("euclidian.lib.nvim")
 local packagespec <const> = require("euclidian.plug.package-manager.packagespec")
@@ -42,30 +43,6 @@ local function createDialog(fn: function(Dialog)): function(): NilFrame
 	end
 end
 
-local function waitForKey(d: Dialog, ...: string): string
-	local keys <const> = {...}
-	local function delKeymaps()
-		vim.schedule(function()
-			for _, key in ipairs(keys) do
-				d:delKeymap("n", key)
-			end
-		end)
-	end
-	local pressed: string
-	local me <const> = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
-	vim.schedule(function()
-		for _, key in ipairs(keys) do
-			d:addKeymap("n", key, function()
-				pressed = key
-				delKeymaps()
-				z.resume(me)
-			end, { silent = true })
-		end
-	end)
-	z.suspend()
-	return pressed
-end
-
 actions.listSets = function(): NilFrame
 	local menuOpts <const> = {}
 	for i, s in ipairs(set.list()) do
@@ -105,7 +82,7 @@ local function chooseAndLoadSet(d: Dialog): {Spec}, string
 	 :fitText(35, 17)
 	 :center()
 
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 
 	local name <const> = d:getCurrentLine()
 	return set.load(name), name
@@ -137,7 +114,7 @@ local function yesOrNo(d: Dialog, pre: string, affirm: string, deny: string): bo
 	d:win():setOption("cursorline", true)
 	local ln: integer
 	repeat
-		waitForKey(d, "<cr>")
+		input.waitForKey(d:buf(), "n", "<cr>")
 		ln = d:getCursor()
 	until ln > 1
 	d:win():setOption("cursorline", false)
@@ -161,7 +138,7 @@ local function checklist(d: Dialog, pre: string, opts: {string}): {integer}
 			l:match"^%[%*" and " " or "*", ln-1, 1, ln-1, 2
 		}}
 	end, { silent = true })
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 	d:delKeymap("n", checkKey)
 	local selected <const>: {integer} = {}
 	for i, v in ipairs(d:getLines(1, -1)) do
@@ -289,7 +266,7 @@ do
 
 		local ln: integer
 		repeat
-			waitForKey(d, "<cr>")
+			input.waitForKey(d:buf(), "n", "<cr>")
 			ln = d:getCursor()
 		until ln > 1
 
@@ -418,7 +395,7 @@ actions.remove = createDialog(function(d: Dialog)
 	showTitles(d, loaded)
 
 	-- TODO: this should probably be a checklist
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 	local ln <const> = d:getCursor()
 	local selected <const> = loaded[ln]
 
@@ -428,7 +405,7 @@ actions.remove = createDialog(function(d: Dialog)
 			table.insert(lns, "   " .. assert(p is Spec and p):title())
 		end
 		d:setLines(lns)
-		waitForKey(d, "<cr>")
+		input.waitForKey(d:buf(), "n", "<cr>")
 		d:close()
 		return
 	end
@@ -445,7 +422,7 @@ actions.remove = createDialog(function(d: Dialog)
 		}:fitText():center()
 	end
 
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 	d:close()
 end)
 
@@ -453,7 +430,7 @@ actions.update = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
 	showTitles(d, loaded, true)
 	runCmdForEachPkg(d, Spec.updateCmd, loaded)
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 	d:close()
 end)
 
@@ -461,7 +438,7 @@ actions.install = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
 	showTitles(d, loaded, true)
 	runCmdForEachPkg(d, Spec.installCmd, loaded)
-	waitForKey(d, "<cr>")
+	input.waitForKey(d:buf(), "n", "<cr>")
 	d:close()
 end)
 
@@ -470,7 +447,7 @@ actions.configure = createDialog(function(d: Dialog)
 	if err then
 		-- TODO: allow some sort of recovery
 		d:setLines{ "There was an error loading your config:", err }
-		waitForKey(d, "<cr>", "<bs>")
+		input.waitForKey(d:buf(), "n", "<cr>", "<bs>")
 		d:close()
 		return
 	end
@@ -560,7 +537,7 @@ actions.configure = createDialog(function(d: Dialog)
 	fillDialog()
 	show()
 
-	while waitForKey(d, "<cr>", "<bs>") == "<cr>" do
+	while input.waitForKey(d:buf(), "n", "<cr>", "<bs>") == "<cr>" do
 		local ln <const>, col <const> = d:getCursor()
 		local handler <const> = getHandler(ln)
 		if handler then

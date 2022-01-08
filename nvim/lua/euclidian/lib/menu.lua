@@ -1,5 +1,6 @@
-local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
+local input = require("euclidian.lib.input")
+local nvim = require("euclidian.lib.nvim")
 local z = require("euclidian.lib.azync")
 local ns = nvim.api.createNamespace("euclidian.lib.menu")
 
@@ -79,28 +80,6 @@ local menu = {
    new = new,
 }
 
-local function waitForKey(d, ...)
-   local keys = { ... }
-   local function delKeymaps()
-      for _, key in ipairs(keys) do
-         d:delKeymap("n", key)
-      end
-   end
-   local me = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
-   local pressed
-   z.suspend(vim.schedule_wrap(function()
-      local keyopts = { noremap = true, silent = true }
-      for _, key in ipairs(keys) do
-         d:addKeymap("n", key, function()
-            pressed = key
-            delKeymaps()
-            z.resume(me)
-         end, keyopts)
-      end
-   end))
-   return pressed
-end
-
 function accordionMt.__call(self, d, opts)
    opts = opts or {}
 
@@ -178,7 +157,7 @@ function accordionMt.__call(self, d, opts)
 
    repeat
       renderMenu()
-      local pressed = waitForKey(d, "<cr>", "<tab>", "<bs>", "<2-LeftMouse>")
+      local pressed = input.waitForKey(d:buf(), "n", "<cr>", "<tab>", "<bs>", "<2-LeftMouse>")
 
       if pressed == "<cr>" or pressed == "<tab>" or pressed == "<2-LeftMouse>" then
          local row = d:getCursor()
@@ -251,17 +230,17 @@ function modifiableMt.__call(self, d)
          editor:close()
          z.resume(resume)
       end)
-      local function accept(input)
-         item.value = input
+      local function accept(userinput)
+         item.value = userinput
          close()
       end
       editor:setPrompt(
       "(New Value): ",
-      function(input)
+      function(userinput)
          if item.validator then
-            local ok, err = item.validator(input)
+            local ok, err = item.validator(userinput)
             if ok then
-               accept(input)
+               accept(userinput)
             else
                nvim.api.errWriteln(
                ("Invalid input for item %q: %s"):format(
@@ -274,7 +253,7 @@ function modifiableMt.__call(self, d)
                end)
             end
          else
-            accept(input)
+            accept(userinput)
          end
       end,
       close)
@@ -283,7 +262,7 @@ function modifiableMt.__call(self, d)
 
    repeat
       render()
-      local pressed = waitForKey(d, "<cr>", "<bs>")
+      local pressed = input.waitForKey(d:buf(), "n", "<cr>", "<bs>")
       if pressed == "<cr>" then
          local row = d:getCursor()
          z.suspend(function(me)
@@ -320,7 +299,7 @@ function checklistMt.__call(self, d)
 
    repeat
       render()
-      local pressed = waitForKey(d, "<cr>", "<tab>", "<bs>", "<c-y>")
+      local pressed = input.waitForKey(d:buf(), "n", "<cr>", "<tab>", "<bs>", "<c-y>")
       if pressed == "<cr>" or pressed == "<tab>" then
          toggleItem((d:getCursor()))
       elseif pressed == "<c-y>" then

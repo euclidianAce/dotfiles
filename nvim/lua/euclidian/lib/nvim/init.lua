@@ -254,6 +254,7 @@ function nvim.augroup(name, lst, clear)
 end
 
 local function copyKeymapOpts(opts)
+   if not opts then return {} end
    return {
       nowait = opts.nowait,
       silent = opts.silent,

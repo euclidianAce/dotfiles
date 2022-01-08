@@ -254,6 +254,7 @@ function nvim.augroup(name: string, lst: {{string | {string}, string | {string},
 end
 
 local function copyKeymapOpts(opts: vim.keymap.Opts): vim.keymap.Opts
+	if not opts then return {} end
 	return {
 		nowait: boolean = opts.nowait,
 		silent: boolean = opts.silent,

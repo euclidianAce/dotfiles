@@ -264,7 +264,10 @@ function modifiableMt.__call(self, d)
                accept(input)
             else
                nvim.api.errWriteln(
-               ("Invalid input for item %q: %s"):format(item.name, tostring(err)))
+               ("Invalid input for item %q: %s"):format(
+               item.name,
+               assert(err, "no error message was returned from the validator")))
+
 
                vim.schedule(function()
                   editor:setLines(lines)

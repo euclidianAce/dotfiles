@@ -43,17 +43,6 @@ end
 local api_info = vim.fn.api_info() as Info
 
 local pre <const> = [[
-local record MapOpts
-	nowait: boolean
-	silent: boolean
-	script: boolean
-	expr: boolean
-	unique: boolean
-	noremap: boolean
-	desc: string
-	callback: function
-end
-
 local record CommandArgs
 	args: string
 	bang: boolean
@@ -166,6 +155,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			setOption = true,
 			call = true,
 			setKeymap = true,
+			delKeymap = true,
 			addUserCommand = true,
 		},
 		entries = {
@@ -181,7 +171,8 @@ local namespaces: {NamespaceName:Namespace} = {
 			"setOption: function(Buffer, IntegerOpt, integer)",
 			"setOption: function(Buffer, string, integer | boolean | string)",
 
-			"setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)",
+			"setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.Opts)",
+			"delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.Opts)",
 
 			"addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)",
 		},
@@ -377,7 +368,6 @@ return {
 	Buffer = Buffer,
 	Window = Window,
 	Tab = Tab,
-	MapOpts = MapOpts,
 	CommandArgs = CommandArgs,
 	CommandAttributes = CommandAttributes,
 }]]

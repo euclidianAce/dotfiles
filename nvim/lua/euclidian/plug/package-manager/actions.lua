@@ -59,7 +59,7 @@ local function waitForKey(d, ...)
             pressed = key
             delKeymaps()
             z.resume(me)
-         end, { noremap = true, silent = true })
+         end, { silent = true })
       end
    end)
    z.suspend()
@@ -160,7 +160,7 @@ local function checklist(d, pre, opts)
       d:setText({ {
          l:match("^%[%*") and " " or "*", ln - 1, 1, ln - 1, 2,
       }, })
-   end, { silent = true, noremap = true })
+   end, { silent = true })
    waitForKey(d, "<cr>")
    d:delKeymap("n", checkKey)
    local selected = {}

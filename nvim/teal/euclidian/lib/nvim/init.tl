@@ -169,7 +169,6 @@ local nvim <const> = {
 	Tab = auto.Tab,
 
 	UI = UI,
-	MapOpts = auto.MapOpts,
 	CommandArgs = auto.CommandArgs,
 	CommandAttributes = auto.CommandAttributes,
 
@@ -254,43 +253,31 @@ function nvim.augroup(name: string, lst: {{string | {string}, string | {string},
 	nvim.command("augroup END")
 end
 
-local function copyMapOpts(opts: nvim.MapOpts): nvim.MapOpts
+local function copyKeymapOpts(opts: vim.keymap.Opts): vim.keymap.Opts
 	return {
 		nowait: boolean = opts.nowait,
 		silent: boolean = opts.silent,
 		script: boolean = opts.script,
 		expr: boolean = opts.expr,
 		unique: boolean = opts.unique,
-		noremap: boolean = opts.noremap,
 		desc: string = opts.desc,
 		callback: function = opts.callback,
+		buffer: boolean | integer = opts.buffer,
+		replace_keycodes: boolean = opts.replace_keycodes,
+		remap: boolean = opts.remap,
 	}
 end
 
-local function keymapArgs(rhs: string | function, userSettings: nvim.MapOpts): string, nvim.MapOpts
-	if rhs is string then
-		return rhs, userSettings
-	else
-		local copy <const> = copyMapOpts(userSettings)
-		copy.callback = rhs
-		return '', copy
-	end
+nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, rhs: string | function, opts: vim.keymap.Opts)
+	local copy <const> = copyKeymapOpts(opts)
+	copy.buffer = self.id
+	vim.keymap.set(mode, lhs, rhs, copy)
 end
 
-function nvim.setKeymap(mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
-	a.nvim_set_keymap(mode, lhs, keymapArgs(rhs, userSettings))
-end
-
-function nvim.delKeymap(mode: vim.Mode, lhs: string)
-	pcall(a.nvim_del_keymap, mode, lhs)
-end
-
-nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string, rhs: string | function, userSettings: nvim.MapOpts)
-	a.nvim_buf_set_keymap(self.id, mode, lhs, keymapArgs(rhs, userSettings))
-end
-
-nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode, lhs: string)
-	pcall(a.nvim_buf_del_keymap, self.id, mode, lhs)
+nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, opts: vim.keymap.Opts)
+	local copy <const> = copyKeymapOpts(opts)
+	copy.buffer = self.id
+	pcall(vim.keymap.del, mode, lhs, copy)
 end
 
 return nvim

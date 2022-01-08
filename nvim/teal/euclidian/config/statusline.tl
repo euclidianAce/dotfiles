@@ -132,7 +132,7 @@ stl.add(gitActive, gitInactive, function(): string
 end, "STLGit", true)
 
 stl.toggleTag("Git")
-nvim.setKeymap("n", "<F12>", stl.tagToggler("Git"), { noremap = true })
+vim.keymap.set("n", "<F12>", stl.tagToggler("Git"), {})
 -- }}}
 
 stl.add(alwaysActive, empty, function(winid: integer): string

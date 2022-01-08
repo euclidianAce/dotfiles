@@ -1,14 +1,3 @@
-local record MapOpts
-	nowait: boolean
-	silent: boolean
-	script: boolean
-	expr: boolean
-	unique: boolean
-	noremap: boolean
-	desc: string
-	callback: function
-end
-
 local record CommandArgs
 	args: string
 	bang: boolean
@@ -71,7 +60,8 @@ local record Buffer
 	setOption: function(Buffer, BooleanOpt, boolean)
 	setOption: function(Buffer, IntegerOpt, integer)
 	setOption: function(Buffer, string, integer | boolean | string)
-	setKeymap: function(Buffer, vim.Mode, string, string | function, MapOpts)
+	setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.Opts)
+	delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.Opts)
 	addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)
 	lineCount: function(Buffer): integer
 	attach: function(Buffer, boolean, {string:any}): boolean
@@ -83,7 +73,6 @@ local record Buffer
 	getVar: function(Buffer, string): any
 	getChangedtick: function(Buffer): integer
 	getKeymap: function(Buffer, string): {{string:any}}
-	delKeymap: function(Buffer, string, string)
 	getCommands: function(Buffer, {string:any}): {string:any}
 	setVar: function(Buffer, string, any)
 	delVar: function(Buffer, string)
@@ -418,7 +407,6 @@ return {
 	Buffer = Buffer,
 	Window = Window,
 	Tab = Tab,
-	MapOpts = MapOpts,
 	CommandArgs = CommandArgs,
 	CommandAttributes = CommandAttributes,
 }

@@ -410,7 +410,7 @@ end
 function Dialog:setOpts(opts: Dialog.Opts): Dialog
 	return self:setWinConfig(dialog.optsToWinConfig(opts))
 end
-function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: nvim.MapOpts): Dialog
+function Dialog:addKeymap(mode: vim.Mode, lhs: string, rhs: string | function, opts: vim.keymap.Opts): Dialog
 	self:buf():setKeymap(mode, lhs, rhs, opts)
 	return self
 end

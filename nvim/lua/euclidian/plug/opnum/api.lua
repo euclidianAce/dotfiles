@@ -59,10 +59,10 @@ function opnum.enable(...)
    end
 
    for _, leader in ipairs(opnum.leaders) do
-      nvim.setKeymap("n", leader, "<cmd>call v:lua.require'euclidian.plug.opnum.api'.start()<cr>" .. leader, { noremap = true, silent = true })
+      vim.keymap.set("n", leader, "<cmd>call v:lua.require'euclidian.plug.opnum.api'.start()<cr>" .. leader, { silent = true })
    end
-   nvim.setKeymap("o", "<esc>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { noremap = true, silent = true })
-   nvim.setKeymap("o", "<c-c>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { noremap = true, silent = true })
+   vim.keymap.set("o", "<esc>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { silent = true })
+   vim.keymap.set("o", "<c-c>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { silent = true })
 
    nvim.augroup("ResetLineNumberAfterOperator", {
       { { "CursorMoved", "CursorMovedI", "BufLeave", "TextYankPost" }, "*", opnum.finish },

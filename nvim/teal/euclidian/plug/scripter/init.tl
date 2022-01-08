@@ -108,7 +108,7 @@ openEditor = function()
 	buf:setKeymap(
 		"n", "<cr>",
 		function() execBuffer(mainDialog:buf()) end,
-		{ silent = true, noremap = true }
+		{ silent = true }
 	)
 	buf:setKeymap(
 		"n", "<leader>r",
@@ -128,7 +128,7 @@ openEditor = function()
 			end
 			execBuffer(mainDialog:buf(), forwardPcall(pcall(loaded)))
 		end),
-		{ silent = true, noremap = true }
+		{ silent = true }
 	)
 	local save = z.asyncFn(function()
 		if not currentScript then
@@ -143,10 +143,10 @@ openEditor = function()
 			currentScript = nil
 			openBrowser()
 		end,
-		{ silent = true, noremap = true }
+		{ silent = true }
 	)
-	buf:setKeymap("n", "<leader>W", save, { silent = true, noremap = true })
-	buf:setKeymap("n", ":w<cr>", save, { silent = true, noremap = true })
+	buf:setKeymap("n", "<leader>W", save, { silent = true })
+	buf:setKeymap("n", ":w<cr>", save, { silent = true })
 	mainDialog:show()
 	buf:attach(false, {
 		on_lines = function(): boolean
@@ -156,7 +156,7 @@ openEditor = function()
 			return true
 		end,
 	})
-	mainDialog:addKeymap("n", "", function() mainDialog:hide() end, { silent = true, noremap = true })
+	mainDialog:addKeymap("n", "", function() mainDialog:hide() end, { silent = true,})
 end
 
 openBrowser = function()
@@ -200,11 +200,11 @@ openBrowser = function()
 			os.remove(scriptPath(file))
 			openBrowser()
 		end
-	end), { noremap = true })
+	end), {})
 	mainDialog:addKeymap("n", "o", z.asyncFn(function()
 		currentScript = quick.prompt("New Script: ")
 		openEditor()
-	end), { noremap = true })
+	end), {})
 end
 
 function scripter.open()
@@ -231,10 +231,10 @@ return setmetatable(scripter, {
 		end
 
 		if opts.open then
-			nvim.setKeymap(
+			vim.keymap.set(
 				"n", opts.open,
 				scripter.open,
-				{ noremap = true, silent = true }
+				{ silent = true }
 			)
 		end
 	end

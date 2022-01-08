@@ -1,14 +1,3 @@
-local MapOpts = {}
-
-
-
-
-
-
-
-
-
-
 local CommandArgs = {}
 
 
@@ -418,7 +407,6 @@ return {
    Buffer = Buffer,
    Window = Window,
    Tab = Tab,
-   MapOpts = MapOpts,
    CommandArgs = CommandArgs,
    CommandAttributes = CommandAttributes,
 }

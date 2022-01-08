@@ -19,7 +19,7 @@ function floatterm.setShell(s: string) shell = s end
 function floatterm.setToggleKey(k: string) key = k end
 
 local function addShowMappings()
-	nvim.setKeymap("n", key, floatterm.show, { noremap = true, silent = true })
+	vim.keymap.set("n", key, floatterm.show, { silent = true })
 end
 
 function floatterm.init(opts: Dialog.Opts)
@@ -40,8 +40,8 @@ end
 
 local function addHideMappings()
 	local b <const> = d:ensureBuf()
-	b:setKeymap("n", key, floatterm.hide, { noremap = true, silent = true })
-	b:setKeymap("t", key, floatterm.hide, { noremap = true, silent = true })
+	b:setKeymap("n", key, floatterm.hide, { silent = true })
+	b:setKeymap("t", key, floatterm.hide, { silent = true })
 	nvim.autocmd("WinLeave", nil, floatterm.hide, { buffer = b.id, once = true })
 end
 

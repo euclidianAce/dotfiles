@@ -5,7 +5,6 @@ local a = vim.api
 local uv = vim.loop
 
 local map = vim.keymap.set
-local unmap = vim.keymap.del
 
 map("n", "<leader>cc", function()
    require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
@@ -117,7 +116,6 @@ for _, v in ipairs({
       { "l", ">" },
    }) do
    local mvkey, szkey = v[1], v[2]
-   unmap("n", "<C-W>" .. mvkey)
    map("n", "<C-" .. mvkey .. ">", "<cmd>wincmd " .. mvkey .. "<CR>")
    map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
 end
@@ -472,6 +470,6 @@ do
       end
    end
 
-   floatterm.buffer():setKeymap("n", "J", jumpcWORD, { noremap = true, silent = true })
-   floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { noremap = true, silent = true })
+   floatterm.buffer():setKeymap("n", "J", jumpcWORD, { silent = true })
+   floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { silent = true })
 end

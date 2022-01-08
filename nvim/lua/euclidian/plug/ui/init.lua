@@ -75,7 +75,7 @@ vim.ui.select = function(items, opts, confirm)
       d:close()
    end
    local buf = d:buf()
-   buf:setKeymap("n", "<c-c>", cancel, { noremap = true, silent = true })
-   buf:setKeymap("n", "<esc>", cancel, { noremap = true, silent = true })
+   buf:setKeymap("n", "<c-c>", cancel, { silent = true })
+   buf:setKeymap("n", "<esc>", cancel, { silent = true })
    z.async(menu.new.accordion(accordionItems), d)
 end

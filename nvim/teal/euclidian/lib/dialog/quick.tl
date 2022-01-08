@@ -33,7 +33,7 @@ function quick.prompt(txt: string, opts: Opts, onOpen: function(Dialog)): string
 		d:addKeymap(
 			"n", "<esc>",
 			close,
-			{ silent = true, noremap = true }
+			{ silent = true }
 		)
 		d:setPrompt(
 			txt,
@@ -67,7 +67,7 @@ local function waitForKey(d: Dialog, ...: string): string
 				pressed = key
 				delKeymaps()
 				z.resume(me)
-			end, { noremap = true, silent = true })
+			end, { silent = true })
 		end
 	end)
 	z.suspend()

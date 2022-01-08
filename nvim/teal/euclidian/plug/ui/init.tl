@@ -1,7 +1,6 @@
 local nvim <const> = require("euclidian.lib.nvim")
 local dialog <const> = require("euclidian.lib.dialog")
 local z <const> = require("euclidian.lib.azync")
-local quick <const> = require("euclidian.lib.dialog.quick")
 local menu <const> = require("euclidian.lib.menu")
 
 local function wait(ms: integer)
@@ -30,21 +29,49 @@ local function flashWindow(win: nvim.Window)
 	end)
 end
 
+local function promptDialog(prompt: string): string
+	local me <const> = z.currentFrame()
+	local minwid <const> = #prompt + 10
+	local d <const> = dialog.new{
+		centered = { horizontal = true },
+		wid = minwid,
+		hei = 1,
+		row = -1,
+		interactive = true,
+		ephemeral = true,
+		border = "none",
+	}
+	local result: string
+	d:setPrompt(
+		prompt,
+		function(res: string)
+			result = res
+			d:close()
+			z.resume(me)
+		end,
+		function()
+			d:close()
+			z.resume(me)
+		end
+	)
+	d:buf():attach(true, {
+		on_lines = function()
+			d:fitTextPadded(10, 0, minwid, 1, nil, nil):centerHorizontal()
+		end
+	})
+	flashWindow(d:win())
+	vim.schedule(function() nvim.command("startinsert") end)
+	z.suspend()
+	return result
+end
+
 vim.ui.input = function(opts: vim.ui.InputOpts, confirm: function(string))
 	assert(confirm)
 	z.async(function()
-		local result <const> = quick.prompt(opts.prompt, {
-			centered = { horizontal = true },
-			wid = #opts.prompt + 10,
-			hei = 1,
-			row = -1,
-			interactive = true,
-			ephemeral = true,
-			border = "none",
-		}, function(d: dialog.Dialog)
-			flashWindow(d:win())
-		end)
-		confirm(result)
+		local res <const> = promptDialog(opts.prompt)
+		if res then
+			confirm(res)
+		end
 	end)
 end
 

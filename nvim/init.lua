@@ -109,9 +109,6 @@ plugreq "floatterm" {
 	row = 1,
 	centered = { horizontal = true },
 }
-plugreq "scripter" {
-	open = "<leader>lua",
-}
 plugreq "spacehighlighter" {
 	highlight = "TrailingWhitespace",
 }

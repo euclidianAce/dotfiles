@@ -6,7 +6,9 @@ local z = require("euclidian.lib.azync")
 local a = vim.api
 local uv = vim.loop
 
-local map = vim.keymap.set
+local map = function(modes, lhs, rhs, opts)
+   vim.keymap.set(modes, lhs, rhs, opts or { silent = true })
+end
 
 map("n", "<leader>cc", function()
    require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])

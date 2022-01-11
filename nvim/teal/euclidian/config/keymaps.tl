@@ -6,15 +6,17 @@ local z <const> = require("euclidian.lib.azync")
 local a <const> = vim.api
 local uv <const> = vim.loop
 
-local map <const> = vim.keymap.set
+local map <const> = function(modes: string | {string}, lhs: string, rhs: string | function, opts: vim.keymap.Opts)
+	vim.keymap.set(modes, lhs, rhs, opts or { silent = true })
+end
 
+local commenter <const> = require("euclidian.lib.commenter")
 map("n", "<leader>cc", function()
-	require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
+	commenter.commentLine(0, nvim.Window():getCursor()[1])
 end)
 local enum OperatorfuncMode -- TODO: put this in the .d.tl
 	"line" "char" "block"
 end
-local commenter <const> = require("euclidian.lib.commenter")
 __euclidian.commentMotion = function(kind: OperatorfuncMode)
 	if kind ~= "line" then return end
 	local b <const> = nvim.Buffer()

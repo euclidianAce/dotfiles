@@ -10,13 +10,13 @@ local map = function(modes, lhs, rhs, opts)
    vim.keymap.set(modes, lhs, rhs, opts or { silent = true })
 end
 
+local commenter = require("euclidian.lib.commenter")
 map("n", "<leader>cc", function()
-   require("euclidian.lib.commenter").commentLine(0, nvim.Window():getCursor()[1])
+   commenter.commentLine(0, nvim.Window():getCursor()[1])
 end)
 local OperatorfuncMode = {}
 
 
-local commenter = require("euclidian.lib.commenter")
 __euclidian.commentMotion = function(kind)
    if kind ~= "line" then return end
    local b = nvim.Buffer()

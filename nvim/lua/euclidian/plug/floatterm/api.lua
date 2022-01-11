@@ -13,13 +13,21 @@ local d
 local shell
 local key
 local termopenOpts
+local windowOpts
 
 function floatterm.setTermOptions(opts) termopenOpts = opts end
 function floatterm.setShell(s) shell = s end
 function floatterm.setToggleKey(k) key = k end
+function floatterm.setWindowOpts(opts) windowOpts = opts end
 
 local function addShowMappings()
    vim.keymap.set("n", key, floatterm.show, { silent = true })
+end
+
+local function applyWindowOpts(w)
+   for k, v in pairs(windowOpts) do
+      (w.setOption)(w, k, v)
+   end
 end
 
 function floatterm.init(opts)
@@ -52,7 +60,10 @@ do
    floatterm.show = function()
       shown = true
       getBuf()
-      d:show():win():setOption("winblend", 8)
+      d:show()
+      local win = d:win()
+      win:setOption("winblend", 8)
+      applyWindowOpts(win)
       d:focus()
    end
 

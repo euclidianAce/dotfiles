@@ -108,6 +108,8 @@ plugreq "floatterm" {
 
 	row = 1,
 	centered = { horizontal = true },
+
+	windowOpts = { relativenumber = true },
 }
 plugreq "spacehighlighter" {
 	highlight = "TrailingWhitespace",

@@ -13,13 +13,21 @@ local d: Dialog
 local shell: string
 local key: string
 local termopenOpts: {string:any}
+local windowOpts: {string:any}
 
 function floatterm.setTermOptions(opts: {string:any}) termopenOpts = opts end
 function floatterm.setShell(s: string) shell = s end
 function floatterm.setToggleKey(k: string) key = k end
+function floatterm.setWindowOpts(opts: {string:any}) windowOpts = opts end
 
 local function addShowMappings()
 	vim.keymap.set("n", key, floatterm.show, { silent = true })
+end
+
+local function applyWindowOpts(w: nvim.Window)
+	for k, v in pairs(windowOpts) do
+		(w.setOption as function(nvim.Window, string, any))(w, k, v)
+	end
 end
 
 function floatterm.init(opts: Dialog.Opts)
@@ -52,7 +60,10 @@ do
 	floatterm.show = function()
 		shown = true
 		getBuf()
-		d:show():win():setOption("winblend", 8)
+		d:show()
+		local win <const> = d:win()
+		win:setOption("winblend", 8)
+		applyWindowOpts(win)
 		d:focus()
 	end
 

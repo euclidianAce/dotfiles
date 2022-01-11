@@ -20,6 +20,7 @@ local record SetupOpts
 
 	shell: string
 	termopenOpts: {string:any}
+	windowOpts: {string:any}
 end
 
 return function(opts: SetupOpts)
@@ -28,6 +29,7 @@ return function(opts: SetupOpts)
 		floatterm.setToggleKey(opts.toggle or key)
 		floatterm.setShell(opts.shell or shell)
 		floatterm.setTermOptions(opts.termopenOpts or termopenOpts)
+		floatterm.setWindowOpts(opts.windowOpts or {})
 
 		floatterm.deinit()
 		floatterm.init{

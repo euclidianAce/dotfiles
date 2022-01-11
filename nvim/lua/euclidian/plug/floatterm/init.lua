@@ -22,12 +22,14 @@ local SetupOpts = {}
 
 
 
+
 return function(opts)
    opts = opts or {}
 
    floatterm.setToggleKey(opts.toggle or key)
    floatterm.setShell(opts.shell or shell)
    floatterm.setTermOptions(opts.termopenOpts or termopenOpts)
+   floatterm.setWindowOpts(opts.windowOpts or {})
 
    floatterm.deinit()
    floatterm.init({

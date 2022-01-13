@@ -104,11 +104,11 @@ genSetMetatable(auto.Tab, "tab")
 setmetatable(auto.api, {
 	__index = function(self: {string:any}, key: string): any
 		local api <const> = vim.api as {string:function}
-			local fn <const> = api["nvim_" .. unCamel(key)]
-			if fn then
-				rawset(self, key, fn)
-				return fn
-			end
+		local fn <const> = api["nvim_" .. unCamel(key)]
+		if fn then
+			rawset(self, key, fn)
+			return fn
+		end
 	end
 })
 

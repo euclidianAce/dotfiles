@@ -82,8 +82,8 @@ local menu <const> = {
 function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.Options): any...
 	opts = opts or {}
 
-	local buf <const> = d:buf()
-	local win <const> = d:win()
+	local buf <const> = d:ensureBuf()
+	local win <const> = d:ensureWin()
 
 	local record State
 		enabled: boolean

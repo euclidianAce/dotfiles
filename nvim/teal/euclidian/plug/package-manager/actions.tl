@@ -17,7 +17,7 @@ local type Action = function(): NilFrame
 local actions <const> = {
 	maxConcurrentJobs = 2,
 
-	listSets: Action = nil,
+	view: Action = nil,
 	update: Action = nil,
 	install: Action = nil,
 	add: Action = nil,
@@ -31,61 +31,67 @@ local function setCmp(a: Spec, b: Spec): boolean
 	return a:title() < b:title()
 end
 
-local function createDialog(fn: function(Dialog)): function(): NilFrame
-	return function(): NilFrame
-		local d <const> = dialog.new{
-			wid = 35, hei = 17, centered = true,
-			interactive = true,
-			ephemeral = true,
-		}
-		d:win():setOption("wrap", false)
-		return z.async(fn, d) as NilFrame
-	end
-end
-
-actions.listSets = function(): NilFrame
-	local menuOpts <const> = {}
-	for i, s in ipairs(set.list()) do
-		local pkgs <const> = set.load(s)
-		table.sort(pkgs, setCmp)
-		local names <const> = {}
-		for j, spec in ipairs(pkgs) do
-			names[j] = {spec:title()}
-		end
-		menuOpts[i] = {s, names}
-	end
-
-	do
-		local world <const> = set.getWorld()
-		local names <const> = {}
-		for j, spec in ipairs(world) do
-			names[j] = {spec:title()}
-		end
-		table.insert(menuOpts, { "@World", names })
-	end
-
-	local m <const> = menu.new.accordion(menuOpts)
-	return z.async(m, dialog.new{
+local function defaultDialog(): Dialog
+	return dialog.new{
 		centered = true,
 		wid = .75,
 		hei = .3,
 		interactive = true,
 		ephemeral = true,
-	}) as NilFrame
+	}
+end
+
+local function createDialog(fn: function(Dialog)): function(): NilFrame
+	return function(): NilFrame
+		local d <const> = defaultDialog()
+		d:ensureBuf()
+		d:ensureWin():setOption("wrap", false)
+		return z.async(fn, d) as NilFrame
+	end
+end
+
+local function createAccordionForEachSet(cb: function(string, {Spec}): menu.Accordion.Item): menu.Accordion
+	local items <const> = {}
+	for _, s in ipairs(set.list()) do
+		local pkgs <const> = set.load(s)
+		table.sort(pkgs, setCmp)
+		table.insert(items, (cb(s, pkgs)))
+	end
+
+	local world <const> = set.getWorld()
+	table.sort(world, setCmp)
+	table.insert(items, (cb("@World", world)))
+
+	return menu.new.accordion(items)
+end
+
+actions.view = function(): NilFrame
+	local m <const> = createAccordionForEachSet(function(title: string, pkgs: {Spec}): menu.Accordion.Item
+		local names <const> = {}
+		for i, spec in ipairs(pkgs) do
+			names[i] = { spec:title() }
+		end
+		return {title, names}
+	end)
+	return z.async(m, defaultDialog()) as NilFrame
 end
 
 local function chooseAndLoadSet(d: Dialog): {Spec}, string
-	local pkgs <const> = set.list()
-	table.sort(pkgs)
+	local sets <const> = set.list()
+	table.insert(sets, "@World")
+	table.sort(sets)
 
-	d:setLines(pkgs)
-	 :fitText(35, 17)
-	 :center()
+	local loaded, name: {Spec}, string
+	local items <const> = {}
+	for i, v in ipairs(sets) do
+		items[i] = { v, function()
+			loaded = set.load(v)
+			name = v
+		end }
+	end
 
-	input.waitForKey(d:buf(), "n", "<cr>")
-
-	local name <const> = d:getCurrentLine()
-	return set.load(name), name
+	menu.new.accordion(items)(d)
+	return loaded, name
 end
 
 local function prompt(d: Dialog, promptText: string): string
@@ -292,46 +298,62 @@ end
 	-- end
 -- end
 
-local titleWidth <const> = 35
-local scheduleWrap <const> = vim.schedule_wrap
-	as function<Args..., Rets...>(function(Args): Rets): function(Args)
+-- local scheduleWrap <const> = vim.schedule_wrap
+	-- as function<Args..., Rets...>(function(Args): Rets): function(Args)
 
-local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), loaded: {Spec})
-	local mainTask <const> = z.currentFrame()
+local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), loaded: {Spec}): z.Frame<nil>
+	local mainTask: z.Frame<nil>
 
 	local jobqueue <const> = {}
 	local running = 0
 
+	local menuItems <const> = {}
+	local acc <const> = menu.new.accordion(menuItems)
+
+	local redraw <const> = vim.schedule_wrap(function()
+		if d:win():isValid() and acc.redraw then
+			acc.redraw()
+		end
+	end)
+
 	for i, pkg in ipairs(loaded) do
 		local cmd <const> = getcmd(pkg)
+		local title <const> = pkg:title()
+		local item <const>: menu.Accordion.Item = { pkg:title() }
+		menuItems[i] = item
 		if cmd then
-			d:setLine(i - 1, tu.rightAlign(pkg:title(), titleWidth) .. ": ")
-			local r <const> = d:claimRegion(
-				{ line = i - 1, char = titleWidth + 2 },
-				1, 0
-			)
-
-			local updateTxt <const> = scheduleWrap(function(ln: string)
-				if #ln > 0 then
-					r:set(ln, true)
-				end
-			end)
+			local out <const>: {string} = {}
+			local err <const>: {string} = {}
+			;(item as {{{string, {string}}}})[2] = { { "stdout", out }, { "stderr", err } }
+			table.insert(menuItems, item)
 
 			table.insert(jobqueue, function()
 				running = running + 1
+				;(item as {string})[1] = title .. " : Working..."
 				command.spawn{
 					command = cmd,
-					onStdoutLine = updateTxt,
-					onStderrLine = updateTxt,
-					onExit = function()
+					onStdoutLine = function(ln: string)
+						table.insert(out, ln)
+						redraw()
+					end,
+					onStderrLine = function(ln: string)
+						table.insert(err, ln)
+						redraw()
+					end,
+					onExit = function(code: integer)
 						running = running - 1
-						r:set("Done!", true)
+						if code == 0 then
+							;(item as {string})[1] = title .. " : Done!"
+						else
+							;(item as {string})[1] = title .. " : Error! (" .. tostring(code) .. ")"
+						end
+						redraw()
 						z.resume(mainTask)
 					end,
 				}
 			end)
 		else
-			d:setLine(i-1, pkg:title() .. ": nothing to be done")
+			;(item as {string})[1] = (item as {string})[1] .. " : Nothing to be done"
 		end
 	end
 
@@ -339,22 +361,30 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 		assert(table.remove(jobqueue, math.random(1, #jobqueue)))()
 	end
 
-	while next(jobqueue) or running > 0 do
-		while running < actions.maxConcurrentJobs and next(jobqueue) do
-			spawnJob()
+	return z.async(function(): nil
+		mainTask = z.currentFrame() as z.Frame<nil>
+		z.async(acc, d)
+		while next(jobqueue) or running > 0 do
+			while running < actions.maxConcurrentJobs and next(jobqueue) do
+				spawnJob()
+			end
+			z.suspend()
 		end
-		z.suspend()
-	end
-
-	assert(running == 0, "mainTask finished with jobs still running")
-	assert(not next(jobqueue), "mainTask finished with jobs still queued")
+		assert(running == 0, "mainTask finished with jobs still running")
+		assert(not next(jobqueue), "mainTask finished with jobs still queued")
+	end)
 end
 
 -- local function dummyUpdateCmd(p: Spec): {string}
 	-- local cmd <const> = {}
 	-- for i = 1, 10 do
 		-- table.insert(cmd, "echo " .. ("="):rep(i))
-		-- table.insert(cmd, "sleep " .. math.random(0.05, 0.1))
+		-- table.insert(cmd, "sleep " .. math.random(0.05, 1))
+	-- end
+	-- if math.random() < .1 then
+		-- local exitcode = math.random(1, 100)
+		-- table.insert(cmd, "echo 'exiting with code " .. exitcode .. "' 1>&2")
+		-- table.insert(cmd, "exit " .. exitcode)
 	-- end
 	-- return {
 		-- "sh", "-c",
@@ -428,18 +458,15 @@ end)
 
 actions.update = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
-	showTitles(d, loaded, true)
-	runCmdForEachPkg(d, Spec.updateCmd, loaded)
-	input.waitForKey(d:buf(), "n", "<cr>")
-	d:close()
+	if not loaded then return end
+	z.await(runCmdForEachPkg(d, Spec.updateCmd, loaded))
+	-- z.await(runCmdForEachPkg(d, dummyUpdateCmd, loaded))
 end)
 
 actions.install = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
-	showTitles(d, loaded, true)
-	runCmdForEachPkg(d, Spec.installCmd, loaded)
-	input.waitForKey(d:buf(), "n", "<cr>")
-	d:close()
+	if not loaded then return end
+	z.await(runCmdForEachPkg(d, Spec.installCmd, loaded))
 end)
 
 actions.configure = createDialog(function(d: Dialog)

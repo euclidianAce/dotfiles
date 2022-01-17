@@ -82,8 +82,8 @@ local menu = {
 function accordionMt.__call(self, d, opts)
    opts = opts or {}
 
-   local buf = d:buf()
-   local win = d:win()
+   local buf = d:ensureBuf()
+   local win = d:ensureWin()
 
    local State = {}
 

@@ -9,7 +9,7 @@ local packagemanager = {
       Add = actions.add,
       Install = actions.install,
       Update = actions.update,
-      View = actions.listSets,
+      View = actions.view,
       Remove = actions.remove,
       Configure = actions.configure,
    },

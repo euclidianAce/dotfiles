@@ -17,7 +17,7 @@ local Action = {}
 local actions = {
    maxConcurrentJobs = 2,
 
-   listSets = nil,
+   view = nil,
    update = nil,
    install = nil,
    add = nil,
@@ -31,61 +31,67 @@ local function setCmp(a, b)
    return a:title() < b:title()
 end
 
-local function createDialog(fn)
-   return function()
-      local d = dialog.new({
-         wid = 35, hei = 17, centered = true,
-         interactive = true,
-         ephemeral = true,
-      })
-      d:win():setOption("wrap", false)
-      return z.async(fn, d)
-   end
-end
-
-actions.listSets = function()
-   local menuOpts = {}
-   for i, s in ipairs(set.list()) do
-      local pkgs = set.load(s)
-      table.sort(pkgs, setCmp)
-      local names = {}
-      for j, spec in ipairs(pkgs) do
-         names[j] = { spec:title() }
-      end
-      menuOpts[i] = { s, names }
-   end
-
-   do
-      local world = set.getWorld()
-      local names = {}
-      for j, spec in ipairs(world) do
-         names[j] = { spec:title() }
-      end
-      table.insert(menuOpts, { "@World", names })
-   end
-
-   local m = menu.new.accordion(menuOpts)
-   return z.async(m, dialog.new({
+local function defaultDialog()
+   return dialog.new({
       centered = true,
       wid = .75,
       hei = .3,
       interactive = true,
       ephemeral = true,
-   }))
+   })
+end
+
+local function createDialog(fn)
+   return function()
+      local d = defaultDialog()
+      d:ensureBuf()
+      d:ensureWin():setOption("wrap", false)
+      return z.async(fn, d)
+   end
+end
+
+local function createAccordionForEachSet(cb)
+   local items = {}
+   for _, s in ipairs(set.list()) do
+      local pkgs = set.load(s)
+      table.sort(pkgs, setCmp)
+      table.insert(items, (cb(s, pkgs)))
+   end
+
+   local world = set.getWorld()
+   table.sort(world, setCmp)
+   table.insert(items, (cb("@World", world)))
+
+   return menu.new.accordion(items)
+end
+
+actions.view = function()
+   local m = createAccordionForEachSet(function(title, pkgs)
+      local names = {}
+      for i, spec in ipairs(pkgs) do
+         names[i] = { spec:title() }
+      end
+      return { title, names }
+   end)
+   return z.async(m, defaultDialog())
 end
 
 local function chooseAndLoadSet(d)
-   local pkgs = set.list()
-   table.sort(pkgs)
+   local sets = set.list()
+   table.insert(sets, "@World")
+   table.sort(sets)
 
-   d:setLines(pkgs):
-   fitText(35, 17):
-   center()
+   local loaded, name
+   local items = {}
+   for i, v in ipairs(sets) do
+      items[i] = { v, function()
+         loaded = set.load(v)
+         name = v
+      end, }
+   end
 
-   input.waitForKey(d:buf(), "n", "<cr>")
-
-   local name = d:getCurrentLine()
-   return set.load(name), name
+   menu.new.accordion(items)(d)
+   return loaded, name
 end
 
 local function prompt(d, promptText)
@@ -292,46 +298,62 @@ end
 
 
 
-local titleWidth = 35
-local scheduleWrap = vim.schedule_wrap
+
 
 
 local function runCmdForEachPkg(d, getcmd, loaded)
-   local mainTask = z.currentFrame()
+   local mainTask
 
    local jobqueue = {}
    local running = 0
 
+   local menuItems = {}
+   local acc = menu.new.accordion(menuItems)
+
+   local redraw = vim.schedule_wrap(function()
+      if d:win():isValid() and acc.redraw then
+         acc.redraw()
+      end
+   end)
+
    for i, pkg in ipairs(loaded) do
       local cmd = getcmd(pkg)
+      local title = pkg:title()
+      local item = { pkg:title() }
+      menuItems[i] = item
       if cmd then
-         d:setLine(i - 1, tu.rightAlign(pkg:title(), titleWidth) .. ": ")
-         local r = d:claimRegion(
-         { line = i - 1, char = titleWidth + 2 },
-         1, 0)
-
-
-         local updateTxt = scheduleWrap(function(ln)
-            if #ln > 0 then
-               r:set(ln, true)
-            end
-         end)
+         local out = {}
+         local err = {};
+         (item)[2] = { { "stdout", out }, { "stderr", err } }
+         table.insert(menuItems, item)
 
          table.insert(jobqueue, function()
-            running = running + 1
+            running = running + 1;
+            (item)[1] = title .. " : Working..."
             command.spawn({
                command = cmd,
-               onStdoutLine = updateTxt,
-               onStderrLine = updateTxt,
-               onExit = function()
+               onStdoutLine = function(ln)
+                  table.insert(out, ln)
+                  redraw()
+               end,
+               onStderrLine = function(ln)
+                  table.insert(err, ln)
+                  redraw()
+               end,
+               onExit = function(code)
                   running = running - 1
-                  r:set("Done!", true)
+                  if code == 0 then
+                     (item)[1] = title .. " : Done!"
+                  else
+                     (item)[1] = title .. " : Error! (" .. tostring(code) .. ")"
+                  end
+                  redraw()
                   z.resume(mainTask)
                end,
             })
          end)
       else
-         d:setLine(i - 1, pkg:title() .. ": nothing to be done")
+         (item)[1] = (item)[1] .. " : Nothing to be done"
       end
    end
 
@@ -339,16 +361,24 @@ local function runCmdForEachPkg(d, getcmd, loaded)
       assert(table.remove(jobqueue, math.random(1, #jobqueue)))()
    end
 
-   while next(jobqueue) or running > 0 do
-      while running < actions.maxConcurrentJobs and next(jobqueue) do
-         spawnJob()
+   return z.async(function()
+      mainTask = z.currentFrame()
+      z.async(acc, d)
+      while next(jobqueue) or running > 0 do
+         while running < actions.maxConcurrentJobs and next(jobqueue) do
+            spawnJob()
+         end
+         z.suspend()
       end
-      z.suspend()
-   end
-
-   assert(running == 0, "mainTask finished with jobs still running")
-   assert(not next(jobqueue), "mainTask finished with jobs still queued")
+      assert(running == 0, "mainTask finished with jobs still running")
+      assert(not next(jobqueue), "mainTask finished with jobs still queued")
+   end)
 end
+
+
+
+
+
 
 
 
@@ -428,18 +458,15 @@ end)
 
 actions.update = createDialog(function(d)
    local loaded = chooseAndLoadSet(d)
-   showTitles(d, loaded, true)
-   runCmdForEachPkg(d, Spec.updateCmd, loaded)
-   input.waitForKey(d:buf(), "n", "<cr>")
-   d:close()
+   if not loaded then return end
+   z.await(runCmdForEachPkg(d, Spec.updateCmd, loaded))
+
 end)
 
 actions.install = createDialog(function(d)
    local loaded = chooseAndLoadSet(d)
-   showTitles(d, loaded, true)
-   runCmdForEachPkg(d, Spec.installCmd, loaded)
-   input.waitForKey(d:buf(), "n", "<cr>")
-   d:close()
+   if not loaded then return end
+   z.await(runCmdForEachPkg(d, Spec.installCmd, loaded))
 end)
 
 actions.configure = createDialog(function(d)

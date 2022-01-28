@@ -23,6 +23,10 @@ function libreq(lib, reload)
 	return require("euclidian.lib." .. lib)
 end
 function plugreq(lib, reload)
+	if reload then unload("euclidian.plug." .. lib .. ".api") end
+	return require("euclidian.plug." .. lib .. ".api")
+end
+function plugload(lib, reload)
 	if reload then unload("euclidian.plug." .. lib) end
 	return require("euclidian.plug." .. lib)
 end
@@ -100,8 +104,8 @@ set(vim.opt, {
 	relativenumber = true,
 })
 
-plugreq "package-manager"
-plugreq "floatterm" {
+plugload "package-manager"
+plugload "floatterm" {
 	toggle = "",
 	shell = windows and "nu" or "bash",
 	termopenOpts = { env = { FLOATTERM = 1 } },
@@ -111,20 +115,20 @@ plugreq "floatterm" {
 
 	windowOpts = { relativenumber = true },
 }
-plugreq "spacehighlighter" {
+plugload "spacehighlighter" {
 	highlight = "TrailingWhitespace",
 }
-plugreq "printmode" {
+plugload "printmode" {
 	mode = "inspect",
 }
-plugreq "manfolder"
-plugreq "locationjump" {
+plugload "manfolder"
+plugload "locationjump" {
 	vmap = "J",
 }
-plugreq "palette" {
+plugload "palette" {
 	theme = "random",
 }
-plugreq "ui"
+plugload "ui"
 
 if not windows then
 	-- Treesitter is finicky on windows

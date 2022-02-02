@@ -294,6 +294,7 @@ local record Window
 		"showbreak"
 		"signcolumn"
 		"statusline"
+		"virtualedit"
 		"winhighlight"
 	end
 	metamethod __call: function(Window, integer): Window

@@ -119,15 +119,32 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 end
 
 local defaultBorderHighlight <const> = "Normal"
+-- local defaultBorder <const>: nvim.Window.Config.Border = {
+	-- { "╭", defaultBorderHighlight },
+	-- { "─", defaultBorderHighlight },
+	-- { "╮", defaultBorderHighlight },
+	-- { "│", defaultBorderHighlight },
+	-- { "╯", defaultBorderHighlight },
+	-- { "─", defaultBorderHighlight },
+	-- { "╰", defaultBorderHighlight },
+	-- { "│", defaultBorderHighlight },
+-- }
 local defaultBorder <const>: nvim.Window.Config.Border = {
-	{ "╭", defaultBorderHighlight },
-	{ "─", defaultBorderHighlight },
-	{ "╮", defaultBorderHighlight },
-	{ "│", defaultBorderHighlight },
-	{ "╯", defaultBorderHighlight },
-	{ "─", defaultBorderHighlight },
-	{ "╰", defaultBorderHighlight },
-	{ "│", defaultBorderHighlight },
+	{ "🭽" , defaultBorderHighlight },
+
+	{ "▔", defaultBorderHighlight },
+
+	{ "🭾", defaultBorderHighlight },
+
+	{ "🭵", defaultBorderHighlight },
+
+	{ "🭿", defaultBorderHighlight },
+
+	{ "▁", defaultBorderHighlight },
+
+	{ "🭼", defaultBorderHighlight },
+
+	{ "▏", defaultBorderHighlight },
 }
 
 local floor <const>, max <const>, min <const>

@@ -119,15 +119,32 @@ local function getBuf(maybeBuf)
 end
 
 local defaultBorderHighlight = "Normal"
+
+
+
+
+
+
+
+
+
+
 local defaultBorder = {
-   { "╭", defaultBorderHighlight },
-   { "─", defaultBorderHighlight },
-   { "╮", defaultBorderHighlight },
-   { "│", defaultBorderHighlight },
-   { "╯", defaultBorderHighlight },
-   { "─", defaultBorderHighlight },
-   { "╰", defaultBorderHighlight },
-   { "│", defaultBorderHighlight },
+   { "🭽", defaultBorderHighlight },
+
+   { "▔", defaultBorderHighlight },
+
+   { "🭾", defaultBorderHighlight },
+
+   { "🭵", defaultBorderHighlight },
+
+   { "🭿", defaultBorderHighlight },
+
+   { "▁", defaultBorderHighlight },
+
+   { "🭼", defaultBorderHighlight },
+
+   { "▏", defaultBorderHighlight },
 }
 
 local floor, max, min =

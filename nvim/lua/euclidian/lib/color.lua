@@ -1,4 +1,3 @@
-
 local nvim = require("euclidian.lib.nvim")
 
 local Color = {}
@@ -29,30 +28,20 @@ local color = {
    },
 }
 
-local function tiFmt(t, fmt, ...)
-   table.insert(t, string.format(fmt, ...))
+local function setHl(group, opts)
+   nvim.api.setHl(0, group, opts)
 end
-
 
 local function updateHiGroup(group, fg, bg, ex)
-   local out = { "hi", group }
-   if fg then
-      tiFmt(out, "guifg=#%06x", fg)
-   elseif fg ~= -1 then
-      tiFmt(out, "guifg=none")
-   end
-   if bg then
-      tiFmt(out, "guibg=#%06x", bg)
-   elseif bg ~= -1 then
-      tiFmt(out, "guibg=none")
-   end
+   local opts = { fg = fg, bg = bg }
    if ex then
-      tiFmt(out, "gui=%s", ex)
-   elseif ex ~= "" then
-      tiFmt(out, "gui=none")
+      for k in ex:gmatch("[^,]+") do
+         opts[k] = true
+      end
    end
-   nvim.command(table.concat(out, " "))
+   setHl(group, opts)
 end
+
 
 local groups = {}
 local actualHi = {}
@@ -63,12 +52,11 @@ setmetatable(color.scheme.hi, {
    end,
    __newindex = function(_self, key, val)
       if not val then
-         nvim.command("hi link %s NONE", key)
+         setHl(key, { link = "NONE" })
          actualHi[key] = nil
       elseif groups[val] and key ~= groups[val] then
 
-         nvim.command("hi clear %s", key)
-         nvim.command("hi link %s %s", key, groups[val])
+         setHl(key, { link = groups[val] })
          actualHi[key] = setmetatable({}, { __index = val })
       else
 

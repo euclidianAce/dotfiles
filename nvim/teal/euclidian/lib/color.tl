@@ -1,4 +1,3 @@
-
 local nvim <const> = require("euclidian.lib.nvim")
 
 local type Color = {integer, integer, string}
@@ -29,31 +28,21 @@ local color <const> = {
 	},
 }
 
-local function tiFmt(t: {string}, fmt: string, ...: any)
-	table.insert(t, string.format(fmt, ...))
+local function setHl(group: string, opts: {string:any})
+	nvim.api.setHl(0, group, opts)
 end
 
--- TODO: is it worth it to use nvim_set_hl? probably
 local function updateHiGroup(group: string, fg: integer, bg: integer, ex: string)
-	local out <const> = { "hi", group }
-	if fg then
-		tiFmt(out, "guifg=#%06x", fg)
-	elseif fg ~= -1 then
-		tiFmt(out, "guifg=none")
-	end
-	if bg then
-		tiFmt(out, "guibg=#%06x", bg)
-	elseif bg ~= -1 then
-		tiFmt(out, "guibg=none")
-	end
+	local opts <const>: {string:any} = { fg = fg, bg = bg }
 	if ex then
-		tiFmt(out, "gui=%s", ex)
-	elseif ex ~= "" then
-		tiFmt(out, "gui=none")
+		for k in ex:gmatch("[^,]+") do
+			opts[k] = true
+		end
 	end
-	nvim.command(table.concat(out, " "))
+	setHl(group, opts)
 end
 
+-- TODO: should probably just use nvim_get_hl_by_name rather than caching this
 local groups <const>: {Color:string} = {}
 local actualHi <const>: {string:Color} = {}
 
@@ -63,12 +52,11 @@ setmetatable(color.scheme.hi, {
 	end,
 	__newindex = function(_self: {string:Color}, key: string, val: Color)
 		if not val then
-			nvim.command("hi link %s NONE", key)
+			setHl(key, { link = "NONE" })
 			actualHi[key] = nil
 		elseif groups[val] and key ~= groups[val] then
 			-- just link the group
-			nvim.command("hi clear %s", key)
-			nvim.command("hi link %s %s", key, groups[val])
+			setHl(key, { link = groups[val] })
 			actualHi[key] = setmetatable({}, { __index = val })
 		else
 			-- new group

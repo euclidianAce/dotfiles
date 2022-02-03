@@ -63,10 +63,10 @@ local function applyHighlights(
    secondaryComplement = secondaryComplement or secondary
 
    hi.Normal = { normal.fg, normal.bg }
-   hi.Visual = { -1, dark.gray }
+   hi.Visual = { nil, dark.gray }
    hi.ErrorMsg = { nil, normal.red }
    hi.Question = { dark.green }
-   hi.Search = { dark[secondary], -1, "bold,reverse" }
+   hi.Search = { dark[secondary], nil, "bold,reverse" }
    hi.IncSearch = { bright[secondary], nil, "bold,underline,reverse" }
 
    hi.StatusLine = invert(dark[secondary])
@@ -110,7 +110,7 @@ local function applyHighlights(
    hi.StorageClass = { bright[primaryComplement], nil, "bold" }
 
    hi.Special = { bright[secondary] }
-   hi.Delimiter = { dark[primary], -1 }
+   hi.Delimiter = { dark[primary] }
 
    hi.PreProc = { bright[secondary] }
 

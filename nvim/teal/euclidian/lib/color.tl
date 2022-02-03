@@ -86,4 +86,62 @@ function color.rgbToHex(r: integer, g: integer, b: integer): integer
 	return (r << 16) | (g << 8) | b
 end
 
+function color.rgbToHsv(r: integer, g: integer, b: integer): number, number, number
+	local rs <const> = r / 255
+	local gs <const> = g / 255
+	local bs <const> = b / 255
+	local mmax <const> = math.max(rs, gs, bs)
+	local mmin <const> = math.min(rs, gs, bs)
+	local delta <const> = mmax - mmin
+
+	local h: number
+	if delta > 0 then
+		if mmax == rs then
+			h = (gs - bs) / delta
+		elseif mmax == gs then
+			h = (bs - rs) / delta + 2
+		elseif mmax == bs then
+			h = (rs - gs) / delta + 4
+		end
+	end
+
+	local v <const> = mmax
+	local s <const> = v == 0 and 0 or delta / v
+
+	return h, s, v
+end
+
+--- h in [0, 6] or nil
+--- s,v in [0, 1]
+--- returns r,g,b in [0,1]
+function color.hsvToRgb(h: number, s: number, v: number): number, number, number
+	local alpha <const> = v * (1 - s)
+	local beta <const> = h and v * (1 - (h - math.floor(h)) * s)
+	local gamma <const> = h and v * (1 - (1 - (h - math.floor(h))) * s)
+
+	if not h then
+		return v, v, v
+	end
+	h = h % 6
+
+	assert(alpha)
+	assert(beta)
+	assert(gamma)
+
+	if h < 1 then
+		return v, gamma, alpha
+	elseif h < 2 then
+		return beta, v, alpha
+	elseif h < 3 then
+		return alpha, v, gamma
+	elseif h < 4 then
+		return alpha, beta, v
+	elseif h < 5 then
+		return gamma, alpha, v
+	elseif h < 6 then
+		return v, alpha, beta
+	end
+	error("bad h value: h=" .. tostring(h))
+end
+
 return color

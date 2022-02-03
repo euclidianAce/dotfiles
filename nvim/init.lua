@@ -150,13 +150,13 @@ local function runFormatter(...)
 	win:setCursor(cursor)
 end
 
-if isExecutable("clang-format") then
-	nvim.augroup("ClangFormatOnSave", {
-		{ "BufWritePre", { "*.c", "*.h", "*.hpp", "*.cpp" }, function()
-			runFormatter([[%%!clang-format -style=file --assume-filename=%s]], nvim.Buffer():getName() or "")
-		end, { canError = true } }
-	})
-end
+-- if isExecutable("clang-format") then
+	-- nvim.augroup("ClangFormatOnSave", {
+		-- { "BufWritePre", { "*.c", "*.h", "*.hpp", "*.cpp" }, function()
+			-- runFormatter([[%%!clang-format -style=file --assume-filename=%s]], nvim.Buffer():getName() or "")
+		-- end, { canError = true } }
+	-- })
+-- end
 
 if isExecutable("rustfmt") then
 	nvim.augroup("RustFormatOnSave", {

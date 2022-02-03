@@ -43,7 +43,7 @@ do
 		if from[1] and to[1] then
 			h = lerp(p, from[1], to[1])
 		elseif from[1] and p < 1 then
-			h = from[1] * p
+			h = from[1] * (1 - p)
 		elseif p > 0 then
 			h = to[1] * p
 		end
@@ -64,7 +64,7 @@ do
 	local destbg <const> = { color.rgbToHsv(color.hexToRgb(destColor[2] or normal[2])) }
 
 	table.insert(gradient, { origColor[1], origColor[2] })
-	for p = 0, 1, 0.04 do
+	for p = 0, 1, 0.05 do
 		local a = lerpColors(p, srcfg, destfg)
 		local b = lerpColors(p, srcbg, destbg)
 		table.insert(gradient, { a, b })
@@ -89,7 +89,7 @@ local function flashWindow(win: nvim.Window)
 			--   shown, drawing the border manually and using extmarks would probably
 			--   be a lot better
 			vim.cmd "mode"
-			wait(10)
+			wait(15)
 			if not win:isValid() then return end
 		end
 	end

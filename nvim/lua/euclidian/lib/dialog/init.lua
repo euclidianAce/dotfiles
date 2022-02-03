@@ -118,7 +118,7 @@ local function getBuf(maybeBuf)
    end
 end
 
-local defaultBorderHighlight = "Normal"
+local defaultBorderHighlight = "Delimiter"
 
 
 
@@ -146,6 +146,10 @@ local defaultBorder = {
 
    { "▏", defaultBorderHighlight },
 }
+
+function dialog.getDefaultBorder()
+   return vim.deepcopy(defaultBorder)
+end
 
 local floor, max, min =
 math.floor, math.max, math.min

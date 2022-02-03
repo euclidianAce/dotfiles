@@ -118,7 +118,7 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 	end
 end
 
-local defaultBorderHighlight <const> = "Normal"
+local defaultBorderHighlight <const> = "Delimiter"
 -- local defaultBorder <const>: nvim.Window.Config.Border = {
 	-- { "╭", defaultBorderHighlight },
 	-- { "─", defaultBorderHighlight },
@@ -129,8 +129,8 @@ local defaultBorderHighlight <const> = "Normal"
 	-- { "╰", defaultBorderHighlight },
 	-- { "│", defaultBorderHighlight },
 -- }
-local defaultBorder <const>: nvim.Window.Config.Border = {
-	{ "🭽" , defaultBorderHighlight },
+local defaultBorder <const>: {{string, string}} = {
+	{ "🭽", defaultBorderHighlight },
 
 	{ "▔", defaultBorderHighlight },
 
@@ -146,6 +146,10 @@ local defaultBorder <const>: nvim.Window.Config.Border = {
 
 	{ "▏", defaultBorderHighlight },
 }
+
+function dialog.getDefaultBorder(): {{string, string}}
+	return vim.deepcopy(defaultBorder)
+end
 
 local floor <const>, max <const>, min <const>
 	= math.floor, math.max, math.min

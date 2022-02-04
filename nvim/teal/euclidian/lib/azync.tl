@@ -144,9 +144,9 @@ end
 
 local function selectFrame<Ret...>(...: Frame<Ret>): Frame<Ret>
 	local current <const> = assert(currentFrame(), "Not running in an async function")
-
-	local nframes <const> = select("#", ...)
 	local frames <const> = { ... }
+
+	local nframes <const> = #frames
 
 	-- just like await, short circuit if any frames are ready
 	for i in randomRange(nframes) do
@@ -162,12 +162,19 @@ local function selectFrame<Ret...>(...: Frame<Ret>): Frame<Ret>
 	end
 	coroutine.yield()
 
+	local idx: integer
 	for i in randomRange(nframes) do
 		if isDead(frames[i]) then
-			return frames[i]
+			idx = i
+			break
 		end
 	end
-	error("selecting function resumed", 2)
+	assert(idx, "selecting function resumed")
+
+	for i = 1, nframes do
+		frames[i]._awaiter = nil
+	end
+	return frames[idx]
 end
 
 local function selectAwait<Ret...>(...: Frame<Ret>): Ret

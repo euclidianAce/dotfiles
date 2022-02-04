@@ -144,9 +144,9 @@ end
 
 local function selectFrame(...)
    local current = assert(currentFrame(), "Not running in an async function")
-
-   local nframes = select("#", ...)
    local frames = { ... }
+
+   local nframes = #frames
 
 
    for i in randomRange(nframes) do
@@ -162,12 +162,19 @@ local function selectFrame(...)
    end
    coroutine.yield()
 
+   local idx
    for i in randomRange(nframes) do
       if isDead(frames[i]) then
-         return frames[i]
+         idx = i
+         break
       end
    end
-   error("selecting function resumed", 2)
+   assert(idx, "selecting function resumed")
+
+   for i = 1, nframes do
+      frames[i]._awaiter = nil
+   end
+   return frames[idx]
 end
 
 local function selectAwait(...)

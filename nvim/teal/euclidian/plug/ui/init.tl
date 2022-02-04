@@ -4,72 +4,13 @@ local dialog <const> = require("euclidian.lib.dialog")
 local z <const> = require("euclidian.lib.azync")
 local menu <const> = require("euclidian.lib.menu")
 
-local function wait(ms: integer)
-	z.suspend(function(me: z.Frame<nil>)
-		vim.defer_fn(function() z.resume(me) end, ms)
-	end)
-end
-
-local borderhl <const> = "EuclidianUIBorder"
+local hi <const> = color.scheme.hi
+local windowhl <const> = "EuclidianUIWindowHl"
+hi[windowhl] = hi.STLNormal
 
 local border <const> = dialog.getDefaultBorder()
 for _, v in ipairs(border) do
-	v[2] = borderhl
-end
-
-local function setBorderHl(fg: integer, bg: integer)
-	nvim.api.setHl(0, borderhl, { fg = fg, bg = bg })
-end
-local hi <const> = color.scheme.hi
-
-local origColor <const> = hi.Delimiter
-local destColor <const> = hi.STLNormal
-
-setBorderHl(origColor[1], origColor[2])
-
-local gradient <const>: {{integer, integer}} = {}
-
-do
-	local function lerp(p: number, from: number, to: number): number
-		return from + (to - from) * p
-	end
-
-	local function lerpColors(
-		p: number,
-		from: {number, number, number}, -- hsv
-		to: {number, number, number} -- hsv
-	): integer -- hex
-		local h: number = nil
-		if from[1] and to[1] then
-			h = lerp(p, from[1], to[1])
-		elseif from[1] and p < 1 then
-			h = from[1] * (1 - p)
-		elseif p > 0 then
-			h = to[1] * p
-		end
-
-		local r, g, b = color.hsvToRgb(
-			h,
-			lerp(p, from[2], to[2]),
-			lerp(p, from[3], to[3])
-		)
-		return color.rgbToHex(math.floor(r*255), math.floor(g*255), math.floor(b*255))
-	end
-
-	local normal <const> = hi.Normal
-	local srcfg <const> = { color.rgbToHsv(color.hexToRgb(origColor[1] or normal[1])) }
-	local srcbg <const> = { color.rgbToHsv(color.hexToRgb(origColor[2] or normal[2])) }
-
-	local destfg <const> = { color.rgbToHsv(color.hexToRgb(destColor[1] or normal[1])) }
-	local destbg <const> = { color.rgbToHsv(color.hexToRgb(destColor[2] or normal[2])) }
-
-	table.insert(gradient, { origColor[1], origColor[2] })
-	for p = 0, 1, 0.05 do
-		local a = lerpColors(p, srcfg, destfg)
-		local b = lerpColors(p, srcbg, destbg)
-		table.insert(gradient, { a, b })
-	end
-	table.insert(gradient, { destColor[1], destColor[2] })
+	v[2] = windowhl
 end
 
 local function safeSetOpt(win: nvim.Window, name: string, value: string)
@@ -80,34 +21,20 @@ local function safeSetOpt(win: nvim.Window, name: string, value: string)
 	end)
 end
 
-local function flashWindow(win: nvim.Window)
-	local function doGradient(from: integer, to: integer)
-		for i = from, to, to > from and 1 or -1 do
-			setBorderHl(gradient[i][1], gradient[i][2])
-			-- TODO:
-			--   this seems to be the only way to make sure the updates are
-			--   shown, drawing the border manually and using extmarks would probably
-			--   be a lot better
-			vim.cmd "mode"
-			wait(15)
-			if not win:isValid() then return end
-		end
-	end
-
-	z.async(function()
-		safeSetOpt(win, "winhighlight", "Normal:" .. borderhl .. ",NormalFloat:" .. borderhl)
-		doGradient(1, #gradient)
-	end)
+local function setupWindow(win: nvim.Window)
+	safeSetOpt(win, "winhighlight", "Normal:" .. windowhl .. ",NormalFloat:" .. windowhl)
 end
 
 local function promptDialog(prompt: string): string
 	local me <const> = z.currentFrame()
-	local minwid <const> = #prompt + 10
+	local ui <const> = nvim.ui()
+	local minwid <const> = ui.width // 2
+	local maxwid <const> = ui.width - 4
 	local d <const> = dialog.new{
 		centered = { horizontal = true },
 		wid = minwid,
 		hei = 1,
-		row = -1,
+		row = -5,
 		interactive = true,
 		ephemeral = true,
 		border = border,
@@ -128,10 +55,10 @@ local function promptDialog(prompt: string): string
 	local buf <const> = d:buf()
 	buf:attach(true, {
 		on_lines = function()
-			d:fitTextPadded(10, 0, minwid, 1, nil, nil):centerHorizontal()
+			d:fitTextPadded(3, 0, minwid, 1, maxwid, nil):centerHorizontal()
 		end
 	})
-	flashWindow(d:win())
+	setupWindow(d:win())
 	buf:setKeymap("n", "<esc>", close)
 	vim.schedule(function() nvim.command("startinsert") end)
 	z.suspend()
@@ -154,7 +81,7 @@ end
 
 vim.ui.select = function(items: {any}, opts: vim.ui.SelectOpts, confirm: function(any, integer))
 	assert(confirm)
-	local inspector = opts.format_item or tostring
+	local inspector <const> = opts.format_item or tostring
 
 	local accordionItems: {menu.Accordion.Item} = {
 		{ opts.prompt or "Select one of:" },
@@ -179,7 +106,7 @@ vim.ui.select = function(items: {any}, opts: vim.ui.SelectOpts, confirm: functio
 		row = -hei - 4,
 		border = border,
 	}
-	flashWindow(d:win())
+	setupWindow(d:win())
 	local function cancel()
 		confirm(nil, nil)
 		d:close()

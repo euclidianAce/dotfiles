@@ -8,24 +8,27 @@ local record Frame<T...>
 	_awaiter: Frame<any>
 end
 
-local frames <const>: table = setmetatable({}, { __mode = "k" })
-local suspendBlock <const> = {} -- This is just a dummy value to signal when a suspend has a block
-local status <const> = coroutine.status
-
-local function suspend<T...>(fn: function(Frame<T>))
-	coroutine.yield(fn and suspendBlock, fn)
-end
-
-local function isDead<T...>(frame: Frame<T>): boolean
-	return status(frame._t) == "dead"
-end
-
 local record Packed
 	{any}
 	n: integer
 end
 
+local frameCache <const>: {thread:any} = setmetatable({}, { __mode = "k" }) -- thread -> Frame
 local values <const>: {any:Packed} = setmetatable({}, { __mode = "k" }) -- Frame -> awaited value
+local status <const> = coroutine.status
+
+local suspendBlock <const> = {} -- This is just a dummy value to signal when a suspend has a block
+local function suspend<T...>(fn: function(Frame<T>))
+	coroutine.yield(fn and suspendBlock, fn)
+end
+
+local function isDead<T...>(frame: Frame<T>): boolean
+	if type(frame) ~= "table" then
+		print(debug.getinfo(2))
+		error("???")
+	end
+	return status(frame._t) == "dead"
+end
 
 local function packTail(b: boolean, ...: any): boolean, Packed
 	return b, {
@@ -66,7 +69,12 @@ end
 
 local function currentFrame(): Frame<any>
 	local co <const> = coroutine.running()
-	return frames[co] as Frame<any>
+	return frameCache[co] as Frame<any>
+end
+
+local function unpackFrameResult<Ret...>(frame: Frame<Ret>): Ret
+	return (unpack as function(any, integer, integer): Ret)
+		(values[frame], 1, values[frame].n)
 end
 
 local function await<Ret...>(frame: Frame<Ret>): Ret
@@ -76,7 +84,7 @@ local function await<Ret...>(frame: Frame<Ret>): Ret
 		coroutine.yield()
 		assert(isDead(frame), "awaiting function resumed")
 	end
-	return (unpack as function(any, integer, integer): Ret)(values[frame], 1, values[frame].n)
+	return unpackFrameResult(frame)
 end
 
 local function wrapCallable<Ret..., Args...>(fn: function(...: Args): Ret): function(Args): Ret
@@ -88,18 +96,18 @@ end
 
 local function nosuspend<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Ret
 	local frame <const> = { _t = coroutine.create(wrapCallable(fn)) }
-	frames[frame._t] = frame
+	frameCache[frame._t] = frame
 	internalResume(frame as Frame<any>, ...)
 	if not isDead(frame) then
 		error("Function suspended in a nosuspend", 2)
 	end
-	return (unpack as function(any, integer, integer): Ret)(values[frame], 1, values[frame].n)
+	return unpackFrameResult(frame)
 end
 
 local function async<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Frame<Ret>
 	local co <const> = coroutine.create(wrapCallable(fn))
 	local f <const> = { _t = co }
-	frames[co] = f
+	frameCache[co] = f
 	internalResume(f, ...)
 	return f
 end
@@ -107,7 +115,7 @@ end
 local function asyncSchedule<Ret..., Args...>(fn: (function(...: Args): Ret), ...: Args): Frame<Ret>
 	local co <const> = coroutine.create(wrapCallable(fn))
 	local f <const> = { _t = co }
-	frames[co] = f
+	frameCache[co] = f
 	vim.schedule_wrap(internalResume)(f, ...)
 	return f
 end
@@ -118,6 +126,56 @@ local function asyncFn<Ret..., Args...>(fn: (function(...: Args): Ret)): functio
 	end
 end
 
+local function randomRange(n: integer): function(): integer
+	local range <const> = {}
+	for i = 1, n do
+		range[i] = i
+	end
+	for i = n, 1, -1 do
+		local j <const> = math.random(1, i)
+		range[i], range[j] = range[j], range[i]
+	end
+	local i = 0
+	return function(): integer
+		i = i + 1
+		return range[i]
+	end
+end
+
+local function selectFrame<Ret...>(...: Frame<Ret>): Frame<Ret>
+	local current <const> = assert(currentFrame(), "Not running in an async function")
+
+	local nframes <const> = select("#", ...)
+	local frames <const> = { ... }
+
+	-- just like await, short circuit if any frames are ready
+	for i in randomRange(nframes) do
+		assert(not frames[i]._awaiter, "async function awaited twice (in select)")
+		if isDead(frames[i]) then
+			return frames[i]
+		end
+	end
+
+	-- if no frames are ready, set up awaiters and yield
+	for i = 1, nframes do
+		frames[i]._awaiter = current
+	end
+	coroutine.yield()
+
+	for i in randomRange(nframes) do
+		if isDead(frames[i]) then
+			return frames[i]
+		end
+	end
+	error("selecting function resumed", 2)
+end
+
+local function selectAwait<Ret...>(...: Frame<Ret>): Ret
+	local f <const> = selectFrame(...)
+	assert(isDead(f))
+	return unpackFrameResult(f)
+end
+
 return {
 	suspend = suspend,
 	resume = resume,
@@ -125,6 +183,8 @@ return {
 	await = await,
 	nosuspend = nosuspend,
 	currentFrame = currentFrame,
+	select = selectFrame,
+	selectAwait = selectAwait,
 
 	asyncSchedule = asyncSchedule,
 	resumeSchedule = resumeSchedule,

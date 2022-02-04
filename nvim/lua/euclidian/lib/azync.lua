@@ -8,24 +8,27 @@ local Frame = {}
 
 
 
-local frames = setmetatable({}, { __mode = "k" })
-local suspendBlock = {}
-local status = coroutine.status
-
-local function suspend(fn)
-   coroutine.yield(fn and suspendBlock, fn)
-end
-
-local function isDead(frame)
-   return status(frame._t) == "dead"
-end
-
 local Packed = {}
 
 
 
 
+local frameCache = setmetatable({}, { __mode = "k" })
 local values = setmetatable({}, { __mode = "k" })
+local status = coroutine.status
+
+local suspendBlock = {}
+local function suspend(fn)
+   coroutine.yield(fn and suspendBlock, fn)
+end
+
+local function isDead(frame)
+   if type(frame) ~= "table" then
+      print(debug.getinfo(2))
+      error("???")
+   end
+   return status(frame._t) == "dead"
+end
 
 local function packTail(b, ...)
    return b, {
@@ -66,7 +69,12 @@ end
 
 local function currentFrame()
    local co = coroutine.running()
-   return frames[co]
+   return frameCache[co]
+end
+
+local function unpackFrameResult(frame)
+   return (unpack)(
+   values[frame], 1, values[frame].n)
 end
 
 local function await(frame)
@@ -76,7 +84,7 @@ local function await(frame)
       coroutine.yield()
       assert(isDead(frame), "awaiting function resumed")
    end
-   return (unpack)(values[frame], 1, values[frame].n)
+   return unpackFrameResult(frame)
 end
 
 local function wrapCallable(fn)
@@ -88,18 +96,18 @@ end
 
 local function nosuspend(fn, ...)
    local frame = { _t = coroutine.create(wrapCallable(fn)) }
-   frames[frame._t] = frame
+   frameCache[frame._t] = frame
    internalResume(frame, ...)
    if not isDead(frame) then
       error("Function suspended in a nosuspend", 2)
    end
-   return (unpack)(values[frame], 1, values[frame].n)
+   return unpackFrameResult(frame)
 end
 
 local function async(fn, ...)
    local co = coroutine.create(wrapCallable(fn))
    local f = { _t = co }
-   frames[co] = f
+   frameCache[co] = f
    internalResume(f, ...)
    return f
 end
@@ -107,7 +115,7 @@ end
 local function asyncSchedule(fn, ...)
    local co = coroutine.create(wrapCallable(fn))
    local f = { _t = co }
-   frames[co] = f
+   frameCache[co] = f
    vim.schedule_wrap(internalResume)(f, ...)
    return f
 end
@@ -118,6 +126,56 @@ local function asyncFn(fn)
    end
 end
 
+local function randomRange(n)
+   local range = {}
+   for i = 1, n do
+      range[i] = i
+   end
+   for i = n, 1, -1 do
+      local j = math.random(1, i)
+      range[i], range[j] = range[j], range[i]
+   end
+   local i = 0
+   return function()
+      i = i + 1
+      return range[i]
+   end
+end
+
+local function selectFrame(...)
+   local current = assert(currentFrame(), "Not running in an async function")
+
+   local nframes = select("#", ...)
+   local frames = { ... }
+
+
+   for i in randomRange(nframes) do
+      assert(not frames[i]._awaiter, "async function awaited twice (in select)")
+      if isDead(frames[i]) then
+         return frames[i]
+      end
+   end
+
+
+   for i = 1, nframes do
+      frames[i]._awaiter = current
+   end
+   coroutine.yield()
+
+   for i in randomRange(nframes) do
+      if isDead(frames[i]) then
+         return frames[i]
+      end
+   end
+   error("selecting function resumed", 2)
+end
+
+local function selectAwait(...)
+   local f = selectFrame(...)
+   assert(isDead(f))
+   return unpackFrameResult(f)
+end
+
 return {
    suspend = suspend,
    resume = resume,
@@ -125,6 +183,8 @@ return {
    await = await,
    nosuspend = nosuspend,
    currentFrame = currentFrame,
+   select = selectFrame,
+   selectAwait = selectAwait,
 
    asyncSchedule = asyncSchedule,
    resumeSchedule = resumeSchedule,

@@ -119,7 +119,10 @@ map("n", "<leader>P", vim.diagnostic.goto_prev)
 map("n", "<leader>k", vim.diagnostic.open_float)
 
 map("n", "<leader>fz", function() require("telescope.builtin").find_files() end)
-map("n", "<leader>g",  function() require("telescope.builtin").live_grep() end)
+map("n", "<leader>gr",  function() require("telescope.builtin").live_grep() end)
+map("n", "<leader>g*",  function()
+	require("telescope.builtin").grep_string{ search = vim.fn.expand("<cword>") as string }
+end)
 
 map("n", "<leader>n", "<cmd>noh<cr>")
 

@@ -2,14 +2,14 @@
 local packagespec = require("euclidian.plug.package-manager.packagespec")
 local set = require("euclidian.plug.package-manager.set")
 local report = require("euclidian.plug.package-manager.report")
+local nvim = require("euclidian.lib.nvim")
 
 local loader = {}
 
 local Spec = packagespec.Spec
 
-local command = vim.api.nvim_command
 local function packadd(pkg)
-   command(([[packadd %s]]):format(pkg))
+   nvim.command("packadd " .. pkg)
 end
 
 local function getLoadOrder(loadedSet)
@@ -52,7 +52,7 @@ local function getLoadOrder(loadedSet)
    return order
 end
 
-local function packaddSet(setname)
+function loader.enableSet(setname)
    local pre, post = {}, {}
    local loaded, err = set.load(setname)
    if not loaded then
@@ -70,14 +70,10 @@ local function packaddSet(setname)
          end
       end
    end
-   local rtp = vim.api.nvim_list_runtime_paths()
+   local rtp = nvim.api.listRuntimePaths()
    vim.list_extend(pre, rtp)
-   vim.list_extend(pre, post)
-   command([[set rtp=]] .. table.concat(pre, ","))
-end
-
-function loader.enableSet(setname)
-   packaddSet(setname)
+   vim.list_extend(pre, post);
+   (vim).opt.runtimepath = pre
 end
 
 return loader

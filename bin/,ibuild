@@ -76,18 +76,23 @@ runCmdShowExit () {
 	fi
 }
 
-sourcesCmd="find -name \*.c | cut -b 3- -"
-objectsCmd="find -name .\*.o | cut -b 3- - | perl -pe 's/\//__/g'"
+getSources () {
+	find ./ -regex '\.\/.*.c' | cut -b 3- -
+}
+
+getObjects() {
+	find ./ -regex '\.\/.*\.c\.o' | cut -b 3- - | awk 'gsub(/\//, "__") || 1'
+}
 
 forEachTouchedSrc() {
 	local target="false"
-	local objects=()
-	for f in $(find -name \*.c | cut -b 3- -); do
-		local obj=".$(echo $f | perl -pe 's/\//__/g').o"
+	local objects=""
+	for f in $(getSources); do
+		local obj=".$(echo $f | awk 'gsub(/\//, "__") || 1').o"
 		if (( $(date +%s -r $obj 2>/dev/null || echo 0) < $(date +%s -r $f) )); then
 			target="true"
 			$1 $CC -c $f -o $obj $CFLAGS
-			objects+=" $obj"
+			objects="$objects $obj"
 		fi
 	done
 	if [[ $target == "true" ]]; then
@@ -111,7 +116,7 @@ genMakefile () {
 
 	local objs=""
 	for f in $(find -name \*.c | cut -b 3- -); do
-		local obj=".$(echo $f | perl -pe 's/\//__/g').o"
+		local obj=".$(echo $f | awk 'gsub(/\//, "__")').o"
 		objs="$objs $obj"
 		echo -n -e "$obj: $f\n\t"
 		echo -e "\$(CC) \$(CFLAGS) -c $< -o \$@"
@@ -126,7 +131,7 @@ genMakefile () {
 }
 
 clean () {
-	local objs=$(eval $objectsCmd)
+	local objs=$(getObjects)
 	if [[ -n "$objs" ]]; then
 		runCmd rm $objs
 	fi

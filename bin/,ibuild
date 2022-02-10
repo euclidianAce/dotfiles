@@ -11,12 +11,12 @@ log () {
 }
 
 logerr () {
-	echo -n -e "\033[31;1mError\033[0m: " 1>&2
+	echo -n -e "\033[31;1;2mError\033[0m: " 1>&2
 	echo $@ 1>&2
 }
 
 logwarn () {
-	echo -n -e "\033[33;1m Warn\033[0m: " 1>&2
+	echo -n -e "\033[33;1;2m Warn\033[0m: " 1>&2
 	echo $@ 1>&2
 }
 
@@ -25,6 +25,7 @@ if [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; 
 	echo -e "  Usage $(basename $0) {run|clean|all|val|gdb|export|help} ..."
 	echo -e "      run              Compile + run your compiled program"
 	echo -e "      clean            Remove any generated objects"
+	echo -e "      show             Print each command that would be invoked"
 	echo -e "      all              Equivalent to clean + run"
 	echo -e "      val              Like run, but use valgrind"
 	echo -e "      gdb              Like run, but use gdb"
@@ -47,18 +48,18 @@ if [[ -z "$CC" ]]; then
 fi
 
 if [[ -z "$CFLAGS" ]]; then
-	logwarn "\$CFLAGS is not defined, defaulting to '-Wall'"
-	CFLAGS="-Wall"
+	CFLAGS="-Wall -Wextra"
+	logwarn "\$CFLAGS is not defined, defaulting to '$CFLAGS'"
 fi
 
 if [[ -z "$LDFLAGS" ]]; then
-	logwarn "\$LDFLAGS is not defined, defaulting to ''"
 	LDFLAGS=""
+	logwarn "\$LDFLAGS is not defined, defaulting to '$LDFLAGS'"
 fi
 
 if [[ -z "$TARGET" ]]; then
-	logwarn "\$TARGET is not defined, defaulting to 'out'"
 	TARGET="out"
+	logwarn "\$TARGET is not defined, defaulting to '$TARGET'"
 fi
 
 runCmd () {
@@ -77,20 +78,27 @@ runCmdShowExit () {
 
 sourcesCmd="find -name \*.c | cut -b 3- -"
 objectsCmd="find -name .\*.o | cut -b 3- - | perl -pe 's/\//__/g'"
-build () {
-	local shouldCompile="false"
+
+forEachTouchedSrc() {
+	local target="false"
+	local objects=()
 	for f in $(find -name \*.c | cut -b 3- -); do
 		local obj=".$(echo $f | perl -pe 's/\//__/g').o"
 		if (( $(date +%s -r $obj 2>/dev/null || echo 0) < $(date +%s -r $f) )); then
-			runCmdShowExit $CC -c $f -o $obj $CFLAGS
-			shouldCompile="true"
+			target="true"
+			$1 $CC -c $f -o $obj $CFLAGS
+			objects+=" $obj"
 		fi
 	done
-	if [[ "$shouldCompile" == "true" ]]; then
-		runCmdShowExit $CC $(eval $objectsCmd) -o $TARGET $LDFLAGS
-	else
-		log "Nothing to compile"
-	fi;
+	if [[ $target == "true" ]]; then
+		$1 $CC $objects -o $TARGET $LDFLAGS
+		return 0
+	fi
+	return 1
+}
+
+build () {
+	forEachTouchedSrc "runCmdShowExit" || log "Nothing to compile"
 }
 
 genMakefile () {
@@ -130,6 +138,10 @@ case "$1" in
 	"clean") clean;;
 	"all") clean; build;;
 	"export") genMakefile;;
+	"show")
+		forEachTouchedSrc "echo"
+		exit 0
+		;;
 	"run")
 		build
 		shift

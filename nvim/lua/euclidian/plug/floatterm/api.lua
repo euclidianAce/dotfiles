@@ -83,7 +83,11 @@ getBuf = function()
    if buf:getOption("buftype") ~= "terminal" then
       buf:setOption("modified", false)
       buf:call(function()
-         channelId = vim.fn.termopen(shell, termopenOpts)
+         local opts = termopenOpts
+         if not opts or not next(opts) then
+            opts = vim.empty_dict()
+         end
+         channelId = vim.fn.termopen(shell, opts)
 
 
 

@@ -83,7 +83,11 @@ getBuf = function(): nvim.Buffer
 	if buf:getOption("buftype") ~= "terminal" then
 		buf:setOption("modified", false)
 		buf:call(function()
-			channelId = vim.fn.termopen(shell, termopenOpts) as integer
+			local opts = termopenOpts
+			if not opts or not next(opts) then
+				opts = vim.empty_dict() as {string:any}
+			end
+			channelId = vim.fn.termopen(shell, opts) as integer
 			-- if channelId == 0 then
 				-- invalid args
 			-- elseif channelId == -1 then

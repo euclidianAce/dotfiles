@@ -93,6 +93,7 @@ set(vim.opt, {
 	foldenable = true,
 	cursorline = true,
 	cursorlineopt = "number",
+	equalalways = false,
 
 	formatoptions = "lroj",
 

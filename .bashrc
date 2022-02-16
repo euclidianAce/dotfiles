@@ -1,15 +1,3 @@
-
-    ######                  #
-    ##   ##                 #
-    ##   ##  ####    ###### # ###   # ####   #####
-    ######       #  #       ##   #  ##    # #     #
-    ##   ##  ####    #####  #     # #       #
-##  ##   ## #   ##        # #     # #       #     #
-##  ######   ###  # ######  #     # #        #####
-
-# cursor blink
-echo -ne "\x1b[\x30 q"
-
 find-detached-session () {
 	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
 	if [[ -z "$s" ]]; then
@@ -23,8 +11,9 @@ if [[ -z $TMUX && -z $NO_TMUX ]]; then
 	exec $(find-detached-session)
 fi
 
-shopt -s autocd # Automatically does a cd when you type a directory
-shopt -s checkwinsize # resize window automatically after each command
+echo -ne "\x1b[\x30 q"
+shopt -s autocd
+shopt -s globstar
 
 #################
 #### HISTORY ####
@@ -34,17 +23,15 @@ export HISTFILESIZE=20000
 export HISTSIZE=10000
 shopt -s histappend
 HISTCONTROL=ignoredups
-export HISTIGNORE="&:ls:[bf]g:clear:exit:.."
+export HISTIGNORE="&:l[sal]:[bf]g:clear:exit:.."
 
 ##########################
 #### ENVIRONMENT VARS ####
 ##########################
 
-# for some reason this doesnt seem to be set by default...
 export XDG_CONFIG_HOME="$HOME/.config"
 export DOTFILE_DIR="$HOME/dotfiles"
 
-# set nvim as the default editor
 export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
@@ -52,9 +39,6 @@ export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
 	export PATH+=":./:$HOME/Applications:$HOME/bin:/usr/local/bin"
 fi
-
-# xterm-kitty doesn't work over ssh
-# export TERM=xterm-256color
 
 #################
 #### ALIASES ####
@@ -100,8 +84,6 @@ envrc () {
 	$EDITOR +'cd $DOTFILE_DIR/nvim/' +'Telescope find_files'
 }
 
-## Git
-
 alias gs="git status --short"
 alias gsl="git status"
 
@@ -124,7 +106,6 @@ alias gpull="git pull"
 alias gl="git log --graph --decorate --oneline"
 alias gll="git log --graph --decorate"
 
-## Package manager aliases
 distro=$(awk -F= '/^ID=.*$/{print $2}' /etc/*-release | cut --delimiter='"' -f 2)
 
 case "$distro" in
@@ -151,22 +132,14 @@ case "$distro" in
 		;;
 	"nixos")
 		function nixsh {
-			nix-shell "$HOME/shells/$1.nix"
+			nix-shell "$DOTFILE_DIR/nix-shells/$1.nix"
 		}
 		;;
 esac
 
-## editing
 e () {
-	if [[ "$FLOATTERM" = "1" ]]; then
-		nano $@
-	else
-		$EDITOR $@
-	fi
+	$EDITOR $@
 }
-
-alias v="vim"
-alias nv="nvim"
 
 mkcd () {
 	mkdir -p "$1" && cd "$1"
@@ -174,13 +147,11 @@ mkcd () {
 
 alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
-alias reboot="sudo reboot"
 
 ####################
 #### PS1 STUFFS ####
 ####################
 
-# offload getting ps1 to script
 SET_DEFAULT_PS1=0
 export MY_PS1=$PS1
 export PS2=" \[\e[90m\]│\[\e[0m\] "

@@ -141,29 +141,6 @@ end
 
 local function isExecutable(name) return vim.fn.executable(name) == 1 end
 
-local function runFormatter(...)
-	local buf = nvim.Buffer()
-	local win = nvim.Window()
-	local cursor = win:getCursor()
-	nvim.command(...)
-	cursor[1] = math.min(#buf:getLines(0, -1, false), cursor[1])
-	win:setCursor(cursor)
-end
-
--- if isExecutable("clang-format") then
-	-- nvim.augroup("ClangFormatOnSave", {
-		-- { "BufWritePre", { "*.c", "*.h", "*.hpp", "*.cpp" }, function()
-			-- runFormatter([[%%!clang-format -style=file --assume-filename=%s]], nvim.Buffer():getName() or "")
-		-- end, { canError = true } }
-	-- })
--- end
-
-if isExecutable("rustfmt") then
-	nvim.augroup("RustFormatOnSave", {
-		{ "BufWritePre", "*.rs", function() runFormatter("%%!rustfmt") end }
-	})
-end
-
 nvim.augroup("Custom", {
 	{ "FileType", {"teal", "lua"}, function()
 		local buf = nvim.Buffer()

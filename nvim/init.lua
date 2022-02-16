@@ -108,7 +108,6 @@ plugload "package-manager"
 plugload "floatterm" {
 	toggle = "",
 	shell = windows and "nu" or "bash",
-	termopenOpts = { env = { FLOATTERM = 1 } },
 
 	row = 1,
 	centered = { horizontal = true },

@@ -35,7 +35,6 @@ export DOTFILE_DIR="$HOME/dotfiles"
 export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
-export LUA_CPATH+=";$HOME/dev/luastuffs/ltreesitter/?.so;$HOME/dev/parsers/?.so"
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
 	export PATH+=":./:$HOME/Applications:$HOME/bin:/usr/local/bin"
 fi
@@ -46,6 +45,9 @@ fi
 
 export PATH="$DOTFILE_DIR/bin/:$PATH"
 
+alias mv="mv -v"
+alias cp="cp -v"
+alias rm="rm -v"
 alias ls="ls -hN   --file-type --color=auto --group-directories-first"
 alias la="ls -AhN  --file-type --color=auto --group-directories-first"
 alias ll="ls -AhNl --file-type --color=auto --group-directories-first"

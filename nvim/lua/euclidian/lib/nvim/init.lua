@@ -175,6 +175,8 @@ local nvim = {
    CommandOpts = CommandOpts,
    AutocmdOpts = AutocmdOpts,
 
+   scheduleWrap = (vim.schedule_wrap),
+
    _exports = {},
 }
 

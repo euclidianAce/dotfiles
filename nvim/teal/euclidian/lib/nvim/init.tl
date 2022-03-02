@@ -175,6 +175,8 @@ local nvim <const> = {
 	CommandOpts = CommandOpts,
 	AutocmdOpts = AutocmdOpts,
 
+	scheduleWrap = (vim.schedule_wrap as function<Ret...>(function(Ret)): function(Ret)),
+
 	_exports: {string:function} = {},
 }
 

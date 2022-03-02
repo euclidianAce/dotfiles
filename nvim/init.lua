@@ -106,6 +106,8 @@ set(vim.opt, {
 })
 
 plugload "package-manager"
+-- TODO: package-manager needs a way to do this
+require "treesitter-context".setup {}
 plugload "floatterm" {
 	toggle = "",
 	shell = windows and "nu" or "bash",

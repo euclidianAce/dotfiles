@@ -1,6 +1,5 @@
 local nvim = require("euclidian.lib.nvim")
 local dialog = require("euclidian.lib.dialog")
-local a = vim.api
 
 local Dialog = dialog.Dialog
 
@@ -105,14 +104,12 @@ function floatterm.channel()
    return channelId
 end
 
-local chansend = a.nvim_chan_send
-
 function floatterm.send(s)
    local buf = getBuf()
    if not buf:isValid() then
       return false
    end
-   chansend(channelId, s)
+   nvim.api.chanSend(channelId, s)
    return true
 end
 

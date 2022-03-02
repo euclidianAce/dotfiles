@@ -61,4 +61,16 @@ return function(opts)
       desc = "Hide the floating terminal",
    })
 
+
+   nvim.api.addUserCommand(
+   "FloatingTerminalOpenInCurrent",
+   nvim.scheduleWrap(function()
+      nvim.Window():setBuf(floatterm.buffer().id)
+   end),
+   {
+      nargs = 0,
+      bar = true,
+      desc = "Open the floatterm buffer in the current window",
+   })
+
 end

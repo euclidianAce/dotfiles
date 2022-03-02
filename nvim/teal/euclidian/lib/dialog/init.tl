@@ -119,7 +119,7 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 end
 
 local defaultBorderHighlight <const> = "Delimiter"
--- local defaultBorder <const>: nvim.Window.Config.Border = {
+-- local defaultBorder <const>: {{string, string}} = {
 	-- { "╭", defaultBorderHighlight },
 	-- { "─", defaultBorderHighlight },
 	-- { "╮", defaultBorderHighlight },
@@ -129,22 +129,12 @@ local defaultBorderHighlight <const> = "Delimiter"
 	-- { "╰", defaultBorderHighlight },
 	-- { "│", defaultBorderHighlight },
 -- }
+
 local defaultBorder <const>: {{string, string}} = {
-	{ "🭽", defaultBorderHighlight },
-
-	{ "▔", defaultBorderHighlight },
-
-	{ "🭾", defaultBorderHighlight },
-
-	{ "🭵", defaultBorderHighlight },
-
-	{ "🭿", defaultBorderHighlight },
-
-	{ "▁", defaultBorderHighlight },
-
-	{ "🭼", defaultBorderHighlight },
-
-	{ "▏", defaultBorderHighlight },
+	{ "🭽", defaultBorderHighlight }, { "▔", defaultBorderHighlight },
+	{ "🭾", defaultBorderHighlight }, { "🭵", defaultBorderHighlight },
+	{ "🭿", defaultBorderHighlight }, { "▁", defaultBorderHighlight },
+	{ "🭼", defaultBorderHighlight }, { "▏", defaultBorderHighlight },
 }
 
 function dialog.getDefaultBorder(): {{string, string}}
@@ -458,16 +448,17 @@ function Dialog:unsetPrompt(): Dialog
 end
 function Dialog:fitText(minWid: integer, minHei: integer, maxWid: integer, maxHei: integer): Dialog
 	local lines <const> = self:buf():getLines(0, -1, false)
-	local line = ""
+	local longest = 0
 	for _, ln in ipairs(lines) do
-		if #ln > #line then
-			line = ln
+		local len <const> = #ln
+		if longest < len then
+			longest = len
 		end
 	end
 	local ui <const> = nvim.ui()
 	local win <const> = self:win()
 	win:setHeight(clamp(#lines, minHei or 1, maxHei or ui.height))
-	win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
+	win:setWidth(clamp(longest, minWid or 1, maxWid or ui.width))
 	return self
 end
 function Dialog:setWinSize(width: integer, height: integer): Dialog

@@ -6,6 +6,7 @@ local input <const> = {}
 function input.waitForKey(buf: nvim.Buffer, mode: vim.Mode, ...: string): string
 	local keys <const> = {...}
 	local teardown <const> = vim.schedule_wrap(function()
+		if not buf:isValid() then return end
 		for _, key in ipairs(keys) do
 			buf:delKeymap(mode, key)
 		end
@@ -14,6 +15,7 @@ function input.waitForKey(buf: nvim.Buffer, mode: vim.Mode, ...: string): string
 	local me <const> = assert(z.currentFrame(), "attempt to waitForKey not in a coroutine")
 	vim.schedule(function()
 		for _, key in ipairs(keys) do
+			if not buf:isValid() then return end
 			buf:setKeymap(mode, key, function()
 				pressed = key
 				teardown()

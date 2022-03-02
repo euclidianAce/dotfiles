@@ -90,7 +90,11 @@ local function chooseAndLoadSet(d)
       end, }
    end
 
-   menu.new.accordion(items)(d)
+   menu.new.accordion(items)(d, { persist = true })
+   if not loaded then
+
+      coroutine.yield()
+   end
    return loaded, name
 end
 
@@ -98,7 +102,6 @@ local function prompt(d, promptText)
    local f = z.currentFrame()
    local val
    d:setPrompt(promptText, function(s)
-      print("Prompt: ", s)
       val = s
       d:unsetPrompt()
       vim.schedule(function()
@@ -109,55 +112,36 @@ local function prompt(d, promptText)
    return val
 end
 
-local function yesOrNo(d, pre, affirm, deny)
-   affirm = affirm or "Yes"
-   deny = deny or "No"
-   d:setLines({
-      pre,
-      affirm,
-      deny,
-   }):fitText():center()
-   d:win():setOption("cursorline", true)
-   local ln
-   repeat
-      input.waitForKey(d:buf(), "n", "<cr>")
-      ln = d:getCursor()
-   until ln > 1
-   d:win():setOption("cursorline", false)
-   return ln == 2
-end
 
-local checkKey = "a"
+
+
+
+
+
+
+
+
+
+
+
+
 local function checklist(d, pre, opts)
-   d:win():setOption("number", true)
-   d:win():setOption("relativenumber", true)
-   local lines = {}
+   local items = { pre }
    for i, v in ipairs(opts) do
-      lines[i] = "[ ] " .. v
+      items[i + 1] = { v, false }
    end
-   table.insert(lines, 1, pre)
-   d:setLines(lines):fitText():center()
-   d:addKeymap("n", checkKey, function()
-      local ln = d:getCursor()
-      local l = d:getLine(ln)
-      d:setText({ {
-         l:match("^%[%*") and " " or "*", ln - 1, 1, ln - 1, 2,
-      }, })
-   end, { silent = true })
-   input.waitForKey(d:buf(), "n", "<cr>")
-   d:delKeymap("n", checkKey)
+   menu.new.checklist(items)(d)
    local selected = {}
-   for i, v in ipairs(d:getLines(1, -1)) do
-      if v:match("^%[%*") then
-         table.insert(selected, i)
+   for i = 2, #items do
+      if (items[i])[2] then
+         table.insert(selected, i - 1)
       end
    end
-   d:win():setOption("number", false)
-   d:win():setOption("relativenumber", false)
    return selected
 end
 
 do
+   local PackageAdder = {}
    local function getPkgNames(s)
       local pkgNames = {}
       for i, v in ipairs(s) do
@@ -167,60 +151,31 @@ do
    end
 
    local function askForDependents(d, s, p)
-      if yesOrNo(d, "Do any other packages depend on this package?") then
-         local deps = checklist(d, "Dependents:", getPkgNames(s))
-         for _, idx in ipairs(deps) do
-            table.insert(p.dependents, s[idx])
-         end
+      local deps = checklist(d, "Dependents:", getPkgNames(s))
+      for _, idx in ipairs(deps) do
+         table.insert(p.dependents, s[idx])
       end
    end
 
    local function askForDependencies(d, s, p)
-      if yesOrNo(d, "Does this package depend on other packages?") then
-         local deps = checklist(d, "Dependencies:", getPkgNames(s))
-         for _, idx in ipairs(deps) do
-            if not s[idx].dependents then
-               s[idx].dependents = {}
-            end
-            table.insert(s[idx].dependents, p)
+      local deps = checklist(d, "Dependencies:", getPkgNames(s))
+      for _, idx in ipairs(deps) do
+         if not s[idx].dependents then
+            s[idx].dependents = {}
          end
+         table.insert(s[idx].dependents, p)
       end
    end
 
-   local function addVimPlugPackage()
+   local addVimPlugPackage = function(_d, _s)
       print("Vim Plug Package: not yet implemented")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    end
-   local function addPackerPackage()
+
+   local addPackerPackage = function(_d, _s)
       print("Packer Package: not yet implemented")
-
    end
-   local function addGitHubPackage(d, s)
+
+   local addGithubPackage = function(d, s)
       d:setLines({})
       local repo = prompt(d, "Repo: https://github.com/")
       local pkgNames = {}
@@ -246,38 +201,28 @@ do
       }
       table.insert(s, p)
    end
-
-
-
-
-   local handlers = {
-      addGitHubPackage,
-      addLocalPackage,
-      addVimPlugPackage,
-      addPackerPackage,
-
-   }
+   local function addLuaRock(_d, _s)
+      print("TODO: add lua rock :D")
+   end
 
    actions.add = createDialog(function(d)
       local loaded, name = chooseAndLoadSet(d)
 
-      d:setLines({
-         "Add new package from:",
-         "  Github",
-         "  Local directory",
-         "  Vim-Plug expression",
-         "  Packer expression",
-
-      }):fitText(35):center()
-
-      local ln
-      repeat
-         input.waitForKey(d:buf(), "n", "<cr>")
-         ln = d:getCursor()
-      until ln > 1
-
       set.save("." .. name .. "__bak", loaded)
-      handlers[ln - 1](d, loaded)
+
+      local function wrap(fn)
+         return function() fn(d, loaded) end
+      end
+
+      menu.new.accordion({
+         "Add new package from:",
+         { "Github", wrap(addGithubPackage) },
+         { "Local directory", wrap(addLocalPackage) },
+         { "Vim-Plug expression", wrap(addVimPlugPackage) },
+         { "Packer expression", wrap(addPackerPackage) },
+         { "Lua rock", wrap(addLuaRock) },
+      })(d, { persist = true })
+
       set.save(name, loaded)
       d:close()
    end)

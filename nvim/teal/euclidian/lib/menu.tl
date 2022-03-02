@@ -34,6 +34,7 @@ local record Modifiable
 end
 
 local record Checklist
+	-- tuples are interactable, strings are just labels
 	type Item = {string, boolean} | string
 	items: {Item}
 	checked_prefix: string
@@ -165,13 +166,11 @@ function accordionMt.__call(self: Accordion, d: dialog.Dialog, opts: Accordion.O
 					local second <const> = item[2]
 					if state.line == row then
 						if second is function(): any... and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-							if opts.persist then
-								second()
-							else
+							if not opts.persist then
 								d:close()
-								self.redraw = nil
-								return second()
 							end
+							self.redraw = nil
+							return second()
 						else
 							state.enabled = not state.enabled
 						end
@@ -232,7 +231,7 @@ function checklistMt.__call(self: Checklist, d: dialog.Dialog): {string}
 		local lines <const> = {}
 		for i, item in ipairs(self.items) do
 			if item is string then
-				lines[i] = self.unchecked_prefix .. item
+				lines[i] = item
 			else
 				lines[i] = (item[2] and self.checked_prefix or self.unchecked_prefix) .. item[1]
 			end
@@ -241,9 +240,7 @@ function checklistMt.__call(self: Checklist, d: dialog.Dialog): {string}
 	end
 
 	local function toggleItem(i: integer)
-		if type(self.items[i]) == "string" then
-			self.items[i] = {self.items[i] as string, true}
-		else
+		if type(self.items[i]) ~= "string" then
 			(self.items[i] as {string, boolean})[2] = not (self.items[i] as {string, boolean})[2]
 		end
 	end

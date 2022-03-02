@@ -42,6 +42,7 @@ local Checklist = {}
 
 
 
+
 local new = {}
 local accordionMt = { __index = Accordion }
 
@@ -165,13 +166,11 @@ function accordionMt.__call(self, d, opts)
                local second = item[2]
                if state.line == row then
                   if type(second) == "function" and (pressed == "<cr>" or pressed == "<2-LeftMouse>") then
-                     if opts.persist then
-                        second()
-                     else
+                     if not opts.persist then
                         d:close()
-                        self.redraw = nil
-                        return second()
                      end
+                     self.redraw = nil
+                     return second()
                   else
                      state.enabled = not state.enabled
                   end
@@ -232,7 +231,7 @@ function checklistMt.__call(self, d)
       local lines = {}
       for i, item in ipairs(self.items) do
          if type(item) == "string" then
-            lines[i] = self.unchecked_prefix .. item
+            lines[i] = item
          else
             lines[i] = (item[2] and self.checked_prefix or self.unchecked_prefix) .. item[1]
          end
@@ -241,9 +240,7 @@ function checklistMt.__call(self, d)
    end
 
    local function toggleItem(i)
-      if type(self.items[i]) == "string" then
-         self.items[i] = { self.items[i], true }
-      else
+      if type(self.items[i]) ~= "string" then
          (self.items[i])[2] = not (self.items[i])[2]
       end
    end

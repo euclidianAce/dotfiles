@@ -129,22 +129,12 @@ local defaultBorderHighlight = "Delimiter"
 
 
 
+
 local defaultBorder = {
-   { "🭽", defaultBorderHighlight },
-
-   { "▔", defaultBorderHighlight },
-
-   { "🭾", defaultBorderHighlight },
-
-   { "🭵", defaultBorderHighlight },
-
-   { "🭿", defaultBorderHighlight },
-
-   { "▁", defaultBorderHighlight },
-
-   { "🭼", defaultBorderHighlight },
-
-   { "▏", defaultBorderHighlight },
+   { "🭽", defaultBorderHighlight }, { "▔", defaultBorderHighlight },
+   { "🭾", defaultBorderHighlight }, { "🭵", defaultBorderHighlight },
+   { "🭿", defaultBorderHighlight }, { "▁", defaultBorderHighlight },
+   { "🭼", defaultBorderHighlight }, { "▏", defaultBorderHighlight },
 }
 
 function dialog.getDefaultBorder()
@@ -458,16 +448,17 @@ function Dialog:unsetPrompt()
 end
 function Dialog:fitText(minWid, minHei, maxWid, maxHei)
    local lines = self:buf():getLines(0, -1, false)
-   local line = ""
+   local longest = 0
    for _, ln in ipairs(lines) do
-      if #ln > #line then
-         line = ln
+      local len = #ln
+      if longest < len then
+         longest = len
       end
    end
    local ui = nvim.ui()
    local win = self:win()
    win:setHeight(clamp(#lines, minHei or 1, maxHei or ui.height))
-   win:setWidth(clamp(#line, minWid or 1, maxWid or ui.width))
+   win:setWidth(clamp(longest, minWid or 1, maxWid or ui.width))
    return self
 end
 function Dialog:setWinSize(width, height)

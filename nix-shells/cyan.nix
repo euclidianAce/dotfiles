@@ -13,6 +13,7 @@ pkgs.mkShell {
     lua53Packages.argparse
     lua53Packages.luafilesystem
     lua53Packages.busted
+    lua53Packages.compat53
     lua53Packages.inspect
   ];
   shellHook = ''

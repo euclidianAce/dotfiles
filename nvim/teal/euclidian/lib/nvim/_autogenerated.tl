@@ -69,6 +69,7 @@ local record Buffer
 	getLines: function(Buffer, integer, integer, boolean): {string}
 	setLines: function(Buffer, integer, integer, boolean, {string})
 	setText: function(Buffer, integer, integer, integer, integer, {string})
+	getText: function(Buffer, integer, integer, integer, integer, {string:any}): {string}
 	getOffset: function(Buffer, integer): integer
 	getVar: function(Buffer, string): any
 	getChangedtick: function(Buffer): integer
@@ -315,6 +316,32 @@ local record Tab
 end
 local record api
 	addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)
+	record AutocmdOpts
+		callback: string | function(string)
+		command: string
+		pattern: string | {string}
+		buffer: integer
+		group: string
+		once: boolean
+		nested: boolean
+		desc: string
+	end
+	createAutocmd: function(string | {string}, AutocmdOpts): integer
+	record AugroupOpts
+		clear: boolean
+	end
+	createAugroup: function(string, AugroupOpts): integer
+	record DoAutocmdOpts
+		buffer: integer
+		pattern: string | {string}
+		group: string
+		modeline: boolean
+	end
+	doAutocmd: function(string | {string}, DoAutocmdOpts)
+	getAutocmds: function({string:any}): {any}
+	delAutocmd: function(integer)
+	delAugroupById: function(integer)
+	delAugroupByName: function(string)
 	createNamespace: function(string): integer
 	getNamespaces: function(): {string:any}
 	setDecorationProvider: function(integer, {string:any})

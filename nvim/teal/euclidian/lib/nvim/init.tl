@@ -1,35 +1,5 @@
 local a <const> = vim.api
 
-local function failsafe<Args..., Rets...>(f: (function(Args): Rets), err_prefix: string): function(Args): Rets
-	local ok = true
-	local err: string
-	local unpack_ <const> = unpack as function(any): Rets
-	return function(...: Args): Rets
-		if ok then
-			local res <const> = { pcall(f, ...) }
-			ok = table.remove(res, 1) as boolean
-			if ok then
-				return unpack_(res)
-			end
-			err = res[1] as string
-		end
-		a.nvim_err_writeln((err_prefix or "") .. err)
-	end
-end
-
-local function pcallWrap<Args..., Rets...>(f: (function(Args): Rets), err_prefix: string): function(Args): Rets
-	local unpack_ <const> = unpack as function(any): Rets
-	return function(...: Args): Rets
-		local res <const> = { pcall(f, ...) }
-		local ok <const> = table.remove(res, 1) as boolean
-		if ok then
-			return unpack_(res)
-		end
-		local err <const> = res[1] as string
-		a.nvim_err_writeln((err_prefix or "") .. err)
-	end
-end
-
 local record UI
 	chan: integer
 	height: integer
@@ -112,56 +82,6 @@ setmetatable(auto.api, {
 	end
 })
 
-local record CommandOpts
-	name: string
-	body: string | function
-
-	enum ArgumentOpt
-		"*" "?" "+"
-	end
-	nargs: integer | ArgumentOpt
-
-	enum CompleteOpt
-		"arglist" "augroup" "buffer" "behave"
-		"color" "command" "compiler" "cscope"
-		"dir" "environment" "event" "expression"
-		"file" "file_in_path" "filetype" "function"
-		"help" "highlight" "history" "locale"
-		"mapclear" "mapping" "menu" "messages"
-		"option" "packadd" "shellcmd" "sign"
-		"syntax" "syntime" "tag" "tag_listfiles"
-		"user" "var" "lua"
-	end
-	type CompleteFunc = function(string, string, integer): string
-	type CompleteListFunc = function(string, string, integer): {string}
-	complete: CompleteOpt | CompleteFunc
-	completelist: CompleteListFunc
-
-	range: string | integer | boolean
-	count: integer | boolean
-
-	enum AddrOpt
-		"lines" "arguments" "buffers"
-		"loaded_buffers" "windows" "tabs"
-		"quickfix" "other"
-	end
-	addr: AddrOpt
-
-	bang: boolean
-	bar: boolean
-	register: boolean
-	buffer: boolean
-
-	overwrite: boolean
-end
-
-local record AutocmdOpts
-	buffer: boolean | integer
-	once: boolean
-	nested: boolean
-	canError: boolean
-end
-
 local nvim <const> = {
 	api = auto.api,
 	Window = auto.Window,
@@ -171,9 +91,6 @@ local nvim <const> = {
 	UI = UI,
 	CommandArgs = auto.CommandArgs,
 	CommandAttributes = auto.CommandAttributes,
-
-	CommandOpts = CommandOpts,
-	AutocmdOpts = AutocmdOpts,
 
 	scheduleWrap = (vim.schedule_wrap as function<Ret...>(function(Ret)): function(Ret)),
 
@@ -199,60 +116,6 @@ end
 
 function nvim.command(fmt: string, ...: any)
 	a.nvim_command(string.format(fmt, ...))
-end
-
-local function toStrArr(s: string | {string}): {string}
-	if s is string then
-		return {s}
-	else
-		return s
-	end
-end
-
-function nvim.autocmd(sEvents: string | {string}, sPatts: string | {string}, expr: string | function, maybeOpts: AutocmdOpts)
-	assert(sEvents, "no events")
-	assert(expr, "no expr")
-
-	local events <const> = table.concat(toStrArr(sEvents), ",")
-	local opts <const> = maybeOpts or {}
-
-	assert(sPatts as boolean or opts.buffer as boolean, "no patterns or buffer")
-	local patts <const> = sPatts and table.concat(toStrArr(sPatts), ",")
-
-	local actualExpr: string
-	if expr is string then
-		actualExpr = expr
-	else
-		local key <const> = "autocmd" .. events .. (patts or "buffer=" .. tostring(opts.buffer))
-		if opts.canError then
-			nvim._exports[key] = pcallWrap(expr, ("Error in autocmd for %s %s: "):format(events, patts))
-		else
-			nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
-		end
-		actualExpr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
-	end
-	local cmd = { "autocmd" }
-	table.insert(cmd, events)
-	if opts.buffer then
-		table.insert(cmd, ("<buffer=%d>"):format(opts.buffer == true and vim.api.nvim_get_current_buf() or opts.buffer as integer))
-	end
-	if patts then table.insert(cmd, patts) end
-	if opts.once then table.insert(cmd, "++once") end
-	if opts.nested then table.insert(cmd, "++nested") end
-	table.insert(cmd, actualExpr)
-
-	nvim.command(table.concat(cmd, " "))
-end
-
-function nvim.augroup(name: string, lst: {{string | {string}, string | {string}, string | function, AutocmdOpts}}, clear: boolean)
-	nvim.command("augroup %s", name)
-	if clear then
-		nvim.command("autocmd!")
-	end
-	for _, v in ipairs(lst) do
-		nvim.autocmd(v[1], v[2], v[3], v[4])
-	end
-	nvim.command("augroup END")
 end
 
 local function copyKeymapOpts(opts: vim.keymap.Opts): vim.keymap.Opts

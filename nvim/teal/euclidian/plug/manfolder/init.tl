@@ -21,8 +21,14 @@ __euclidian.manfolder = function(): string | integer
 	end
 end
 
-nvim.augroup("ManFolder", {
-	{ "FileType", "man", "setlocal foldexpr=v:lua.__euclidian.manfolder() | setlocal foldmethod=expr" },
-}, true)
+do
+	local group <const> = "ManFolder"
+	nvim.api.createAugroup(group, { clear = true })
+	nvim.api.createAutocmd("FileType", {
+		pattern = "man",
+		command =  "setlocal foldexpr=v:lua.__euclidian.manfolder() | setlocal foldmethod=expr" ,
+		group = group,
+	})
+end
 
 return __euclidian.manfolder

@@ -240,9 +240,35 @@ local namespaces: {NamespaceName:Namespace} = {
 	["Nvim"] = {
 		exclude = {
 			addUserCommand = true,
+			createAutocmd = true,
+			createAugroup = true,
+			doAutocmd = true,
 		},
 		entries = {
 			"addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)",
+
+			[[record AutocmdOpts
+		callback: string | function(string)
+		command: string
+		pattern: string | {string}
+		buffer: integer
+		group: string
+		once: boolean
+		nested: boolean
+		desc: string
+	end]],
+			"createAutocmd: function(string | {string}, AutocmdOpts): integer",
+			[[record AugroupOpts
+		clear: boolean
+	end]],
+			"createAugroup: function(string, AugroupOpts): integer",
+			[[record DoAutocmdOpts
+		buffer: integer
+		pattern: string | {string}
+		group: string
+		modeline: boolean
+	end]],
+			"doAutocmd: function(string | {string}, DoAutocmdOpts)",
 		},
 	},
 }

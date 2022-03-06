@@ -181,6 +181,7 @@ local Buffer = {}
 
 
 
+
 local Window = {Config = {}, }
 
 
@@ -313,7 +314,33 @@ local Tab = {}
 
 
 
-local api = {}
+local api = {AutocmdOpts = {}, AugroupOpts = {}, DoAutocmdOpts = {}, }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

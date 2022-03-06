@@ -1,35 +1,5 @@
 local a = vim.api
 
-local function failsafe(f, err_prefix)
-   local ok = true
-   local err
-   local unpack_ = unpack
-   return function(...)
-      if ok then
-         local res = { pcall(f, ...) }
-         ok = table.remove(res, 1)
-         if ok then
-            return unpack_(res)
-         end
-         err = res[1]
-      end
-      a.nvim_err_writeln((err_prefix or "") .. err)
-   end
-end
-
-local function pcallWrap(f, err_prefix)
-   local unpack_ = unpack
-   return function(...)
-      local res = { pcall(f, ...) }
-      local ok = table.remove(res, 1)
-      if ok then
-         return unpack_(res)
-      end
-      local err = res[1]
-      a.nvim_err_writeln((err_prefix or "") .. err)
-   end
-end
-
 local UI = {}
 
 
@@ -112,56 +82,6 @@ setmetatable(auto.api, {
    end,
 })
 
-local CommandOpts = {}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-local AutocmdOpts = {}
-
-
-
-
-
-
 local nvim = {
    api = auto.api,
    Window = auto.Window,
@@ -171,9 +91,6 @@ local nvim = {
    UI = UI,
    CommandArgs = auto.CommandArgs,
    CommandAttributes = auto.CommandAttributes,
-
-   CommandOpts = CommandOpts,
-   AutocmdOpts = AutocmdOpts,
 
    scheduleWrap = (vim.schedule_wrap),
 
@@ -199,60 +116,6 @@ end
 
 function nvim.command(fmt, ...)
    a.nvim_command(string.format(fmt, ...))
-end
-
-local function toStrArr(s)
-   if type(s) == "string" then
-      return { s }
-   else
-      return s
-   end
-end
-
-function nvim.autocmd(sEvents, sPatts, expr, maybeOpts)
-   assert(sEvents, "no events")
-   assert(expr, "no expr")
-
-   local events = table.concat(toStrArr(sEvents), ",")
-   local opts = maybeOpts or {}
-
-   assert(sPatts or opts.buffer, "no patterns or buffer")
-   local patts = sPatts and table.concat(toStrArr(sPatts), ",")
-
-   local actualExpr
-   if type(expr) == "string" then
-      actualExpr = expr
-   else
-      local key = "autocmd" .. events .. (patts or "buffer=" .. tostring(opts.buffer))
-      if opts.canError then
-         nvim._exports[key] = pcallWrap(expr, ("Error in autocmd for %s %s: "):format(events, patts))
-      else
-         nvim._exports[key] = failsafe(expr, ("Error in autocmd for %s %s: "):format(events, patts))
-      end
-      actualExpr = ("lua require'euclidian.lib.nvim'._exports[%q]()"):format(key)
-   end
-   local cmd = { "autocmd" }
-   table.insert(cmd, events)
-   if opts.buffer then
-      table.insert(cmd, ("<buffer=%d>"):format(opts.buffer == true and vim.api.nvim_get_current_buf() or opts.buffer))
-   end
-   if patts then table.insert(cmd, patts) end
-   if opts.once then table.insert(cmd, "++once") end
-   if opts.nested then table.insert(cmd, "++nested") end
-   table.insert(cmd, actualExpr)
-
-   nvim.command(table.concat(cmd, " "))
-end
-
-function nvim.augroup(name, lst, clear)
-   nvim.command("augroup %s", name)
-   if clear then
-      nvim.command("autocmd!")
-   end
-   for _, v in ipairs(lst) do
-      nvim.autocmd(v[1], v[2], v[3], v[4])
-   end
-   nvim.command("augroup END")
 end
 
 local function copyKeymapOpts(opts)

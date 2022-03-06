@@ -64,9 +64,16 @@ function opnum.enable(...)
    vim.keymap.set("o", "<esc>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { silent = true })
    vim.keymap.set("o", "<c-c>", "<cmd>call v:lua.require'euclidian.plug.opnum.api'.finish()<cr>", { silent = true })
 
-   nvim.augroup("ResetLineNumberAfterOperator", {
-      { { "CursorMoved", "CursorMovedI", "BufLeave", "TextYankPost" }, "*", opnum.finish },
-   }, true)
+   local group = "ResetLineNumberAfterOperator"
+   nvim.api.createAugroup(group, { clear = true })
+   nvim.api.createAutocmd(
+   { "CursorMoved", "CursorMovedI", "BufLeave", "TextYankPost" },
+   {
+      pattern = "*",
+      callback = opnum.finish,
+      group = group,
+   })
+
 end
 
 return opnum

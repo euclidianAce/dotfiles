@@ -49,7 +49,11 @@ local function addHideMappings()
 	local b <const> = d:ensureBuf()
 	b:setKeymap("n", key, floatterm.hide, { silent = true })
 	b:setKeymap("t", key, floatterm.hide, { silent = true })
-	nvim.autocmd("WinLeave", nil, floatterm.hide, { buffer = b.id, once = true })
+	nvim.api.createAutocmd("WinLeave", {
+		buffer = b.id,
+		callback = floatterm.hide,
+		once = true,
+	})
 end
 
 local getBuf: function(): nvim.Buffer

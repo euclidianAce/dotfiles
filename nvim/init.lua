@@ -143,39 +143,60 @@ end
 
 local function isExecutable(name) return vim.fn.executable(name) == 1 end
 
-nvim.augroup("Custom", {
-	{ "FileType", {"teal", "lua"}, function()
-		local buf = nvim.Buffer()
-		buf:setOption("shiftwidth", 3)
-		buf:setOption("tabstop", 3)
-	end },
+do
+	local group = "Custom"
+	nvim.api.createAugroup(group, { clear = true })
+	nvim.api.createAutocmd("FileType", {
+		pattern = { "teal", "lua" },
+		callback = function()
+			local buf = nvim.Buffer()
+			buf:setOption("shiftwidth", 3)
+			buf:setOption("tabstop", 3)
+		end,
+		group = group,
+		desc = "Set tabstop and shiftwidth",
+	})
+	nvim.api.createAutocmd("BufReadPost", {
+		pattern = { "*.adb", "*.ads" },
+		callback = function()
+			local buf = nvim.Buffer()
+			buf:setOption("shiftwidth", 3)
+			buf:setOption("tabstop", 3)
+			buf:setOption("expandtab", true)
 
-	{ "BufReadPost", {"*.adb", "*.ads"}, function()
-		local buf = nvim.Buffer()
-		buf:setOption("shiftwidth", 3)
-		buf:setOption("tabstop", 3)
-		buf:setOption("expandtab", true)
-
-		buf:delKeymap("i", "<space>aj")
-		buf:delKeymap("i", "<space>al")
-	end },
-
-	{ "BufReadPost", {"*.c", "*.h", "*.cpp", "*.hpp"}, function()
-		local buf = nvim.Buffer()
-		buf:setOption("commentstring", "// %s")
-	end },
-
-	{ "TextYankPost", "*", function()
-		vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }
-	end },
-
-	{ "TermOpen", "*", function()
-		local win = nvim.Window()
-		win:setOption("number", false)
-		win:setOption("relativenumber", false)
-		win:setOption("signcolumn", "no")
-	end },
-})
+			buf:delKeymap("i", "<space>aj")
+			buf:delKeymap("i", "<space>al")
+		end,
+		group = group,
+		desc = "Remove stupid Ada insert mode bindings",
+	})
+	nvim.api.createAutocmd("BufReadPost", {
+		pattern = { "*.c", "*.h", "*.cpp", "*.hpp" },
+		callback = function()
+			local buf = nvim.Buffer()
+			buf:setOption("commentstring", "// %s")
+		end,
+		group = group,
+		desc = "Set proper commentstring",
+	})
+	nvim.api.createAutocmd("TextYankPost", {
+		callback = function()
+			vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }
+		end,
+		group = group,
+		desc = "Highlight yanks",
+	})
+	nvim.api.createAutocmd("TermOpen", {
+		callback = function()
+			local win = nvim.Window()
+			win:setOption("number", false)
+			win:setOption("relativenumber", false)
+			win:setOption("signcolumn", "no")
+		end,
+		group = group,
+		desc = "Set window options for terminal windows (remove lines and sign column)",
+	})
+end
 
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig.configs")

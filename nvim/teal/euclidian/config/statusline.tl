@@ -120,7 +120,7 @@ local function updateGitStatusline()
 		end),
 	}
 end
-nvim.autocmd("BufWritePost", "*", updateGitStatusline)
+nvim.api.createAutocmd("BufWritePost", { pattern = "*", callback = updateGitStatusline })
 
 stl.add(gitActive, gitInactive, function(): string
 	if currentBranch == "" then return "" end

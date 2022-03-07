@@ -132,12 +132,12 @@ case "$distro" in
 		alias xbpsr="sudo xbps-remove"
 		alias xbpsq="xbps-query -Rs"
 		;;
-	"nixos")
-		function nixsh {
-			nix-shell "$DOTFILE_DIR/nix-shells/$1.nix"
-		}
-		;;
 esac
+
+nixsh () {
+	echo "entering nix shell for $DOTFILE_DIR/nix-shells/$1.nix"
+	nix-shell "$DOTFILE_DIR/nix-shells/$1.nix"
+}
 
 e () {
 	$EDITOR $@

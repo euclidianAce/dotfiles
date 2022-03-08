@@ -58,8 +58,8 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
-	-- guicursor = "a:block",
+	-- guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
+	guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -109,13 +109,12 @@ plugload "package-manager"
 -- TODO: package-manager needs a way to do this
 require "treesitter-context".setup {}
 plugload "floatterm" {
-	toggle = "",
-	shell = windows and "nu" or "bash",
-
-	row = 1,
-	centered = { horizontal = true },
-
-	windowOpts = { relativenumber = true },
+	{
+		{ row = 1, wid = 0.9, hei = 0.8, centered = { horizontal = true }, notMinimal = true },
+		windows and "nu" or "bash",
+		{},
+		{ toggle = {{"n", "t"}, ""} }
+	}
 }
 plugload "spacehighlighter" {
 	highlight = "TrailingWhitespace",

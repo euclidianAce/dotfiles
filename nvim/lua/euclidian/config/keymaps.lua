@@ -3,7 +3,6 @@ local input = require("euclidian.lib.input")
 local nvim = require("euclidian.lib.nvim")
 local z = require("euclidian.lib.azync")
 
-local a = vim.api
 local uv = vim.loop
 
 local map = function(modes, lhs, rhs, opts)
@@ -226,12 +225,12 @@ do
 
       local chunk, loaderr = loadstring(txt)
       if not chunk then
-         a.nvim_err_writeln(loaderr)
+         nvim.api.errWriteln(loaderr)
          return
       end
       local ok, err = pcall(chunk)
       if not ok then
-         a.nvim_err_writeln(err)
+         nvim.api.errWriteln(err)
       end
    end
 
@@ -427,45 +426,4 @@ do
    end
 
    map("n", "<leader>cd", cdDialog)
-end
-
-do
-   local floatterm = require("euclidian.plug.floatterm.api")
-   local locationjump = require("euclidian.plug.locationjump.api")
-   local function jumpcWORD()
-      local expanded = vim.fn.expand("<cWORD>")
-
-      local file, line = locationjump.parseLocation(expanded)
-      if file then
-         floatterm.hide()
-         nvim.command("new")
-         locationjump.jump(file, line)
-      end
-   end
-
-   local function getLastVisualSelection(buf)
-      local left = buf:getMark("<")
-      local right = buf:getMark(">")
-      local lines = buf:getLines(left[1] - 1, right[1], true)
-      if #lines == 0 then
-         return ""
-      end
-      lines[1] = lines[1]:sub(left[2], #lines[1])
-      lines[#lines] = lines[#lines]:sub(1, right[2])
-      return table.concat(lines, "\n")
-   end
-
-   __euclidian.jumpHighlighted = function()
-      local buf = floatterm.buffer()
-      local selection = getLastVisualSelection(buf)
-      local results = locationjump.parseAllLocations(selection)
-      if #results > 0 then
-         floatterm.hide()
-         nvim.command("new")
-         locationjump.selectLocation(results)
-      end
-   end
-
-   floatterm.buffer():setKeymap("n", "J", jumpcWORD, { silent = true })
-   floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { silent = true })
 end

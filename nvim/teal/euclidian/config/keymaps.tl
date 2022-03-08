@@ -3,7 +3,6 @@ local input <const> = require("euclidian.lib.input")
 local nvim <const> = require("euclidian.lib.nvim")
 local z <const> = require("euclidian.lib.azync")
 
-local a <const> = vim.api
 local uv <const> = vim.loop
 
 local map <const> = function(modes: string | {string}, lhs: string, rhs: string | function, opts: vim.keymap.Opts)
@@ -226,12 +225,12 @@ do
 
 		local chunk <const>, loaderr <const> = loadstring(txt)
 		if not chunk then
-			a.nvim_err_writeln(loaderr)
+			nvim.api.errWriteln(loaderr)
 			return
 		end
 		local ok <const>, err <const> = pcall(chunk) as (boolean, string)
 		if not ok then
-			a.nvim_err_writeln(err)
+			nvim.api.errWriteln(err)
 		end
 	end
 
@@ -428,57 +427,3 @@ do -- cd dialog
 
 	map("n", "<leader>cd", cdDialog)
 end
-
-do -- hit `J` on a location in my floatterm to jump to it in a new window
-	local floatterm <const> = require("euclidian.plug.floatterm.api")
-	local locationjump <const> = require("euclidian.plug.locationjump.api")
-	local function jumpcWORD()
-		local expanded <const> = vim.fn.expand("<cWORD>") as string
-
-		local file <const>, line <const> = locationjump.parseLocation(expanded)
-		if file then
-			floatterm.hide()
-			nvim.command("new")
-			locationjump.jump(file, line)
-		end
-	end
-
-	local function getLastVisualSelection(buf: nvim.Buffer): string
-		local left <const> = buf:getMark("<")
-		local right <const> = buf:getMark(">")
-		local lines = buf:getLines(left[1] - 1, right[1], true)
-		if #lines == 0 then
-			return ""
-		end
-		lines[1] = lines[1]:sub(left[2], #lines[1])
-		lines[#lines] = lines[#lines]:sub(1, right[2])
-		return table.concat(lines, "\n")
-	end
-
-	__euclidian.jumpHighlighted = function()
-		local buf <const> = floatterm.buffer()
-		local selection <const> = getLastVisualSelection(buf)
-		local results <const> = locationjump.parseAllLocations(selection)
-		if #results > 0 then
-			floatterm.hide()
-			nvim.command("new")
-			locationjump.selectLocation(results)
-		end
-	end
-
-	floatterm.buffer():setKeymap("n", "J", jumpcWORD, { silent = true })
-	floatterm.buffer():setKeymap("v", "J", "<esc>:lua __euclidian.jumpHighlighted()<cr>", { silent = true })
-end
-
--- gui font resizing
--- local function getGuiFontInfo(): string, string
-	-- return (a.nvim_get_option("guifont") as string):match("^(.*:h)(%d+)$")
--- end
--- map("n", "<S-Up>", function()
-	-- local name <const>, size <const> = getGuiFontInfo()
-	-- a.nvim_set_option("guifont", name .. tostring(tonumber(size) + 2))
--- end)
--- map("n", "<S-Down>", function()
-	-- local name <const>, size <const> = getGuiFontInfo()
-	-- a.nvim_set_option("guifont", name .. tostring(tonumber(size) - 2))
--- end)

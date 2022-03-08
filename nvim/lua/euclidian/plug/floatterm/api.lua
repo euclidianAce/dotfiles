@@ -1,120 +1,110 @@
 local nvim = require("euclidian.lib.nvim")
+local terminal = require("euclidian.lib.terminal")
 local dialog = require("euclidian.lib.dialog")
 
+local Terminal = terminal.Terminal
 local Dialog = dialog.Dialog
 
+local FloatTerm = {Mappings = {}, }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function setMap(map, func) vim.keymap.set(map[1], map[2], func, map[3]) end
+local function delMap(map) vim.keymap.del(map[1], map[2], map[3]) end
+
 local floatterm = {
-   show = nil,
-   hide = nil,
+   FloatTerm = FloatTerm,
 }
 
-local d
-local shell
-local key
-local termopenOpts
-local windowOpts
-
-function floatterm.setTermOptions(opts) termopenOpts = opts end
-function floatterm.setShell(s) shell = s end
-function floatterm.setToggleKey(k) key = k end
-function floatterm.setWindowOpts(opts) windowOpts = opts end
-
-local function addShowMappings()
-   vim.keymap.set("n", key, floatterm.show, { silent = true })
+local function copyKeymaps(map)
+   return {
+      show = map.show and { unpack(map.show, 1, 3) },
+      hide = map.hide and { unpack(map.hide, 1, 3) },
+      toggle = map.toggle and { unpack(map.toggle, 1, 3) },
+   }
 end
 
-local function applyWindowOpts(w)
-   for k, v in pairs(windowOpts) do
-      (w.setOption)(w, k, v)
+function floatterm.new(
+   dialogOpts,
+   cmd,
+   termOpts,
+   mappings)
+
+   local buf = nvim.createBuf(false, true)
+
+   dialogOpts.hidden = true
+   dialogOpts.interactive = true
+   local t = setmetatable({
+      dialog = dialog.new(dialogOpts, buf),
+      terminal = terminal.create(cmd, termOpts, buf),
+      mappings = mappings and copyKeymaps(mappings),
+   }, { __index = FloatTerm })
+   if t.mappings and t.mappings.toggle then
+      setMap(
+      t.mappings.toggle,
+      function() t:toggle() end)
+
    end
+   return t
 end
 
-function floatterm.init(opts)
-   d = dialog.new(opts)
-   addShowMappings()
-end
+function FloatTerm:show()
+   self.terminal:ensureOpen()
+   self.dialog:show()
+   if self.mappings then
+      if self.mappings.hide then
+         setMap(
+         self.mappings.hide,
+         function() self:hide() end)
 
-function floatterm.deinit()
-   if d then
-      d:close()
-      d = nil
-   end
-end
-
-function floatterm.buffer()
-   return d:ensureBuf()
-end
-
-local function addHideMappings()
-   local b = d:ensureBuf()
-   b:setKeymap("n", key, floatterm.hide, { silent = true })
-   b:setKeymap("t", key, floatterm.hide, { silent = true })
-   nvim.api.createAutocmd("WinLeave", {
-      buffer = b.id,
-      callback = floatterm.hide,
-      once = true,
-   })
-end
-
-local getBuf
-
-do
-   local shown = false
-   floatterm.show = function()
-      shown = true
-      getBuf()
-      d:show()
-      local win = d:win()
-      win:setOption("winblend", 8)
-      applyWindowOpts(win)
-      d:focus()
-   end
-
-   floatterm.hide = function()
-      if shown then
-         shown = false
-         d:hide()
-         addShowMappings()
+      end
+      if self.mappings.show then
+         delMap(self.mappings.show)
       end
    end
 end
 
-local channelId
+function FloatTerm:hide()
+   self.dialog:hide()
+   if self.mappings then
+      if self.mappings.show then
+         setMap(
+         self.mappings.show,
+         function() self:show() end)
 
-getBuf = function()
-   local buf = d:ensureBuf()
-   if buf:getOption("buftype") ~= "terminal" then
-      buf:setOption("modified", false)
-      buf:call(function()
-         local opts = termopenOpts
-         if not opts or not next(opts) then
-            opts = vim.empty_dict()
-         end
-         channelId = vim.fn.termopen(shell, opts)
-
-
-
-
-
-
-
-      end)
-      addHideMappings()
+      end
+      if self.mappings.hide then
+         delMap(self.mappings.hide)
+      end
    end
-   return buf
 end
 
-function floatterm.channel()
-   return channelId
+function FloatTerm:toggle()
+   if self.dialog:win():isValid() then
+      self:hide()
+   else
+      self:show()
+   end
 end
 
-function floatterm.send(s)
-   local buf = getBuf()
-   if not buf:isValid() then
-      return false
-   end
-   nvim.api.chanSend(channelId, s)
-   return true
+function FloatTerm:close()
+   self.dialog:close()
+   self.terminal:close()
 end
 
 return floatterm

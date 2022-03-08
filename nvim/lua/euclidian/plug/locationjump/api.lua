@@ -4,7 +4,10 @@ local locationjump = {}
 
 local pattern = "([^%s:]+):(%d+)"
 
-function locationjump.jump(filename, line)
+function locationjump.jump(filename, line, cmd)
+   if cmd then
+      nvim.command(cmd)
+   end
    if line then
       nvim.command("edit +%d %s", line, filename)
    elseif filename then
@@ -12,7 +15,7 @@ function locationjump.jump(filename, line)
    end
 end
 
-function locationjump.selectLocation(locations)
+function locationjump.selectLocation(locations, cmd)
    if #locations > 1 then
       vim.ui.select(locations, {
          prompt = "Multiple locations found:",
@@ -24,11 +27,11 @@ function locationjump.selectLocation(locations)
          end,
       }, function(item)
          if item then
-            locationjump.jump(item[1], item[2])
+            locationjump.jump(item[1], item[2], cmd)
          end
       end)
    else
-      locationjump.jump(locations[1][1], locations[1][2])
+      locationjump.jump(locations[1][1], locations[1][2], cmd)
    end
 end
 
@@ -60,7 +63,7 @@ function locationjump.parseAndJump(text)
    locationjump.selectLocation(results)
 end
 
-function locationjump.jumpToVisualSelection()
+function locationjump.jumpToVisualSelection(cmd)
    local buf = nvim.Buffer()
 
    local a = buf:getMark("<")
@@ -69,7 +72,7 @@ function locationjump.jumpToVisualSelection()
    local text = table.concat(lines, "\n")
 
    local results = locationjump.parseAllLocations(text)
-   locationjump.selectLocation(results)
+   locationjump.selectLocation(results, cmd)
 end
 
 function locationjump.jumpExpand(expandArg)

@@ -125,6 +125,7 @@ plugload "printmode" {
 plugload "manfolder"
 plugload "locationjump" {
 	vmap = "J",
+	openCmd = "split",
 }
 plugload "palette" {
 	theme = "random",

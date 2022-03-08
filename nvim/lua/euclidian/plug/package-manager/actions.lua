@@ -264,17 +264,17 @@ local function runCmdForEachPkg(d, getcmd, loaded)
    for i, pkg in ipairs(loaded) do
       local cmd = getcmd(pkg)
       local title = pkg:title()
+      local StreamOutputItem = {}
       local item = { pkg:title() }
       menuItems[i] = item
       if cmd then
          local out = {}
-         local err = {};
-         (item)[2] = { { "stdout", out }, { "stderr", err } }
-         table.insert(menuItems, item)
+         local err = {}
+         item[2] = { { "stdout", out }, { "stderr", err } }
 
          table.insert(jobqueue, function()
-            running = running + 1;
-            (item)[1] = title .. " : Working..."
+            running = running + 1
+            item[1] = title .. " : Working..."
             command.spawn({
                command = cmd,
                onStdoutLine = function(ln)
@@ -288,9 +288,9 @@ local function runCmdForEachPkg(d, getcmd, loaded)
                onExit = function(code)
                   running = running - 1
                   if code == 0 then
-                     (item)[1] = title .. " : Done!"
+                     item[1] = title .. " : Done!"
                   else
-                     (item)[1] = title .. " : Error! (" .. tostring(code) .. ")"
+                     item[1] = title .. " : Error! (" .. tostring(code) .. ")"
                   end
                   redraw()
                   z.resume(mainTask)
@@ -298,12 +298,15 @@ local function runCmdForEachPkg(d, getcmd, loaded)
             })
          end)
       else
-         (item)[1] = (item)[1] .. " : Nothing to be done"
+         item[1] = item[1] .. " : Nothing to be done"
       end
    end
 
    local function spawnJob()
-      assert(table.remove(jobqueue, math.random(1, #jobqueue)))()
+      assert(
+      table.remove(jobqueue, math.random(1, #jobqueue)),
+      "tried to spawn a job with none in the queue")()
+
    end
 
    return z.async(function()

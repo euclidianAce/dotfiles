@@ -264,17 +264,17 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 	for i, pkg in ipairs(loaded) do
 		local cmd <const> = getcmd(pkg)
 		local title <const> = pkg:title()
-		local item <const>: menu.Accordion.Item = { pkg:title() }
+		local type StreamOutputItem = {string, {string}}
+		local item <const>: {string, {StreamOutputItem, StreamOutputItem}} = { pkg:title() }
 		menuItems[i] = item
 		if cmd then
 			local out <const>: {string} = {}
 			local err <const>: {string} = {}
-			;(item as {{{string, {string}}}})[2] = { { "stdout", out }, { "stderr", err } }
-			table.insert(menuItems, item)
+			item[2] = { { "stdout", out }, { "stderr", err } }
 
 			table.insert(jobqueue, function()
 				running = running + 1
-				;(item as {string})[1] = title .. " : Working..."
+				item[1] = title .. " : Working..."
 				command.spawn{
 					command = cmd,
 					onStdoutLine = function(ln: string)
@@ -288,9 +288,9 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 					onExit = function(code: integer)
 						running = running - 1
 						if code == 0 then
-							;(item as {string})[1] = title .. " : Done!"
+							item[1] = title .. " : Done!"
 						else
-							;(item as {string})[1] = title .. " : Error! (" .. tostring(code) .. ")"
+							item[1] = title .. " : Error! (" .. tostring(code) .. ")"
 						end
 						redraw()
 						z.resume(mainTask)
@@ -298,12 +298,15 @@ local function runCmdForEachPkg(d: Dialog, getcmd: (function(Spec): {string}), l
 				}
 			end)
 		else
-			;(item as {string})[1] = (item as {string})[1] .. " : Nothing to be done"
+			item[1] = item[1] .. " : Nothing to be done"
 		end
 	end
 
 	local function spawnJob()
-		assert(table.remove(jobqueue, math.random(1, #jobqueue)))()
+		assert(
+			table.remove(jobqueue, math.random(1, #jobqueue)),
+			"tried to spawn a job with none in the queue"
+		)()
 	end
 
 	return z.async(function(): nil

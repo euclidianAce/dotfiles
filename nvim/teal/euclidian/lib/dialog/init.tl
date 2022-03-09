@@ -119,23 +119,21 @@ local function getBuf(maybeBuf: BufOrId): nvim.Buffer
 end
 
 local defaultBorderHighlight <const> = "Delimiter"
--- local defaultBorder <const>: {{string, string}} = {
-	-- { "╭", defaultBorderHighlight },
-	-- { "─", defaultBorderHighlight },
-	-- { "╮", defaultBorderHighlight },
-	-- { "│", defaultBorderHighlight },
-	-- { "╯", defaultBorderHighlight },
-	-- { "─", defaultBorderHighlight },
-	-- { "╰", defaultBorderHighlight },
-	-- { "│", defaultBorderHighlight },
--- }
-
-local defaultBorder <const>: {{string, string}} = {
+local defaultBorder <const>: {{string, string}} =
+{
+	{ "╭", defaultBorderHighlight }, { "─", defaultBorderHighlight },
+	{ "╮", defaultBorderHighlight }, { "│", defaultBorderHighlight },
+	{ "╯", defaultBorderHighlight }, { "─", defaultBorderHighlight },
+	{ "╰", defaultBorderHighlight }, { "│", defaultBorderHighlight },
+}
+--[[
+{
 	{ "🭽", defaultBorderHighlight }, { "▔", defaultBorderHighlight },
 	{ "🭾", defaultBorderHighlight }, { "🭵", defaultBorderHighlight },
 	{ "🭿", defaultBorderHighlight }, { "▁", defaultBorderHighlight },
 	{ "🭼", defaultBorderHighlight }, { "▏", defaultBorderHighlight },
 }
+]]
 
 function dialog.getDefaultBorder(): {{string, string}}
 	return vim.deepcopy(defaultBorder)

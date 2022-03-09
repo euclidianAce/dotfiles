@@ -24,6 +24,7 @@ local FloatTerm = {Mappings = {}, }
 
 
 
+
 local function setMap(map, func) vim.keymap.set(map[1], map[2], func, map[3]) end
 local function delMap(map) vim.keymap.del(map[1], map[2], map[3]) end
 
@@ -64,9 +65,16 @@ function floatterm.new(
 end
 
 function FloatTerm:show()
+   if self.dialog:win():isValid() then
+      return
+   end
    self.terminal:ensureOpen()
    self.dialog:setBuffer(self.terminal.buf)
    self.dialog:show()
+   if self.savedConfig then
+      self.dialog:win():setConfig(self.savedConfig)
+      self.savedConfig = nil
+   end
    if self.mappings then
       if self.mappings.hide then
          setMap(
@@ -81,6 +89,9 @@ function FloatTerm:show()
 end
 
 function FloatTerm:hide()
+   local win = self.dialog:win()
+   if not win:isValid() then return end
+   self.savedConfig = win:getConfig()
    self.dialog:hide()
    if self.mappings then
       if self.mappings.show then

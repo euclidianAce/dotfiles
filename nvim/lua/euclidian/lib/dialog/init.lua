@@ -119,23 +119,21 @@ local function getBuf(maybeBuf)
 end
 
 local defaultBorderHighlight = "Delimiter"
-
-
-
-
-
-
-
-
-
-
-
-local defaultBorder = {
-   { "🭽", defaultBorderHighlight }, { "▔", defaultBorderHighlight },
-   { "🭾", defaultBorderHighlight }, { "🭵", defaultBorderHighlight },
-   { "🭿", defaultBorderHighlight }, { "▁", defaultBorderHighlight },
-   { "🭼", defaultBorderHighlight }, { "▏", defaultBorderHighlight },
+local defaultBorder = 
+{
+   { "╭", defaultBorderHighlight }, { "─", defaultBorderHighlight },
+   { "╮", defaultBorderHighlight }, { "│", defaultBorderHighlight },
+   { "╯", defaultBorderHighlight }, { "─", defaultBorderHighlight },
+   { "╰", defaultBorderHighlight }, { "│", defaultBorderHighlight },
 }
+
+
+
+
+
+
+
+
 
 function dialog.getDefaultBorder()
    return vim.deepcopy(defaultBorder)

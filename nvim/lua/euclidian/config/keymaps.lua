@@ -101,6 +101,17 @@ map("n", "<leader>AA", function()
    end)
 end)
 
+local function floatingConfig(win)
+   win = win or nvim.Window()
+   local cfg = win:getConfig()
+   if cfg.relative or cfg.external then
+
+      cfg.row = (cfg.row)[vim.val_idx]
+      cfg.col = (cfg.col)[vim.val_idx]
+      return win, cfg
+   end
+end
+
 for _, v in ipairs({
       { "h", "<" },
       { "j", "+" },
@@ -110,6 +121,20 @@ for _, v in ipairs({
    local mvkey, szkey = v[1], v[2]
    map("n", "<C-" .. mvkey .. ">", "<cmd>wincmd " .. mvkey .. "<CR>")
    map("n", "<M-" .. mvkey .. ">", "<C-w>3" .. szkey)
+   map("n", "<M-S-" .. mvkey .. ">", function()
+      local win, cfg = floatingConfig()
+      if not cfg then return end
+      if mvkey == "h" then
+         cfg.col = cfg.col - 2
+      elseif mvkey == "j" then
+         cfg.row = cfg.row + 3
+      elseif mvkey == "k" then
+         cfg.row = cfg.row - 2
+      elseif mvkey == "l" then
+         cfg.col = cfg.col + 3
+      end
+      win:setConfig(cfg)
+   end)
 end
 
 map("n", "K", vim.lsp.buf.hover)

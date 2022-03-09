@@ -165,7 +165,7 @@ map({"i", "n"}, "<M-n>", function()
 		{ line:sub(cRange[1], cRange[2]) }
 	)
 
-	local mode = vim.api.nvim_get_mode().mode as string
+	local mode = nvim.api.getMode().mode as string
 	local pos <const> = {cursorPos[1], cRange[2] - (mode == "i" and 0 or 1)}
 	win:setCursor(pos)
 end)
@@ -174,7 +174,7 @@ map("n", "<leader>head", z.asyncFn(function()
 	local buf <const> = nvim.Buffer()
 	local lines = buf:getLines(0, -1, false)
 	if #lines ~= 1 or lines[1] ~= "" then
-		vim.api.nvim_err_writeln("Cannot insert header guard: Buffer is not empty")
+		nvim.api.errWriteln("Cannot insert header guard: Buffer is not empty")
 		return
 	end
 	local guard = input.input{ prompt = "Insert Header Guard: " }
@@ -196,7 +196,7 @@ map("n", "<leader>stb", z.asyncFn(function()
 	local buf <const> = nvim.Buffer()
 	local lines = buf:getLines(0, -1, false)
 	if #lines ~= 1 or lines[1] ~= "" then
-		vim.api.nvim_err_writeln("Cannot insert STB style guard: Buffer is not empty")
+		nvim.api.errWriteln("Cannot insert STB style guard: Buffer is not empty")
 		return
 	end
 	local guard = input.input{ prompt = "Insert STB style guard: " }

@@ -1,3 +1,4 @@
+local nvim <const> = require("euclidian.lib.nvim")
 local report <const> = {}
 
 function report.msg(str: string, ...: any)
@@ -5,8 +6,8 @@ function report.msg(str: string, ...: any)
 end
 
 function report.err(str: string, ...: any)
-	vim.api.nvim_err_write("PackageManager: ")
-	vim.api.nvim_err_writeln(string.format(str, ...))
+	nvim.api.errWrite("PackageManager: ")
+	nvim.api.errWriteln(string.format(str, ...))
 end
 
 return report

@@ -46,7 +46,7 @@ function statusline.mode(mode, text, hlgroup)
 end
 
 function statusline.getModeText()
-   local m = vim.api.nvim_get_mode().mode
+   local m = nvim.api.getMode().mode
    local map = userModes[m]
    nvim.command("hi! clear StatuslineModeText")
    nvim.command("hi! link StatuslineModeText %s", map[2])
@@ -149,7 +149,7 @@ function statusline.updateWindow(winId)
 end
 
 function statusline.updateAllWindows()
-   for _, winId in ipairs(vim.api.nvim_list_wins()) do
+   for _, winId in ipairs(nvim.api.listWins()) do
       statusline.updateWindow(winId)
    end
 end

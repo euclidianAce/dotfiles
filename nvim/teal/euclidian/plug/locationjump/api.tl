@@ -46,7 +46,7 @@ function locationjump.parseAllLocations(str: string): {{string, integer}}
 		table.insert(results, { a, n })
 	end
 	if #results == 0 then
-		vim.api.nvim_err_writeln("locationjump: Unable to parse file location from '" .. str .. "'")
+		nvim.api.errWriteln("locationjump: Unable to parse file location from '" .. str .. "'")
 	end
 	return results
 end

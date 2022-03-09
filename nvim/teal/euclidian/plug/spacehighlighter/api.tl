@@ -1,9 +1,9 @@
 local nvim <const> = require("euclidian.lib.nvim")
-local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.spacehighlighter")
+local ns <const> = nvim.api.createNamespace("euclidian.plug.spacehighlighter")
 
 local function enable(group: string)
 	group = group or "TrailingWhitespace"
-	vim.api.nvim_set_decoration_provider(ns, {
+	nvim.api.setDecorationProvider(ns, {
 		on_start = nil,
 		on_buf = nil,
 		on_win = function(): boolean
@@ -30,7 +30,7 @@ local function enable(group: string)
 end
 
 local function disable()
-	vim.api.nvim_set_decoration_provider(ns, {})
+	nvim.api.setDecorationProvider(ns, {})
 end
 
 return {

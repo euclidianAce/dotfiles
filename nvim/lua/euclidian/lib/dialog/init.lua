@@ -311,7 +311,7 @@ function Dialog:show(dontSwitch)
    opts.hidden = false
    wins[self] = setupWin(opts, self:ensureBuf())
    if not dontSwitch then
-      vim.api.nvim_set_current_win(wins[self].id);
+      nvim.api.setCurrentWin(wins[self].id);
    end
 
    return self

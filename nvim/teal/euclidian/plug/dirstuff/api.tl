@@ -142,7 +142,7 @@ function dir.lstatString(filename: string): string, string
 	return dir.statToString(convertStat(stat))
 end
 
--- local ns <const> = vim.api.nvim_create_namespace("euclidian.plug.dirstuff")
+-- local ns <const> = nvim.api.createNamespace("euclidian.plug.dirstuff")
 
 function dir.ls(dirname: string, buf: nvim.Buffer)
 	assert(buf)
@@ -193,7 +193,7 @@ function dir.ls(dirname: string, buf: nvim.Buffer)
 	for _, v in ipairs(files) do ins(v) end
 
 	buf:setLines(0, -1, false, lines)
-	-- vim.api.nvim_set_decoration_provider(ns, {
+	-- nvim.api.setDecorationProvider(ns, {
 		-- on_win = function(): boolean
 			-- return true
 		-- end,

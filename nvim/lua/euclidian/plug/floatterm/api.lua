@@ -65,6 +65,7 @@ end
 
 function FloatTerm:show()
    self.terminal:ensureOpen()
+   self.dialog:setBuffer(self.terminal.buf)
    self.dialog:show()
    if self.mappings then
       if self.mappings.hide then

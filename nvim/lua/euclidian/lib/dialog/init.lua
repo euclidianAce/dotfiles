@@ -252,6 +252,11 @@ function dialog.fromWindow(win)
    return d
 end
 
+function Dialog:setBuffer(b)
+   bufs[self] = b
+   return self
+end
+
 
 function Dialog:link(...)
    local ls = links[self]

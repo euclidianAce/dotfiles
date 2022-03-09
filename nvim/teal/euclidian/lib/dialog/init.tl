@@ -252,6 +252,11 @@ function dialog.fromWindow(win: nvim.Window): Dialog
 	return d
 end
 
+function Dialog:setBuffer(b: nvim.Buffer): Dialog
+	bufs[self] = b
+	return self
+end
+
 -- TODO: should probably keep linked dialogs in a set rather than a list
 function Dialog:link(...: Dialog): Dialog
 	local ls <const> = links[self]

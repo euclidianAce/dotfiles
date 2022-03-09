@@ -55,6 +55,7 @@ local function ensureOpen(t: Terminal)
 	end
 	if not t.buf:isValid() then
 		t.buf = nvim.createBuf(false, true)
+		t.channel = nil
 	end
 	if not t.channel or t.channel < 0 then
 		t.buf:call(function()

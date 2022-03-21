@@ -45,6 +45,8 @@ fi
 
 export PATH="$DOTFILE_DIR/bin/:$PATH"
 
+alias mkdir="mkdir -v"
+alias rmdir="rmdir -v"
 alias mv="mv -v"
 alias cp="cp -v"
 alias rm="rm -v"
@@ -144,7 +146,7 @@ e () {
 }
 
 mkcd () {
-	mkdir -p "$1" && cd "$1"
+	mkdir -v -p "$1" && cd "$1"
 }
 
 alias sdn="sudo shutdown -h now"

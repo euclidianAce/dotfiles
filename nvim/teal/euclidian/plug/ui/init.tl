@@ -37,7 +37,16 @@ local function promptDialog(prompt: string): string
 		row = -5,
 		interactive = true,
 		ephemeral = true,
-		border = border,
+		border = {
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+			{ " ", windowhl },
+		}
 	}
 	local result: string
 	local function close()

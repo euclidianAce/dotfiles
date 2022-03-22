@@ -12,6 +12,7 @@ local packagemanager <const> = {
 		View = actions.view,
 		Remove = actions.remove,
 		Configure = actions.configure,
+		NewSet = actions.newSet,
 	},
 }
 

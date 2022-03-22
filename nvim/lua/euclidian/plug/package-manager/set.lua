@@ -208,4 +208,8 @@ function set.getWorld()
    return all_specs
 end
 
+function set.isValidName(name)
+   return not (#name == 0 or name:sub(1, 1) == "@")
+end
+
 return set

@@ -37,6 +37,8 @@ local	record OptInfo
 	name: string
 	shortname: string
 	type: string
+	global_local: boolean
+	commalist: boolean
 	scope: string
 end
 

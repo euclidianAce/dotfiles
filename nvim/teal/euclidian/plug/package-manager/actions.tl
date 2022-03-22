@@ -23,6 +23,7 @@ local actions <const> = {
 	add: Action = nil,
 	remove: Action = nil,
 	configure: Action = nil,
+	newSet: Action = nil,
 }
 
 local type Spec = packagespec.Spec
@@ -151,6 +152,7 @@ do
 	end
 
 	local function askForDependents(d: Dialog, s: {Spec}, p: Spec)
+		if #s == 0 then return end
 		local deps <const> = checklist(d, "Dependents:", getPkgNames(s))
 		for _, idx in ipairs(deps) do
 			table.insert(p.dependents, s[idx])
@@ -158,6 +160,7 @@ do
 	end
 
 	local function askForDependencies(d: Dialog, s: {Spec}, p: Spec)
+		if #s == 0 then return end
 		local deps <const> = checklist(d, "Dependencies:", getPkgNames(s))
 		for _, idx in ipairs(deps) do
 			if not s[idx].dependents then
@@ -415,6 +418,40 @@ actions.install = createDialog(function(d: Dialog)
 	local loaded <const> = chooseAndLoadSet(d)
 	if not loaded then return end
 	z.await(runCmdForEachPkg(d, Spec.installCmd, loaded))
+end)
+
+actions.newSet = createDialog(function(d: Dialog)
+	local name: string
+	local setSet <const> = {}
+	for _, s in ipairs(set.list()) do
+		setSet[s] = true
+	end
+
+	local frame <const> = z.currentFrame()
+	d:setPrompt(
+		"New Set Name: ",
+		function(s: string)
+			if not set.isValidName(s) then
+				d:appendLines{ ("%q is not a valid set name: invalid characters"):format(s) }
+				return
+			elseif setSet[name] then
+				d:appendLines{ ("%q is not a valid set name: set already exists"):format(s) }
+				return
+			else
+				name = s
+				z.resume(frame)
+			end
+		end
+	)
+	z.suspend()
+	d:unsetPrompt()
+	local ok, err = set.save(name, {})
+	if ok then
+		vim.notify("Saved new set: " .. name)
+	else
+		vim.notify("Unable to save new set " .. name .. ": " .. err, vim.log.levels.ERROR)
+	end
+	d:close()
 end)
 
 actions.configure = createDialog(function(d: Dialog)

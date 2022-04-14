@@ -58,8 +58,8 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	-- guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
-	guicursor = "a:block",
+	guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
+	-- guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -95,7 +95,7 @@ set(vim.opt, {
 		verthoriz = " ",
 	},
 	inccommand = "nosplit",
-	laststatus = 3,
+	laststatus = 2,
 	scrolloff = 2,
 	virtualedit = "block",
 	foldmethod = "marker",
@@ -153,19 +153,17 @@ end
 local function isExecutable(name) return vim.fn.executable(name) == 1 end
 
 do
-	local group = "Custom"
-	nvim.api.createAugroup(group, { clear = true })
-	nvim.api.createAutocmd("FileType", {
+	local group = nvim.createAugroup("Custom")
+	group:add("FileType", {
 		pattern = { "teal", "lua" },
 		callback = function()
 			local buf = nvim.Buffer()
 			buf:setOption("shiftwidth", 3)
 			buf:setOption("tabstop", 3)
 		end,
-		group = group,
 		desc = "Set tabstop and shiftwidth",
 	})
-	nvim.api.createAutocmd("BufReadPost", {
+	group:add("BufReadPost", {
 		pattern = { "*.adb", "*.ads" },
 		callback = function()
 			local buf = nvim.Buffer()
@@ -176,34 +174,30 @@ do
 			buf:delKeymap("i", "<space>aj")
 			buf:delKeymap("i", "<space>al")
 		end,
-		group = group,
 		desc = "Remove stupid Ada insert mode bindings",
 	})
-	nvim.api.createAutocmd("BufReadPost", {
+	group:add("BufReadPost", {
 		pattern = { "*.c", "*.h", "*.cpp", "*.hpp" },
 		callback = function()
 			local buf = nvim.Buffer()
 			buf:setOption("commentstring", "// %s")
 		end,
-		group = group,
 		desc = "Set proper commentstring",
 	})
-	nvim.api.createAutocmd("TextYankPost", {
+	group:add("TextYankPost", {
 		callback = function()
 			vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }
 		end,
-		group = group,
 		desc = "Highlight yanks",
 	})
-	nvim.api.createAutocmd("TermOpen", {
+	group:add("TermOpen", {
 		callback = function()
 			local win = nvim.Window()
 			win:setOption("number", false)
 			win:setOption("relativenumber", false)
 			win:setOption("signcolumn", "no")
 		end,
-		group = group,
-		desc = "Set window options for terminal windows (remove lines and sign column)",
+		desc = "Set window options for terminal windows (remove line numbers and sign column)",
 	})
 end
 

@@ -82,6 +82,18 @@ setmetatable(auto.api, {
 	end
 })
 
+local record Augroup
+	type Id = integer
+
+	id: Id
+	name: string
+end
+
+local augroupMt <const>: metatable<Augroup> = {
+	__index = Augroup,
+	__name = "nvim.Augroup",
+}
+
 local nvim <const> = {
 	api = auto.api,
 	Window = auto.Window,
@@ -96,6 +108,25 @@ local nvim <const> = {
 
 	_exports: {string:function} = {},
 }
+
+function nvim.createAugroup(name: string, opts: nvim.api.AugroupOpts): Augroup
+	return setmetatable(
+		{
+			id = nvim.api.createAugroup(name, opts or {}),
+			name = name,
+		} as Augroup,
+		augroupMt
+	)
+end
+
+function Augroup:add(event: string | {string}, opts: nvim.api.AutocmdOpts): integer
+	assert(not opts.group)
+	local old <const> = opts.group
+	opts.group = self.name
+	local result <const> = nvim.api.createAutocmd(event, opts)
+	opts.group = old
+	return result
+end
 
 function nvim.ui(n: integer): UI
 	return (a.nvim_list_uis() as {UI})[n or 1]

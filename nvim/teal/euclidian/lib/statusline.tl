@@ -183,10 +183,9 @@ function statusline.isActive(winId: integer): boolean
 	return active[winId]
 end
 
-local group <const> = "Statusline"
-nvim.api.createAugroup(group, { clear = true })
-nvim.api.createAutocmd({ "WinEnter", "BufWinEnter" }, { callback = function() statusline.setActive() end, group = group})
-nvim.api.createAutocmd("WinLeave", { callback = function() statusline.setInactive() end, group = group })
+local group <const> = nvim.createAugroup("Statusline")
+group:add({ "WinEnter", "BufWinEnter" }, { callback = function() statusline.setActive() end })
+group:add("WinLeave", { callback = function() statusline.setInactive() end })
 
 statusline.setActive()
 statusline.updateAllWindows()

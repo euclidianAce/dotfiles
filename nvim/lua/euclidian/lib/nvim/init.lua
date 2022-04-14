@@ -82,6 +82,18 @@ setmetatable(auto.api, {
    end,
 })
 
+local Augroup = {}
+
+
+
+
+
+
+local augroupMt = {
+   __index = Augroup,
+   __name = "nvim.Augroup",
+}
+
 local nvim = {
    api = auto.api,
    Window = auto.Window,
@@ -96,6 +108,25 @@ local nvim = {
 
    _exports = {},
 }
+
+function nvim.createAugroup(name, opts)
+   return setmetatable(
+   {
+      id = nvim.api.createAugroup(name, opts or {}),
+      name = name,
+   },
+   augroupMt)
+
+end
+
+function Augroup:add(event, opts)
+   assert(not opts.group)
+   local old = opts.group
+   opts.group = self.name
+   local result = nvim.api.createAutocmd(event, opts)
+   opts.group = old
+   return result
+end
 
 function nvim.ui(n)
    return (a.nvim_list_uis())[n or 1]
@@ -118,9 +149,9 @@ function nvim.command(fmt, ...)
    a.nvim_command(string.format(fmt, ...))
 end
 
-local function copyKeymapOpts(opts)
-   if not opts then return {} end
-   return {
+nvim.Buffer.setKeymap = function(self, mode, lhs, rhs, opts)
+   opts = opts or {}
+   vim.keymap.set(mode, lhs, rhs, {
       nowait = opts.nowait,
       silent = opts.silent,
       script = opts.script,
@@ -128,22 +159,16 @@ local function copyKeymapOpts(opts)
       unique = opts.unique,
       desc = opts.desc,
       callback = opts.callback,
-      buffer = opts.buffer,
+      buffer = self.id,
       replace_keycodes = opts.replace_keycodes,
       remap = opts.remap,
-   }
+   })
 end
 
-nvim.Buffer.setKeymap = function(self, mode, lhs, rhs, opts)
-   local copy = copyKeymapOpts(opts)
-   copy.buffer = self.id
-   vim.keymap.set(mode, lhs, rhs, copy)
-end
-
-nvim.Buffer.delKeymap = function(self, mode, lhs, opts)
-   local copy = copyKeymapOpts(opts)
-   copy.buffer = self.id
-   pcall(vim.keymap.del, mode, lhs, copy)
+nvim.Buffer.delKeymap = function(self, mode, lhs, _opts)
+   pcall(vim.keymap.del, mode, lhs, {
+      buffer = self.id,
+   })
 end
 
 return nvim

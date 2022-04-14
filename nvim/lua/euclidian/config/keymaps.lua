@@ -156,45 +156,6 @@ map("i", "<C-W>", "<C-S-W>")
 
 map("t", "<Esc>", "<C-\\><C-n>")
 
-map({ "i", "n" }, "<M-n>", function()
-   local win, buf = nvim.winBuf()
-   local cursorPos = win:getCursor()
-   local line = buf:getLines(cursorPos[1] - 1, cursorPos[1], false)[1]
-
-   local cursorWord = { line:find("%S+", cursorPos[2]) }
-
-   if not cursorWord[1] then return end
-
-   local prevWord = { line:sub(1, cursorWord[1]):find("%S+()%s*()%S+$") }
-
-
-   local cRange = { line:sub(prevWord[4], -1):find("%S+") }
-   cRange[1] = cRange[1] + prevWord[4] - 1
-   cRange[2] = cRange[2] + prevWord[4] - 1
-   local pRange = { prevWord[1], prevWord[3] - 1 }
-
-   local row = cursorPos[1] - 1
-   buf:setText(
-   row,
-   cRange[1] - 1,
-   row,
-   cRange[2],
-   { line:sub(pRange[1], pRange[2]) })
-
-
-   buf:setText(
-   row,
-   pRange[1] - 1,
-   row,
-   pRange[2],
-   { line:sub(cRange[1], cRange[2]) })
-
-
-   local mode = nvim.api.getMode().mode
-   local pos = { cursorPos[1], cRange[2] - (mode == "i" and 0 or 1) }
-   win:setCursor(pos)
-end)
-
 map("n", "<leader>head", z.asyncFn(function()
    local buf = nvim.Buffer()
    local lines = buf:getLines(0, -1, false)

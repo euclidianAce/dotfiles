@@ -225,7 +225,6 @@ local function applyTheme(name)
          until name ~= last
       end
       last = name
-      print("Random theme: " .. name)
    end
    applyHighlights(unpack(themes[name]))
 end

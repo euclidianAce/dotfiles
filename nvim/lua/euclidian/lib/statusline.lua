@@ -48,8 +48,7 @@ end
 function statusline.getModeText()
    local m = nvim.api.getMode().mode
    local map = userModes[m]
-   nvim.command("hi! clear StatuslineModeText")
-   nvim.command("hi! link StatuslineModeText %s", map[2])
+   nvim.api.setHl(0, "StatuslineModeText", { link = map[2] })
    return map[1]
 end
 
@@ -116,7 +115,6 @@ local function makeLine(tags, winId)
                if ok then
                   table.insert(buf, res)
                else
-                  print(res)
                   table.insert(buf, "???")
                end
             else
@@ -166,12 +164,32 @@ function statusline.setActive(winId)
    statusline.updateWindow(winId)
 end
 
-function statusline.toggleTag(name)
+function statusline.toggleTag(name, supressUpdate)
 
    for _, v in ipairs(type(name) == "table" and assert(name) or { name }) do
       currentTags[v] = not currentTags[v]
    end
-   statusline.updateAllWindows()
+   if not supressUpdate then
+      statusline.updateAllWindows()
+   end
+end
+
+function statusline.setTag(name, supressUpdate)
+   for _, v in ipairs(type(name) == "table" and assert(name) or { name }) do
+      currentTags[v] = true
+   end
+   if not supressUpdate then
+      statusline.updateAllWindows()
+   end
+end
+
+function statusline.clearTag(name, supressUpdate)
+   for _, v in ipairs(type(name) == "table" and assert(name) or { name }) do
+      currentTags[v] = false
+   end
+   if not supressUpdate then
+      statusline.updateAllWindows()
+   end
 end
 
 function statusline.tagToggler(name)
@@ -183,10 +201,9 @@ function statusline.isActive(winId)
    return active[winId]
 end
 
-local group = "Statusline"
-nvim.api.createAugroup(group, { clear = true })
-nvim.api.createAutocmd({ "WinEnter", "BufWinEnter" }, { callback = function() statusline.setActive() end, group = group })
-nvim.api.createAutocmd("WinLeave", { callback = function() statusline.setInactive() end, group = group })
+local group = nvim.createAugroup("Statusline")
+group:add({ "WinEnter", "BufWinEnter" }, { callback = function() statusline.setActive() end })
+group:add("WinLeave", { callback = function() statusline.setInactive() end })
 
 statusline.setActive()
 statusline.updateAllWindows()

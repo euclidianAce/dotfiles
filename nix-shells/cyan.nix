@@ -15,6 +15,8 @@ pkgs.mkShell {
     lua53Packages.busted
     lua53Packages.compat53
     lua53Packages.inspect
+
+    tree-sitter
   ];
   shellHook = ''
     append-to-path () {

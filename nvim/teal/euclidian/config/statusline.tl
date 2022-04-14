@@ -128,10 +128,10 @@ stl.add(gitActive, gitInactive, function(): string
 end, "STLGit", true)
 stl.add(gitActive, gitInactive, function(): string
 	if currentBranch == "" then return "" end
-	return (" ~%s +%s -%s "):format(filesChanged or "0", insertions or "0", deletions or "0")
+	return (" %s %s+ %s- "):format(filesChanged or "0", insertions or "0", deletions or "0")
 end, "STLGit", true)
 
-stl.toggleTag("Git")
+stl.setTag("Git", true)
 vim.keymap.set("n", "<F12>", stl.tagToggler("Git"), {})
 -- }}}
 

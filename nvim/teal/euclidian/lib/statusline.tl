@@ -48,8 +48,7 @@ end
 function statusline.getModeText(): string
 	local m <const> = nvim.api.getMode().mode as string
 	local map <const> = userModes[m]
-	nvim.command("hi! clear StatuslineModeText")
-	nvim.command("hi! link StatuslineModeText %s", map[2])
+	nvim.api.setHl(0, "StatuslineModeText", { link = map[2] })
 	return map[1]
 end
 
@@ -116,7 +115,6 @@ local function makeLine(tags: {string}, winId: integer): string
 					if ok then
 						table.insert(buf, res)
 					else
-						print(res)
 						table.insert(buf, "???")
 					end
 				else
@@ -166,12 +164,32 @@ function statusline.setActive(winId: integer)
 	statusline.updateWindow(winId)
 end
 
-function statusline.toggleTag(name: string | {string})
+function statusline.toggleTag(name: string | {string}, supressUpdate: boolean)
 	-- TODO: `is` should tell the compiler the var is non-nil if the rhs is not `nil`
 	for _, v in ipairs(name is {string} and assert(name) or {name}) do
 		currentTags[v] = not currentTags[v]
 	end
-	statusline.updateAllWindows()
+	if not supressUpdate then
+		statusline.updateAllWindows()
+	end
+end
+
+function statusline.setTag(name: string | {string}, supressUpdate: boolean)
+	for _, v in ipairs(name is {string} and assert(name) or {name}) do
+		currentTags[v] = true
+	end
+	if not supressUpdate then
+		statusline.updateAllWindows()
+	end
+end
+
+function statusline.clearTag(name: string | {string}, supressUpdate: boolean)
+	for _, v in ipairs(name is {string} and assert(name) or {name}) do
+		currentTags[v] = false
+	end
+	if not supressUpdate then
+		statusline.updateAllWindows()
+	end
 end
 
 function statusline.tagToggler(name: string | {string}): function()

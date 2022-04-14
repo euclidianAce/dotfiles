@@ -45,10 +45,10 @@ pkgs.mkShell {
     append-to-lua-path "$HOME/dev/ltreesitter"
     append-to-lua-cpath "$HOME/dev/ltreesitter"
     append-to-lua-cpath "$HOME/dev/tree-sitter-teal"
-    append-to-path "$HOME/dev/cyan/bin"
     append-to-lua-path "$HOME/dev/cyan/build"
     append-to-lua-path "$HOME/dev/cyan/src"
+    append-to-path "$HOME/dev/cyan/bin"
 
-    prepend-to-lua-path "./"
+    prepend-to-lua-path "."
   '';
 }

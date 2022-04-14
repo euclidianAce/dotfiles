@@ -173,8 +173,8 @@ local namespaces: {NamespaceName:Namespace} = {
 			"setOption: function(Buffer, IntegerOpt, integer)",
 			"setOption: function(Buffer, string, integer | boolean | string)",
 
-			"setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.Opts)",
-			"delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.Opts)",
+			"setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.SetOptions)",
+			"delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.DelOptions)",
 
 			"addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)",
 		},

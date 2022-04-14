@@ -5,7 +5,7 @@ local z <const> = require("euclidian.lib.azync")
 
 local uv <const> = vim.loop
 
-local map <const> = function(modes: string | {string}, lhs: string, rhs: string | function, opts: vim.keymap.Opts)
+local map <const> = function(modes: string | {string}, lhs: string, rhs: string | function, opts: vim.keymap.SetOptions)
 	vim.keymap.set(modes, lhs, rhs, opts or { silent = true })
 end
 

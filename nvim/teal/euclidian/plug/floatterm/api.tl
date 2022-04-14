@@ -10,7 +10,7 @@ local record FloatTerm
 	dialog: Dialog
 	savedConfig: nvim.Window.Config
 
-	type KeyMap = {vim.Mode | {vim.Mode}, string, vim.keymap.Opts}
+	type KeyMap = {vim.Mode | {vim.Mode}, string, vim.keymap.SetOptions}
 
 	record Mappings
 		-- TODO: allow multiple mappings for each action
@@ -26,7 +26,7 @@ local record FloatTerm
 end
 
 local function setMap(map: FloatTerm.KeyMap, func: function()) vim.keymap.set(map[1], map[2], func, map[3]) end
-local function delMap(map: FloatTerm.KeyMap) vim.keymap.del(map[1], map[2], map[3]) end
+local function delMap(map: FloatTerm.KeyMap) vim.keymap.del(map[1], map[2], { buffer = (map[3] or {}).buffer }) end
 
 local floatterm <const> = {
 	FloatTerm = FloatTerm,

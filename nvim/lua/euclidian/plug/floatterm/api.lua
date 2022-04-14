@@ -26,7 +26,7 @@ local FloatTerm = {Mappings = {}, }
 
 
 local function setMap(map, func) vim.keymap.set(map[1], map[2], func, map[3]) end
-local function delMap(map) vim.keymap.del(map[1], map[2], map[3]) end
+local function delMap(map) vim.keymap.del(map[1], map[2], { buffer = (map[3] or {}).buffer }) end
 
 local floatterm = {
    FloatTerm = FloatTerm,

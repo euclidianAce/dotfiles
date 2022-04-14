@@ -118,9 +118,9 @@ function nvim.command(fmt: string, ...: any)
 	a.nvim_command(string.format(fmt, ...))
 end
 
-local function copyKeymapOpts(opts: vim.keymap.Opts): vim.keymap.Opts
-	if not opts then return {} end
-	return {
+nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, rhs: string | function, opts: vim.keymap.SetOptions)
+	opts = opts or {}
+	vim.keymap.set(mode, lhs, rhs, {
 		nowait: boolean = opts.nowait,
 		silent: boolean = opts.silent,
 		script: boolean = opts.script,
@@ -128,22 +128,16 @@ local function copyKeymapOpts(opts: vim.keymap.Opts): vim.keymap.Opts
 		unique: boolean = opts.unique,
 		desc: string = opts.desc,
 		callback: function = opts.callback,
-		buffer: boolean | integer = opts.buffer,
+		buffer: boolean | integer = self.id,
 		replace_keycodes: boolean = opts.replace_keycodes,
 		remap: boolean = opts.remap,
-	}
+	})
 end
 
-nvim.Buffer.setKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, rhs: string | function, opts: vim.keymap.Opts)
-	local copy <const> = copyKeymapOpts(opts)
-	copy.buffer = self.id
-	vim.keymap.set(mode, lhs, rhs, copy)
-end
-
-nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, opts: vim.keymap.Opts)
-	local copy <const> = copyKeymapOpts(opts)
-	copy.buffer = self.id
-	pcall(vim.keymap.del, mode, lhs, copy)
+nvim.Buffer.delKeymap = function(self: nvim.Buffer, mode: vim.Mode | {vim.Mode}, lhs: string, _opts: vim.keymap.DelOptions)
+	pcall(vim.keymap.del, mode, lhs, {
+		buffer: integer | boolean = self.id
+	})
 end
 
 return nvim

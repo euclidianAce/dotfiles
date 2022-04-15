@@ -251,8 +251,8 @@ if vim.fn.exists(":GuiFont") == 2 then
 	nvim.command[[GuiFont! Ubuntu Mono:h12]]
 end
 
-nvim.api.addUserCommand("Lua", ":lua print(<args>)<cr>", { complete = "lua", nargs = "*" })
-nvim.api.addUserCommand(
+nvim.api.createUserCommand("Lua", ":lua print(<args>)<cr>", { complete = "lua", nargs = "*" })
+nvim.api.createUserCommand(
 	"Make",
 	function()
 		local buf = nvim.Buffer()
@@ -266,7 +266,7 @@ nvim.api.addUserCommand(
 	{}
 )
 
-nvim.api.addUserCommand(
+nvim.api.createUserCommand(
 	"ToHex",
 	function(args)
 		print(("0x%x"):format(tonumber(args.args)))

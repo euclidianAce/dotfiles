@@ -158,7 +158,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			call = true,
 			setKeymap = true,
 			delKeymap = true,
-			addUserCommand = true,
+			createUserCommand = true,
 		},
 		entries = {
 			"call: function<Rets...>(Buffer, function(): Rets): Rets",
@@ -176,7 +176,7 @@ local namespaces: {NamespaceName:Namespace} = {
 			"setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.SetOptions)",
 			"delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.DelOptions)",
 
-			"addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)",
+			"createUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)",
 		},
 	},
 	["Window"] = {
@@ -241,13 +241,13 @@ local namespaces: {NamespaceName:Namespace} = {
 	},
 	["Nvim"] = {
 		exclude = {
-			addUserCommand = true,
+			createUserCommand = true,
 			createAutocmd = true,
 			createAugroup = true,
 			doAutocmd = true,
 		},
 		entries = {
-			"addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)",
+			"createUserCommand: function(string, string | function(CommandArgs), CommandAttributes)",
 
 			[[record AutocmdOpts
 		callback: string | function(string)

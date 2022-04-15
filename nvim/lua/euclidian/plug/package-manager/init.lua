@@ -69,7 +69,7 @@ end
 
 packagemanager.commands._Reload = packagemanager._reload
 
-nvim.api.addUserCommand(
+nvim.api.createUserCommand(
 "PackageManager",
 function(args)
    if not packagemanager.commands[args.args] then

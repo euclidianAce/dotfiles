@@ -62,7 +62,7 @@ local record Buffer
 	setOption: function(Buffer, string, integer | boolean | string)
 	setKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, string | function, vim.keymap.SetOptions)
 	delKeymap: function(Buffer, vim.Mode | {vim.Mode}, string, vim.keymap.DelOptions)
-	addUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)
+	createUserCommand: function(Buffer, string, string | function(CommandArgs), CommandAttributes)
 	lineCount: function(Buffer): integer
 	attach: function(Buffer, boolean, {string:any}): boolean
 	detach: function(Buffer): boolean
@@ -133,6 +133,7 @@ local record Buffer
 		"buftype"
 		"cinkeys"
 		"cinoptions"
+		"cinscopedecls"
 		"cinwords"
 		"comments"
 		"commentstring"
@@ -315,7 +316,7 @@ local record Tab
 	metamethod __eq: function(any, any): boolean
 end
 local record api
-	addUserCommand: function(string, string | function(CommandArgs), CommandAttributes)
+	createUserCommand: function(string, string | function(CommandArgs), CommandAttributes)
 	record AutocmdOpts
 		callback: string | function(string)
 		command: string
@@ -340,8 +341,10 @@ local record api
 	doAutocmd: function(string | {string}, DoAutocmdOpts)
 	getAutocmds: function({string:any}): {any}
 	delAutocmd: function(integer)
+	clearAutocmds: function({string:any})
 	delAugroupById: function(integer)
 	delAugroupByName: function(string)
+	execAutocmds: function(any, {string:any})
 	createNamespace: function(string): integer
 	getNamespaces: function(): {string:any}
 	setDecorationProvider: function(integer, {string:any})

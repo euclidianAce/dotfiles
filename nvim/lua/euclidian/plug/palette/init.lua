@@ -23,7 +23,7 @@ return function(opts)
    opts = opts or {}
    api.applyTheme(opts.theme or "default")
 
-   nvim.api.addUserCommand(
+   nvim.api.createUserCommand(
    "Theme",
    function(args)
       api.applyTheme(args.args)
@@ -38,7 +38,7 @@ return function(opts)
    });
 
 
-   nvim.api.addUserCommand(
+   nvim.api.createUserCommand(
    "CustomTheme",
    function(args)
       api.applyHighlights(unpack(vim.split(args.args, " ")))

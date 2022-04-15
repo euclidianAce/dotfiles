@@ -9,6 +9,20 @@ pkgs.mkShell {
     # lua51Packages.inspect
     # lua51Packages.compat53
 
+    # luajit
+    # luajitPackages.argparse
+    # luajitPackages.luafilesystem
+    # luajitPackages.busted
+    # luajitPackages.inspect
+    # luajitPackages.compat53
+
+    # lua5_2
+    # lua52Packages.argparse
+    # lua52Packages.luafilesystem
+    # lua52Packages.busted
+    # lua52Packages.compat53
+    # lua52Packages.inspect
+
     lua5_3
     lua53Packages.argparse
     lua53Packages.luafilesystem

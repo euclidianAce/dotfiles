@@ -12,6 +12,8 @@ return {
 	warning_error = { "unused", "redeclaration" },
 
 	scripts = {
-		["build:pre"] = { "scripts/apitypes.tl" },
+		build = {
+			pre = { "scripts/apitypes.tl" },
+		},
 	}
 }

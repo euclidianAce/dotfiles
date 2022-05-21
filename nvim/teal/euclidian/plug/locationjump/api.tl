@@ -1,21 +1,25 @@
 local nvim <const> = require("euclidian.lib.nvim")
 
-local locationjump <const> = {}
+local type Opener = string | function(string, integer)
+
+local locationjump <const> = { Opener = Opener }
 
 local pattern = "([^%s:]+):(%d+)"
 
-function locationjump.jump(filename: string, line: integer, cmd: string)
-	if cmd then
-		nvim.command(cmd)
-	end
-	if line then
-		nvim.command("edit +%d %s", line, filename)
-	elseif filename then
-		nvim.command("edit %s", filename)
+function locationjump.jump(filename: string, line: integer, cmd: Opener)
+	if cmd is function(string, integer) then
+		cmd(filename, line)
+	else
+		local str <const> = cmd or "edit"
+		if line then
+			nvim.command("%s +%d %s", str, line, filename)
+		elseif filename then
+			nvim.command("%s %s", str, filename)
+		end
 	end
 end
 
-function locationjump.selectLocation(locations: {{string, integer}}, cmd: string)
+function locationjump.selectLocation(locations: {{string, integer}}, cmd: Opener)
 	if #locations > 1 then
 		vim.ui.select(locations, {
 			prompt = "Multiple locations found:",
@@ -58,12 +62,12 @@ function locationjump.parseLocation(loc: string): string, integer
 	return file, tonumber(line) as integer
 end
 
-function locationjump.parseAndJump(text: string)
+function locationjump.parseAndJump(text: string, cmd: Opener)
 	local results <const> = locationjump.parseAllLocations(text)
-	locationjump.selectLocation(results)
+	locationjump.selectLocation(results, cmd)
 end
 
-function locationjump.jumpToVisualSelection(cmd: string)
+function locationjump.jumpToVisualSelection(cmd: Opener)
 	local buf <const> = nvim.Buffer()
 
 	local a <const> = buf:getMark("<")
@@ -75,8 +79,8 @@ function locationjump.jumpToVisualSelection(cmd: string)
 	locationjump.selectLocation(results, cmd)
 end
 
-function locationjump.jumpExpand(expandArg: string)
-	locationjump.parseAndJump(vim.fn.expand(expandArg) as string)
+function locationjump.jumpExpand(expandArg: string, cmd: Opener)
+	locationjump.parseAndJump(vim.fn.expand(expandArg) as string, cmd)
 end
 
 return locationjump

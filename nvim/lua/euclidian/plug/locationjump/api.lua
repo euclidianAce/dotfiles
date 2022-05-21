@@ -1,17 +1,21 @@
 local nvim = require("euclidian.lib.nvim")
 
-local locationjump = {}
+local Opener = {}
+
+local locationjump = { Opener = Opener }
 
 local pattern = "([^%s:]+):(%d+)"
 
 function locationjump.jump(filename, line, cmd)
-   if cmd then
-      nvim.command(cmd)
-   end
-   if line then
-      nvim.command("edit +%d %s", line, filename)
-   elseif filename then
-      nvim.command("edit %s", filename)
+   if type(cmd) == "function" then
+      cmd(filename, line)
+   else
+      local str = cmd or "edit"
+      if line then
+         nvim.command("%s +%d %s", str, line, filename)
+      elseif filename then
+         nvim.command("%s %s", str, filename)
+      end
    end
 end
 
@@ -58,9 +62,9 @@ function locationjump.parseLocation(loc)
    return file, tonumber(line)
 end
 
-function locationjump.parseAndJump(text)
+function locationjump.parseAndJump(text, cmd)
    local results = locationjump.parseAllLocations(text)
-   locationjump.selectLocation(results)
+   locationjump.selectLocation(results, cmd)
 end
 
 function locationjump.jumpToVisualSelection(cmd)
@@ -75,8 +79,8 @@ function locationjump.jumpToVisualSelection(cmd)
    locationjump.selectLocation(results, cmd)
 end
 
-function locationjump.jumpExpand(expandArg)
-   locationjump.parseAndJump(vim.fn.expand(expandArg))
+function locationjump.jumpExpand(expandArg, cmd)
+   locationjump.parseAndJump(vim.fn.expand(expandArg), cmd)
 end
 
 return locationjump

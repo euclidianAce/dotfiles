@@ -134,11 +134,9 @@ plugload "printmode" {
 plugload "manfolder"
 plugload "locationjump" {
 	vmap = "J",
-	openCmd = "split",
+	openWith = "split",
 }
-plugload "palette" {
-	theme = "random",
-}
+plugload "palette" { theme = "default" }
 plugload "ui"
 
 if not windows then

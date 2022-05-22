@@ -64,6 +64,14 @@ function floatterm.new(
 	return t
 end
 
+local cache <const>: {nvim.Window.Id:FloatTerm} = setmetatable({}, { __mode = "kv" })
+
+-- returns nil if window isn't a FloatTerm
+function floatterm.fromWindow(win: nvim.Window): FloatTerm
+	local id = win and win.id or nvim.api.getCurrentWin()
+	return cache[id]
+end
+
 function FloatTerm:show()
 	if self.dialog:win():isValid() then
 		return
@@ -86,11 +94,13 @@ function FloatTerm:show()
 			delMap(self.mappings.show)
 		end
 	end
+	cache[self.dialog:win().id] = self
 end
 
 function FloatTerm:hide()
 	local win <const> = self.dialog:win()
 	if not win:isValid() then return end
+	cache[win.id] = nil
 	self.savedConfig = win:getConfig()
 	self.dialog:hide()
 	if self.mappings then
@@ -115,6 +125,10 @@ function FloatTerm:toggle()
 end
 
 function FloatTerm:close()
+	local win <const> = self.dialog:win()
+	if win:isValid() then
+		cache[win.id] = nil
+	end
 	self.dialog:close()
 	self.terminal:close()
 end

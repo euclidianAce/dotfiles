@@ -117,13 +117,21 @@ set(vim.opt, {
 plugload "package-manager"
 -- TODO: package-manager needs a way to do this
 require "treesitter-context".setup {}
+
+local shell = windows and "nu" or "bash"
 plugload "floatterm" {
 	{
 		{ row = 1, wid = 0.9, hei = 0.8, centered = { horizontal = true }, notMinimal = true },
-		windows and "nu" or "bash",
+		shell,
 		{},
-		{ toggle = {{"n", "t"}, ""} }
-	}
+		{ toggle = { {"n", "t"}, ""} }
+	},
+	{
+		{ row = 3, wid = 0.9, hei = 0.8, centered = { horizontal = true }, notMinimal = true },
+		shell,
+		{},
+		{ toggle = { {"n", "t"}, ""} }
+	},
 }
 plugload "spacehighlighter" {
 	highlight = "TrailingWhitespace",
@@ -134,7 +142,12 @@ plugload "printmode" {
 plugload "manfolder"
 plugload "locationjump" {
 	vmap = "J",
-	openWith = "split",
+	openWith = function(file, line)
+		local ft = plugreq("floatterm")
+		local term = ft.fromWindow()
+		if term then term:hide() end
+		plugreq("locationjump").jump(file, line)
+	end,
 }
 plugload "palette" { theme = "default" }
 plugload "ui"

@@ -4,7 +4,8 @@ local Opener = {}
 
 local locationjump = { Opener = Opener }
 
-local pattern = "([^%s:]+):(%d+)"
+
+local pattern = "([^%s:=]+):(%d+)"
 
 function locationjump.jump(filename, line, cmd)
    if type(cmd) == "function" then

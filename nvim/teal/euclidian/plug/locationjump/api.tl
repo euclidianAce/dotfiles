@@ -4,7 +4,8 @@ local type Opener = string | function(string, integer)
 
 local locationjump <const> = { Opener = Opener }
 
-local pattern = "([^%s:]+):(%d+)"
+-- TODO: maybe make a more generic function to match paths
+local pattern = "([^%s:=]+):(%d+)"
 
 function locationjump.jump(filename: string, line: integer, cmd: Opener)
 	if cmd is function(string, integer) then

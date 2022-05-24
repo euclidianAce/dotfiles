@@ -1,45 +1,84 @@
 local command <const> = require("euclidian.lib.command")
+-- local floatterm <const> = require("euclidian.plug.floatterm.api")
 local nvim <const> = require("euclidian.lib.nvim")
-local stl <const> = require("euclidian.lib.statusline")
+local lines <const> = require("euclidian.lib.lines")
 local tu <const> = require("euclidian.lib.textutils")
 
-stl.mode("n", "Normal", "STLNormal")
-stl.mode("i", "Insert", "STLInsert")
-stl.mode("c", "Command", "STLCommand")
-stl.mode("r", "Confirm", "STLCommand")
-stl.mode("R", "Replace", "STLReplace")
-stl.mode("t", "Terminal", "STLTerminal")
-stl.mode("v", "Visual", "STLVisual")
-stl.mode("V", "V·Line", "STLVisual")
-stl.mode("", "V·Block", "STLVisual")
+local modeMap <const>: {vim.Mode:{string, string}} = {
+	["n"]  = { " Normal ",   "STLNormal" },
+	["i"]  = { " Insert ",   "STLInsert" },
+	["r"]  = { " Confirm ",  "STLCommand" },
+	["R"]  = { " Replace ",  "STLReplace" },
+	["v"]  = { " Visual ",   "STLVisual" },
+	["V"]  = { " V·Line ",   "STLVisual" },
+	[""] = { " V·Block ",  "STLVisual" },
+	["c"]  = { " Command ",  "STLCommand" },
+	["s"]  = { " Select ",   "STLVisual" },
+	["S"]  = { " S·Line ",   "STLVisual" },
+	[""] = { " S·Block ",  "STLVisual" },
+	["t"]  = { " Terminal ", "STLTerminal" },
+	["!"]  = { " Shell ",    "Comment" },
+}
+
+local function getModeText(): string
+	local m <const> = nvim.api.getMode().mode as string
+	local found = modeMap[m:sub(1, 1) as vim.Mode] or { " ??? ", "Error" }
+	nvim.api.setHl(0, "STLModeText", { link = found[2] })
+	return found[1]
+end
 
 local alwaysActive <const> = {"Active", "Inactive"}
 local active <const> = {"Active"}
 local inactive <const> = {"Inactive"}
 local empty <const> = {}
 
-stl.add(alwaysActive, empty, function(winid: integer): string
-	local win <const>, buf <const> = nvim.winBuf(winid)
-	-- make buffer number section line up with line number column
-	local nu <const> = win:getOption("number")
-	local rnu <const> = win:getOption("relativenumber")
-	local scl <const> = win:getOption("signcolumn"):match("yes:(%d+)")
+local status <const> = lines.new()
 
-	if not (nu or rnu or scl as boolean) then
-		return (" % 4d "):format(buf.id)
+local currentTags <const>: {string:boolean} = {}
+local updateAll <const> = vim.schedule_wrap(function()
+	local currentWinId <const> = nvim.api.getCurrentWin()
+	local tags <const> = {}
+	for k, v in pairs(currentTags) do
+		tags[k] = v
 	end
-
-	local spaces <const> = ((nu or rnu) and win:getOption("numberwidth") or 0)
-		+ (tonumber(scl) as integer or 0)
-	if spaces < 3 then
-		return (" % 4d "):format(buf.id)
+	for _, winid in ipairs(nvim.api.listWins()) do
+		tags.Active = currentWinId == winid
+		tags.Inactive = currentWinId ~= winid
+		local win <const> = nvim.Window(winid)
+		-- neat idea, but looks crappy, make a specific bar for terminals
+		-- local ft <const> = floatterm.fromWindow(win)
+		-- if ft then
+			-- status:setLocalBar(tags, win)
+		-- else
+			status:setLocalStatus(tags, win)
+		-- end
 	end
-	return tu.rightAlign(tostring(buf.id), spaces) .. " "
-end, "STLBufferInfo", true)
+end)
 
-stl.add(active, inactive, function(): string
-	return " " .. stl.getModeText() .. " "
-end, stl.higroup)
+status:add(
+	alwaysActive, empty,
+	function(winid: integer): string
+		local win <const>, buf <const> = nvim.winBuf(winid)
+		-- make buffer number section line up with line number column
+		local nu <const> = win:getOption("number")
+		local rnu <const> = win:getOption("relativenumber")
+		local scl <const> = win:getOption("signcolumn"):match("yes:(%d+)")
+
+		if not (nu or rnu or scl as boolean) then
+			return (" % 4d "):format(buf.id)
+		end
+
+		local spaces <const> = ((nu or rnu) and win:getOption("numberwidth") or 0)
+			+ (tonumber(scl) as integer or 0)
+		if spaces < 3 then
+			return (" % 4d "):format(buf.id)
+		end
+		return tu.rightAlign(tostring(buf.id), spaces) .. " "
+	end,
+	"STLBufferInfo", true
+)
+
+status:add(active, inactive, getModeText, "STLModeText")
 
 -- {{{ Teehee funi speeeen
 -- do
@@ -52,19 +91,19 @@ end, stl.higroup)
 		-- "⠧ ", "⠇ ",
 	-- }
 
-	-- stl.add(active, inactive, function(): string
+	-- status:add(active, inactive, function(): string
 		-- return loop[idx]
-	-- end, stl.higroup)
+	-- end, "STLModeText")
 
 	-- local uv = vim.loop
 	-- local t = uv.new_timer()
-	-- t:start(100, 75, function()
+	-- t:start(100, 75, vim.schedule_wrap(function()
 		-- idx = idx + 1
 		-- if idx > #loop then
 			-- idx = 1
 		-- end
-		-- vim.schedule(stl.updateWindow)
-	-- end)
+		-- updateAll()
+	-- end))
 -- end
 -- }}}
 -- git stuffs {{{
@@ -101,12 +140,12 @@ local function updateGitStatusline()
 			onStdoutLine = oneshot(function(ln: string)
 				gotDiff = true
 				filesChanged, insertions, deletions = parseDiff(ln)
-				vim.schedule(stl.updateWindow)
+				updateAll()
 			end),
 			onExit = function()
 				if not gotDiff then
 					filesChanged, insertions, deletions = nil, nil, nil
-					vim.schedule(stl.updateWindow)
+					updateAll()
 				end
 			end,
 		}
@@ -116,26 +155,29 @@ local function updateGitStatusline()
 		cwd = vim.loop.cwd(),
 		onStdoutLine = oneshot(function(ln: string)
 			currentBranch = ln
-			vim.schedule(stl.updateWindow)
+			updateAll()
 		end),
 	}
 end
 nvim.api.createAutocmd("BufWritePost", { pattern = "*", callback = updateGitStatusline })
 
-stl.add(gitActive, gitInactive, function(): string
+status:add(gitActive, gitInactive, function(): string
 	if currentBranch == "" then return "" end
 	return " " .. currentBranch:sub(1, maxBranchWid)
 end, "STLGit", true)
-stl.add(gitActive, gitInactive, function(): string
+status:add(gitActive, gitInactive, function(): string
 	if currentBranch == "" then return "" end
 	return (" %s %s+ %s- "):format(filesChanged or "0", insertions or "0", deletions or "0")
 end, "STLGit", true)
 
-stl.setTag("Git", true)
-vim.keymap.set("n", "<F12>", stl.tagToggler("Git"), {})
+currentTags.Git = true
+vim.keymap.set("n", "<F12>", function()
+	currentTags.Git = not currentTags.Git
+	updateAll()
+end, {})
 -- }}}
 
-stl.add(alwaysActive, empty, function(winid: integer): string
+status:add(alwaysActive, empty, function(winid: integer): string
 	local buf <const> = nvim.Buffer(nvim.Window(winid):getBuf())
 	if buf:getOption("buftype") == "terminal" then
 		return ""
@@ -143,12 +185,12 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 	return " %f %m%r%h%w"
 end, "STLFname", true)
 
-stl.add(active, inactive, " %= 🌌🐢🌌 %= ", "StatusLine")
-stl.add(inactive, active, " %= ", "StatusLineNC")
+status:add(active, inactive, " %= 🌌🐢🌌 %= ", "StatusLine")
+status:add(inactive, active, " %= ", "StatusLineNC")
 
 local insFmt <const> = tu.insertFormatted
 local minWid <const> = 100
-stl.add(alwaysActive, empty, function(winid: integer): string
+status:add(active, inactive, function(winid: integer): string
 	local win <const>, buf <const> = nvim.winBuf(winid)
 
 	local wid <const> = win:getWidth()
@@ -158,41 +200,44 @@ stl.add(alwaysActive, empty, function(winid: integer): string
 
 	local isShort = wid < minWid
 
-	if stl.isActive(winid) then
-		-- tabs/spaces info
-		local expandtab <const> = buf:getOption("expandtab")
-		local num <const> = expandtab
-			and buf:getOption("shiftwidth")
-			or buf:getOption("tabstop")
-		insFmt(
-			out, "%s(%d)",
-			(expandtab
-				and "spaces "
-				or "tabs "):sub(1, isShort and 1 or -1),
-			num
-		)
+	-- tabs/spaces info
+	local expandtab <const> = buf:getOption("expandtab")
+	local num <const> = expandtab
+		and buf:getOption("shiftwidth")
+		or buf:getOption("tabstop")
+	insFmt(
+		out, "%s(%d)",
+		(expandtab
+			and "spaces "
+			or "tabs "):sub(1, isShort and 1 or -1),
+		num
+	)
 
-		-- line info
-		local totalLines <const> = #buf:getLines(0, -1, false)
-		if not isShort then
-			insFmt(out, "Ln: %3d of %3d", line, totalLines)
-			insFmt(out, "Col: %3d", col + 1)
-			insFmt(out, "%3d%%", line / totalLines * 100)
-		else
-			insFmt(out, "%d,%d", line, col + 1)
-		end
+	-- line info
+	local totalLines <const> = #buf:getLines(0, -1, false)
+	if not isShort then
+		insFmt(out, "Ln: %3d of %3d", line, totalLines)
+		insFmt(out, "Col: %3d", col + 1)
+		insFmt(out, "%3d%%", line / totalLines * 100)
 	else
-		insFmt(out, "Ln: %3d", line)
+		insFmt(out, "%d,%d", line, col + 1)
 	end
 
 	if #out > 1 then
-		return table.concat(out, isShort and " " or " │ ") .. "  "
+		return "  " .. table.concat(out, isShort and " " or " │ ") .. "  "
 	else
 		return "  " .. out[1] .. "  "
 	end
 end, "STLBufferInfo")
 
+status:add(inactive, active, function(winid: integer): string
+	return ("  Ln: %3d  "):format(nvim.Window(winid):getCursor()[1])
+end, "STLBufferInfo")
+
 vim.schedule(function()
 	updateGitStatusline()
-	stl.updateWindow()
+	updateAll()
 end)
+
+local group <const> = nvim.createAugroup("Statusline")
+group:add({ "WinEnter", "BufWinEnter" }, { callback = function() updateAll() end })

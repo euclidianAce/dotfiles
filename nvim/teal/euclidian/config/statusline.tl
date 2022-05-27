@@ -4,25 +4,28 @@ local nvim <const> = require("euclidian.lib.nvim")
 local lines <const> = require("euclidian.lib.lines")
 local tu <const> = require("euclidian.lib.textutils")
 
-local modeMap <const>: {vim.Mode:{string, string}} = {
-	["n"]  = { " Normal ",   "STLNormal" },
-	["i"]  = { " Insert ",   "STLInsert" },
-	["r"]  = { " Confirm ",  "STLCommand" },
-	["R"]  = { " Replace ",  "STLReplace" },
-	["v"]  = { " Visual ",   "STLVisual" },
-	["V"]  = { " V·Line ",   "STLVisual" },
-	[""] = { " V·Block ",  "STLVisual" },
-	["c"]  = { " Command ",  "STLCommand" },
-	["s"]  = { " Select ",   "STLVisual" },
-	["S"]  = { " S·Line ",   "STLVisual" },
-	[""] = { " S·Block ",  "STLVisual" },
-	["t"]  = { " Terminal ", "STLTerminal" },
-	["!"]  = { " Shell ",    "Comment" },
+local modeMap <const>: {string:{string, string}} = {
+	["n"]  = { " Normal ",     "STLNormal" },
+	["i"]  = { " Insert ",     "STLInsert" },
+	["r"]  = { " Confirm ",    "STLCommand" },
+	["R"]  = { " Replace ",    "STLReplace" },
+	["v"]  = { " Visual ",     "STLVisual" },
+	["V"]  = { " V·Line ",     "STLVisual" },
+	[""] = { " V·Block ",    "STLVisual" },
+	["c"]  = { " Command ",    "STLCommand" },
+	["s"]  = { " Select ",     "STLVisual" },
+	["S"]  = { " S·Line ",     "STLVisual" },
+	[""] = { " S·Block ",    "STLVisual" },
+	["nt"] = { " N·Terminal ", "STLNormal" },
+	["t"]  = { " I·Terminal ", "STLTerminal" },
+	["!"]  = { " Shell ",      "Comment" },
 }
 
 local function getModeText(): string
 	local m <const> = nvim.api.getMode().mode as string
-	local found = modeMap[m:sub(1, 1) as vim.Mode] or { " ??? ", "Error" }
+	local found = modeMap[m]
+		or modeMap[m:sub(1, 1)]
+		or { " ??? ", "Error" }
 	nvim.api.setHl(0, "STLModeText", { link = found[2] })
 	return found[1]
 end
@@ -42,16 +45,18 @@ local updateAll <const> = vim.schedule_wrap(function()
 		tags[k] = v
 	end
 	for _, winid in ipairs(nvim.api.listWins()) do
-		tags.Active = currentWinId == winid
-		tags.Inactive = currentWinId ~= winid
 		local win <const> = nvim.Window(winid)
-		-- neat idea, but looks crappy, make a specific bar for terminals
-		-- local ft <const> = floatterm.fromWindow(win)
-		-- if ft then
-			-- status:setLocalBar(tags, win)
-		-- else
+		if win:isValid() then
+			tags.Active = currentWinId == winid
+			tags.Inactive = currentWinId ~= winid
+			-- neat idea, but looks crappy, make a specific bar for terminals
+			-- local ft <const> = floatterm.fromWindow(win)
+			-- if ft then
+				-- status:setLocalBar(tags, win)
+			-- else
 			status:setLocalStatus(tags, win)
-		-- end
+			-- end
+		end
 	end
 end)
 

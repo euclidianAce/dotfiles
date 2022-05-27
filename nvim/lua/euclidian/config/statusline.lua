@@ -16,13 +16,16 @@ local modeMap = {
    ["s"] = { " Select ", "STLVisual" },
    ["S"] = { " S·Line ", "STLVisual" },
    [""] = { " S·Block ", "STLVisual" },
-   ["t"] = { " Terminal ", "STLTerminal" },
+   ["nt"] = { " N·Terminal ", "STLNormal" },
+   ["t"] = { " I·Terminal ", "STLTerminal" },
    ["!"] = { " Shell ", "Comment" },
 }
 
 local function getModeText()
    local m = nvim.api.getMode().mode
-   local found = modeMap[m:sub(1, 1)] or { " ??? ", "Error" }
+   local found = modeMap[m] or
+   modeMap[m:sub(1, 1)] or
+   { " ??? ", "Error" }
    nvim.api.setHl(0, "STLModeText", { link = found[2] })
    return found[1]
 end
@@ -42,16 +45,18 @@ local updateAll = vim.schedule_wrap(function()
       tags[k] = v
    end
    for _, winid in ipairs(nvim.api.listWins()) do
-      tags.Active = currentWinId == winid
-      tags.Inactive = currentWinId ~= winid
       local win = nvim.Window(winid)
+      if win:isValid() then
+         tags.Active = currentWinId == winid
+         tags.Inactive = currentWinId ~= winid
 
 
 
 
 
-      status:setLocalStatus(tags, win)
+         status:setLocalStatus(tags, win)
 
+      end
    end
 end)
 

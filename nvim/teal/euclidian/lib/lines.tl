@@ -112,24 +112,24 @@ function Line:reify(activeTags: {string:boolean}, param: integer): string
 	return table.concat(buf)
 end
 
-function Line:setLocalStatus(active: {string:boolean}, win: nvim.Window)
-	if not win:isValid() then
-		return
-	end
-
-	win:setOption("statusline", self:reify(active, win.id))
+function Line:setLocalStatus(active: {string:boolean}, win: nvim.Window): boolean, string
+	return pcall(function()
+		local str <const> = self:reify(active, win.id)
+		win:setOption("statusline", str)
+	end)
 end
 
-function Line:setLocalBar(active: {string:boolean}, win: nvim.Window)
-	if not win:isValid() then
-		return
-	end
-
-	win:setOption("winbar", self:reify(active, win.id))
+function Line:setLocalBar(active: {string:boolean}, win: nvim.Window): boolean, string
+	return pcall(function()
+		local str <const> = self:reify(active, win.id)
+		win:setOption("winbar", str)
+	end)
 end
 
-function Line:setTab(active: {string:boolean})
-	vim.o.tabline = self:reify(active)
+function Line:setTab(active: {string:boolean}): boolean, string
+	return pcall(function()
+		vim.o.tabline = self:reify(active)
+	end)
 end
 
 return lines

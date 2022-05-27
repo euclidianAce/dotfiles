@@ -112,23 +112,23 @@ function Line:reify(activeTags, param)
 end
 
 function Line:setLocalStatus(active, win)
-   if not win:isValid() then
-      return
-   end
-
-   win:setOption("statusline", self:reify(active, win.id))
+   return pcall(function()
+      local str = self:reify(active, win.id)
+      win:setOption("statusline", str)
+   end)
 end
 
 function Line:setLocalBar(active, win)
-   if not win:isValid() then
-      return
-   end
-
-   win:setOption("winbar", self:reify(active, win.id))
+   return pcall(function()
+      local str = self:reify(active, win.id)
+      win:setOption("winbar", str)
+   end)
 end
 
 function Line:setTab(active)
-   vim.o.tabline = self:reify(active)
+   return pcall(function()
+      vim.o.tabline = self:reify(active)
+   end)
 end
 
 return lines

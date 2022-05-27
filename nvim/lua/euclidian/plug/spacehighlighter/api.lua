@@ -6,8 +6,8 @@ local function enable(group)
    nvim.api.setDecorationProvider(ns, {
       on_start = nil,
       on_buf = nil,
-      on_win = function()
-         return true
+      on_win = function(_, _winid, bufnr)
+         return not nvim.Buffer(bufnr):getName():match("^term://")
       end,
       on_line = function(_, _winid, bufnr, row)
          local buf = nvim.Buffer(bufnr)

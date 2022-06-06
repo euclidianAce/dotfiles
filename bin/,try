@@ -64,10 +64,12 @@ for ((i=0; i<$tries; ++i)); do
 	$@
 	lastresult=$?
 	if (( lastresult == 0 )); then
+		notify-send "Success: '$cmd'" "In $((i+1)) tries"
 		quit 0
 	else
 		do-wait $i
 	fi
 done
 
+notify-send "Failure: '$cmd'" "In $tries tries"
 quit $lastresult

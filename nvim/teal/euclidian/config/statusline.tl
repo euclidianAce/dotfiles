@@ -44,9 +44,10 @@ local updateAll <const> = vim.schedule_wrap(function()
 	for k, v in pairs(currentTags) do
 		tags[k] = v
 	end
-	for _, winid in ipairs(nvim.api.listWins()) do
+	local winlist <const> = nvim.api.listWins()
+	for _, winid in ipairs(winlist) do
 		local win <const> = nvim.Window(winid)
-		if win:isValid() then
+		if win:isValid() and win:getConfig().relative == "" as nvim.Window.Config.Relativity then
 			tags.Active = currentWinId == winid
 			tags.Inactive = currentWinId ~= winid
 			-- neat idea, but looks crappy, make a specific bar for terminals

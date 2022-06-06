@@ -90,7 +90,15 @@ function Line:reify(activeTags, param)
                   table.insert(buf, "???")
                end
             else
-               local evalArg = ("require'euclidian.lib.lines'._cache[%d].functions[%d](%s)"):format(
+
+
+
+
+
+
+
+
+               local evalArg = ("select(2, pcall(require'euclidian.lib.lines'._cache[%d].functions[%d], %s))"):format(
                self._internalId,
                component.funcId,
                param and tostring(param) or "")
@@ -112,23 +120,17 @@ function Line:reify(activeTags, param)
 end
 
 function Line:setLocalStatus(active, win)
-   return pcall(function()
-      local str = self:reify(active, win.id)
-      win:setOption("statusline", str)
-   end)
+   local str = self:reify(active, win.id)
+   win:setOption("statusline", str)
 end
 
 function Line:setLocalBar(active, win)
-   return pcall(function()
-      local str = self:reify(active, win.id)
-      win:setOption("winbar", str)
-   end)
+   local str = self:reify(active, win.id)
+   win:setOption("winbar", str)
 end
 
 function Line:setTab(active)
-   return pcall(function()
-      vim.o.tabline = self:reify(active)
-   end)
+   vim.o.tabline = self:reify(active)
 end
 
 return lines

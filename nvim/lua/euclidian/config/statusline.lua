@@ -44,9 +44,10 @@ local updateAll = vim.schedule_wrap(function()
    for k, v in pairs(currentTags) do
       tags[k] = v
    end
-   for _, winid in ipairs(nvim.api.listWins()) do
+   local winlist = nvim.api.listWins()
+   for _, winid in ipairs(winlist) do
       local win = nvim.Window(winid)
-      if win:isValid() then
+      if win:isValid() and win:getConfig().relative == "" then
          tags.Active = currentWinId == winid
          tags.Inactive = currentWinId ~= winid
 

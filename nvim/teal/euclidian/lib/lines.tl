@@ -91,7 +91,15 @@ function Line:reify(activeTags: {string:boolean}, param: integer): string
 						table.insert(buf, "???")
 					end
 				else
-					local evalArg = ("require'euclidian.lib.lines'._cache[%d].functions[%d](%s)"):format(
+					-- something makes old statuslines get evaluated somewhere
+					--
+					-- my guess is that there is some sort of race of prepping a new
+					-- window where an old statusline (window-local) isnt cleared and gets evaluated
+					-- with the old id before the window is properly prepared in
+					-- between
+					--
+					-- anywho, thats why this pcall nonsense is here
+					local evalArg = ("select(2, pcall(require'euclidian.lib.lines'._cache[%d].functions[%d], %s))"):format(
 						self._internalId,
 						component.funcId,
 						param and tostring(param) or ""
@@ -112,24 +120,18 @@ function Line:reify(activeTags: {string:boolean}, param: integer): string
 	return table.concat(buf)
 end
 
-function Line:setLocalStatus(active: {string:boolean}, win: nvim.Window): boolean, string
-	return pcall(function()
-		local str <const> = self:reify(active, win.id)
-		win:setOption("statusline", str)
-	end)
+function Line:setLocalStatus(active: {string:boolean}, win: nvim.Window)
+	local str <const> = self:reify(active, win.id)
+	win:setOption("statusline", str)
 end
 
-function Line:setLocalBar(active: {string:boolean}, win: nvim.Window): boolean, string
-	return pcall(function()
-		local str <const> = self:reify(active, win.id)
-		win:setOption("winbar", str)
-	end)
+function Line:setLocalBar(active: {string:boolean}, win: nvim.Window)
+	local str <const> = self:reify(active, win.id)
+	win:setOption("winbar", str)
 end
 
-function Line:setTab(active: {string:boolean}): boolean, string
-	return pcall(function()
-		vim.o.tabline = self:reify(active)
-	end)
+function Line:setTab(active: {string:boolean})
+	vim.o.tabline = self:reify(active)
 end
 
 return lines

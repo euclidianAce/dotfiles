@@ -96,6 +96,7 @@ set(vim.opt, {
 	},
 	inccommand = "nosplit",
 	laststatus = 2,
+	cmdheight = 0,
 	scrolloff = 2,
 	virtualedit = "block",
 	foldmethod = "marker",

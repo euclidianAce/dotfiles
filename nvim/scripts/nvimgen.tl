@@ -48,8 +48,8 @@ local pre <const> = [[
 local record CommandArgs
 	args: string
 	bang: boolean
-	line1: string
-	line2: string
+	line1: integer
+	line2: integer
 	range: integer
 	count: integer
 	reg: string

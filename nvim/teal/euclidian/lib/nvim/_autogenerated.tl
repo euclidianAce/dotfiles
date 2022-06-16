@@ -1,8 +1,8 @@
 local record CommandArgs
 	args: string
 	bang: boolean
-	line1: string
-	line2: string
+	line1: integer
+	line2: integer
 	range: integer
 	count: integer
 	reg: string
@@ -74,7 +74,6 @@ local record Buffer
 	getVar: function(Buffer, string): any
 	getChangedtick: function(Buffer): integer
 	getKeymap: function(Buffer, string): {{string:any}}
-	getCommands: function(Buffer, {string:any}): {string:any}
 	setVar: function(Buffer, string, any)
 	delVar: function(Buffer, string)
 	getName: function(Buffer): string
@@ -86,6 +85,7 @@ local record Buffer
 	setMark: function(Buffer, string, integer, integer, {string:any}): boolean
 	getMark: function(Buffer, string): {integer,integer}
 	delUserCommand: function(Buffer, string)
+	getCommands: function(Buffer, {string:any}): {string:any}
 	getExtmarkById: function(Buffer, integer, integer, {string:any}): {integer}
 	getExtmarks: function(Buffer, integer, any, any, {string:any}): {any}
 	setExtmark: function(Buffer, integer, integer, integer, {string:any}): integer
@@ -297,6 +297,7 @@ local record Window
 		"signcolumn"
 		"statusline"
 		"virtualedit"
+		"winbar"
 		"winhighlight"
 	end
 	metamethod __call: function(Window, integer): Window
@@ -345,9 +346,19 @@ local record api
 	delAugroupById: function(integer)
 	delAugroupByName: function(string)
 	execAutocmds: function(any, {string:any})
+	parseCmd: function(string, {string:any}): {string:any}
+	cmd: function({string:any}, {string:any}): string
+	delUserCommand: function(string)
+	getCommands: function({string:any}): {string:any}
 	createNamespace: function(string): integer
 	getNamespaces: function(): {string:any}
 	setDecorationProvider: function(integer, {string:any})
+	getOptionValue: function(string, {string:any}): any
+	setOptionValue: function(string, any, {string:any})
+	getAllOptionsInfo: function(): {string:any}
+	getOptionInfo: function(string): {string:any}
+	setOption: function(string, any)
+	getOption: function(string): any
 	uiAttach: function(integer, integer, {string:any})
 	uiDetach: function()
 	uiTryResize: function(integer, integer)
@@ -377,12 +388,6 @@ local record api
 	delVar: function(string)
 	getVvar: function(string): any
 	setVvar: function(string, any)
-	getOption: function(string): any
-	getOptionValue: function(string, {string:any}): any
-	setOptionValue: function(string, any, {string:any})
-	getAllOptionsInfo: function(): {string:any}
-	getOptionInfo: function(string): {string:any}
-	setOption: function(string, any)
 	echo: function({any}, boolean, {string:any})
 	outWrite: function(string)
 	errWrite: function(string)
@@ -411,7 +416,6 @@ local record api
 	getKeymap: function(string): {{string:any}}
 	setKeymap: function(string, string, string, {string:any})
 	delKeymap: function(string, string)
-	getCommands: function({string:any}): {string:any}
 	getApiInfo: function(): {any}
 	setClientInfo: function(string, {string:any}, string, {string:any}, {string:any})
 	getChanInfo: function(integer): {string:any}
@@ -424,7 +428,6 @@ local record api
 	delMark: function(string): boolean
 	getMark: function(string, {string:any}): {any}
 	evalStatusline: function(string, {string:any}): {string:any}
-	delUserCommand: function(string)
 	exec: function(string, boolean): string
 	command: function(string)
 	eval: function(string): any

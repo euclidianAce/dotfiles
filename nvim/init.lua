@@ -58,8 +58,8 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
-	-- guicursor = "a:block",
+	-- guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
+	guicursor = "a:block",
 	-- guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
@@ -105,7 +105,7 @@ set(vim.opt, {
 	cursorlineopt = "number",
 	equalalways = false,
 
-	formatoptions = "lroj",
+	formatoptions = "lrojq",
 
 	list = true,
 
@@ -152,6 +152,7 @@ plugload "locationjump" {
 }
 plugload "palette" { theme = "default" }
 plugload "ui"
+plugload "align"
 
 if not windows then
 	-- Treesitter is finicky on windows

@@ -16,7 +16,7 @@ else
 		io.stderr:write("Unable to open " .. locations)
 		os.exit(1)
 	end
-	files = fd:read("a")
+	files = fd:read("*a")
 	fd:close()
 end
 

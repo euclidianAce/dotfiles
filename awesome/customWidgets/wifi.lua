@@ -4,17 +4,20 @@ local gears = require "gears"
 local beautiful = require "beautiful"
 local naughty = require "naughty"
 
-local config = require("customWidgets.wificonfig")
-local interface = config.interface
-local wpacmd = ("wpa_cli -i %s %%s"):format(interface)
-local cmd = wpacmd:format("list_networks | grep CURRENT")
+local hasConfig, config = pcall(require, "customWidgets.wificonfig")
+if not hasConfig then
+	return wibox.widget{}
+end
+
+local wpafmt = ("wpa_cli -i %s %%s"):format(config.interface)
+local cmd = wpafmt:format("list_networks | grep CURRENT")
 local badText = " Not Connected "
 local text = wibox.widget.textbox(badText)
 
 local menu
 local menuitems = {}
 
-local fh = io.open("/etc/wpa_supplicant.conf", "r")
+local fh = io.open(config.wpaSupplicantConfig or "/etc/wpa_supplicant.conf", "r")
 if fh then
 	local idx = -1
 	local function nextLine()
@@ -34,12 +37,12 @@ if fh then
 			function()
 				naughty.notify{
 					title = "selected:",
-					text = name, --wpacmd:format("select_network " .. num)
+					text = name, --wpafmt:format("select_network " .. num)
 				}
 
 				-- TODO: im like 90% sure theres a way to asynchronously spawn a shell with awesome,
 				-- but this shouldn't block for like any amount of time so :P
-				os.execute(wpacmd:format("select_network " .. num))
+				os.execute(wpafmt:format("select_network " .. num))
 			end
 		})
 	end

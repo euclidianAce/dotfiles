@@ -119,7 +119,7 @@ case "$distro" in
 		alias emerge="sudo emerge --ask --quiet"
 		alias emergev="sudo emerge --ask"
 		alias emergef="sudo emerge --ask --fetchonly --quiet"
-		alias etc-update="sudo etc-update"
+		alias emerges="emerge --search"
 
 		# convenience for patches
 		function patch-dir {

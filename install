@@ -7,6 +7,17 @@ end
 local dotFileDir = subEnvVar("$HOME/dotfiles/")
 local locations = "locations.txt"
 
+local function runCmd(prefix, cmd)
+	print(("%s\n\t`%s`"):format(prefix, cmd))
+	local pipe, err = io.popen(cmd)
+	if not pipe then
+		return nil, err
+	end
+	local out = pipe:read("*a")
+	pipe:close()
+	return out
+end
+
 local files
 if #arg > 0 then
 	files = table.concat(arg, "\n")
@@ -26,39 +37,28 @@ if not cc then
 	os.exit(1)
 end
 
-print("Compiling ps1Getter.c")
-do
-	local pipe = io.popen(subEnvVar "$CC -O3 -o ps1 ps1Getter.c")
-	pipe:read("*a")
-	pipe:close()
-end
-do
-	local pipe = io.popen(subEnvVar "$CC -O3 -o ps1-bash -DBASH ps1Getter.c")
-	pipe:read("*a")
-	pipe:close()
-end
+runCmd("Compiling ps1Getter", subEnvVar "$CC -O3 -o ps1 ps1Getter.c")
+runCmd("Compiling ps1Getter (bash)", subEnvVar "$CC -O3 -o ps1-bash -DBASH ps1Getter.c")
 
 do -- remove old links
 	local fd = io.open(dotFileDir .. ".prev_locations.txt", "r")
 	if fd then
 		for loc in fd:lines() do
-			os.execute("rm -rf " .. loc)
+			runCmd("Removing old file " .. loc, "rm -rf " .. loc)
 		end
 		fd:close()
 	end
 end
 
+
 local pat = "(%S+)%s+%-%>%s+(%S+)"
 local last_paths = {}
 for file, destDir in files:gmatch(pat) do
 	destDir = subEnvVar(destDir)
-	os.execute("rm -rf " .. destDir .. file)
+	runCmd("Clearing destination " .. destDir .. file, "rm -rf " .. destDir .. file)
 	last_paths[file] = destDir
-	print(("linking %s to %s"):format(dotFileDir .. file, destDir .. file))
-	local ok, res, code = os.execute("ln -s " .. dotFileDir .. file .. " " .. destDir .. file)
-	if not ok then
-		io.stderr:write("\tCould not link:\n\t\t", res, " ", code, "\n")
-	end
+	local cmd = "ln -s " .. dotFileDir .. file .. " " .. destDir .. file
+	runCmd(("linking %s to %s"):format(dotFileDir .. file, destDir .. file), cmd)
 end
 
 do --save locations to remove next time incase locations change

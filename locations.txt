@@ -1,11 +1,10 @@
 .bashrc -> $HOME/
+.bash_profile -> $HOME/
 .xinitrc -> $HOME/
 .Xresources -> $HOME/
 git -> $XDG_CONFIG_HOME/
 nvim -> $XDG_CONFIG_HOME/
 kitty -> $XDG_CONFIG_HOME/
 awesome -> $XDG_CONFIG_HOME/
-ps1Getter.lua -> $XDG_CONFIG_HOME/
-bash_aliases -> $XDG_CONFIG_HOME/
 .tmux.conf -> $HOME/
 st -> $XDG_CONFIG_HOME/

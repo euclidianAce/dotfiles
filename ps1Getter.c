@@ -66,9 +66,12 @@ static size_t sprintf_component(Component *comp, const char *fmt, ...) {
 	return comp->len;
 }
 
+static inline size_t sz_min(size_t a, size_t b) { return a < b ? a : b; }
+
 static inline void strcpy_component(Component *comp, const char *src) {
-	for (char *dest = comp->data; *src; ++src, ++dest, ++comp->len)
-		*dest = *src;
+	size_t len = sz_min(strlen(src), MAX_COMPONENT_LENGTH);
+	memcpy(comp->data, src, len);
+	comp->len = len;
 }
 
 static inline void put_color(Ansi_Color col) {
@@ -99,7 +102,7 @@ static struct winsize w;
 		{ body } \
 	} while (0)
 
-size_t compute_length(void) {
+static size_t compute_length(void) {
 	size_t result = 0;
 	FOR_EACH_COMPONENT(i, comp, {
 		result += comp->len;

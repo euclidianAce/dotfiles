@@ -176,7 +176,14 @@ do
 		end,
 		desc = "Set tabstop and shiftwidth",
 	})
-	group:add("BufReadPost", {
+	group:add({ "BufReadPost", "BufNewFile" }, {
+		pattern = "*.h",
+		callback = function()
+			nvim.Buffer():setOption("filetype", "c")
+		end,
+		desc = ".h files are c files"
+	})
+	group:add({ "BufReadPost", "BufNewFile" }, {
 		pattern = { "*.adb", "*.ads" },
 		callback = function()
 			local buf = nvim.Buffer()
@@ -189,7 +196,7 @@ do
 		end,
 		desc = "Remove stupid Ada insert mode bindings",
 	})
-	group:add("BufReadPost", {
+	group:add({ "BufReadPost", "BufNewFile" }, {
 		pattern = { "*.c", "*.h", "*.cpp", "*.hpp" },
 		callback = function()
 			local buf = nvim.Buffer()

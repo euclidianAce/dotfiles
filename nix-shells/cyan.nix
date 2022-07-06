@@ -24,6 +24,7 @@ pkgs.mkShell {
     # lua52Packages.inspect
 
     lua5_3
+    lua53Packages.luarocks
     lua53Packages.argparse
     lua53Packages.luafilesystem
     lua53Packages.busted
@@ -62,6 +63,8 @@ pkgs.mkShell {
     append-to-lua-path "$HOME/dev/cyan/build"
     append-to-lua-path "$HOME/dev/cyan/src"
     append-to-path "$HOME/dev/cyan/bin"
+
+    append-to-lua-cpath "$HOME/.cache/tree-sitter/lib"
 
     prepend-to-lua-path "."
   '';

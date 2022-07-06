@@ -222,27 +222,6 @@ do
 end
 
 local lspconfig = require("lspconfig")
-local configs = require("lspconfig.configs")
-if not configs.teal and isExecutable("teal-language-server") then
-	configs.teal = {
-		default_config = {
-			cmd = {
-				"teal-language-server",
-				-- "logging=on",
-			},
-			filetypes = {
-				"teal",
-				-- "lua"
-			},
-			root_dir = lspconfig.util.root_pattern("tlconfig.lua", ".git"),
-			settings = {},
-		},
-	}
-	lspconfig.teal.setup{}
-end
--- if isExecutable("clangd") then
-	-- lspconfig.clangd.setup{}
--- end
 
 vim.diagnostic.config{
 	virtual_text = {

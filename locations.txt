@@ -8,3 +8,4 @@ kitty -> $XDG_CONFIG_HOME/
 awesome -> $XDG_CONFIG_HOME/
 .tmux.conf -> $HOME/
 st -> $XDG_CONFIG_HOME/
+zathura -> $XDG_CONFIG_HOME/

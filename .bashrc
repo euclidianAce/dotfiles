@@ -99,16 +99,11 @@ ga () {
 	git add $@
 	git status --short
 }
-alias gaa="git add -A; git status --short"
-alias gap="git add -p"
-alias gc="git commit"
-alias gcm="git commit -m"
-
-alias gpush="git push"
-alias gpushu="git push -u"
-alias gpull="git pull"
-
-alias gl="git log --graph --decorate --oneline"
+alias gaa="git add --all; git status --short"
+alias gap="git add --patch"
+alias gc="git commit --verbose"
+alias gcm="git commit --message"
+alias gl="git log --graph --format='%C(auto)%h %<(15)%ar %d %s'"
 alias gll="git log --graph --decorate"
 
 distro=$(awk -F= '/^ID=.*$/{print $2}' /etc/*-release | cut --delimiter='"' -f 2)

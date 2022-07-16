@@ -187,7 +187,7 @@ local function applyHighlights(
 	local function hex(col: integer): string
 		return ("#%06X"):format(col)
 	end
-	vim.g.terminal_color_0  = hex(normal.bg)
+	vim.g.terminal_color_0  = hex(normal.gray)
 	vim.g.terminal_color_1  = hex(normal.red)
 	vim.g.terminal_color_2  = hex(normal.green)
 	vim.g.terminal_color_3  = hex(normal.yellow)
@@ -196,7 +196,7 @@ local function applyHighlights(
 	vim.g.terminal_color_6  = hex(normal.cyan)
 	vim.g.terminal_color_7  = hex(bright.gray)
 
-	vim.g.terminal_color_8  = hex(bright.bg)
+	vim.g.terminal_color_8  = hex(bright.gray)
 	vim.g.terminal_color_9  = hex(bright.red)
 	vim.g.terminal_color_10 = hex(bright.green)
 	vim.g.terminal_color_11 = hex(bright.yellow)

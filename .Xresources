@@ -5,13 +5,19 @@ URxvt.iso14755: False
 
 URxvt.perl-ext-common: default,resize-font
 
+XTerm*ptyInitialErase: true
+XTerm*eightBitInput: false
+XTerm*eightBitOutput: true
+
 *locale: en_US.UTF-8
 
 /* *.font: xft:Terminus (TTF):size=12:antialias=true */
+/* *.font: xft:Fixedsys Excelsior 3.01:size=10 */
+*.font: xft:Termsyn:size=12
 /* *.font: xft:Ubuntu Mono:size=12:antialias=true */
 /* *.font: xft:Hasklig:size=11:antialias=true */
 /* *.font: -*-terminus-*-*-*-*-16-*-*-*-*-*-*-* */
-*.font = xft:Julia Mono:size=12:antialias=true
+/* *.font = xft:Julia Mono:size=12:antialias=true */
 /* *.font = xft:Fixedsys Excelsior */
 
 *.letterSpace: 1
@@ -21,22 +27,37 @@ URxvt.perl-ext-common: default,resize-font
 *.cursorBlink: true
 URxvt.pointerBlank: true
 
-! Dracula Xresources palette
-*.foreground: #F8F8F2
-*.background: #282a36
-*.color0: #000000
-*.color8: #4D4D4D
-*.color1: #FF5555
-*.color9: #FF6E67
-*.color2: #50FA7B
-*.color10: #5AF78E
-*.color3: #F1FA8C
-*.color11: #F4F99D
-*.color4: #BD93F9
-*.color12: #CAA9FA
-*.color5: #FF79C6
-*.color13: #FF92D0
-*.color6: #8BE9FD
-*.color14: #9AEDFE
-*.color7: #BFBFBF
-*.color15: #E6E6E6
+*.foreground: #d8cee4
+*.background: #181520
+
+! black
+*.color0: #21222c
+*.color8: #6272a4
+
+! red
+*.color1: #d16161
+*.color9: #e69090
+
+! green
+*.color2: #53b67e
+*.color10: #7bce8f
+
+! yellow
+*.color3: #d5c876
+*.color11: #f0e7ac
+
+! blue
+*.color4: #799ae0
+*.color12: #aac3fd
+
+! magenta
+*.color5: #c24472
+*.color13: #ef6194
+
+! cyan
+*.color6: #429da0
+*.color14: #70C3C6
+
+! white
+*.color7: #f8f8f2
+*.color15: #ffffff

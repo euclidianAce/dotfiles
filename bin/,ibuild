@@ -21,7 +21,7 @@ logwarn () {
 }
 
 if [[ "$1" == "h" || "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; then
-	echo -e "$(basename $0): An incremental C build system"
+	echo -e "$(basename $0): An incremental C build system for small, single executable projects"
 	echo -e "  Usage $(basename $0) {run|clean|all|val|gdb|export|help} ..."
 	echo -e "      run              Compile + run your compiled program"
 	echo -e "      clean            Remove any generated objects"

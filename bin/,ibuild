@@ -129,8 +129,8 @@ genMakefile () {
 	echo
 	echo -n "\$(TARGET):$objs"
 	echo -e "\n\t\$(CC) -o \$@ \$^ \$(LDFLAGS)"
-	echo -e "run: \$(TARGET)\n\t./\$(TARGET)"
-	echo -n -e "clean:\n\trm -f \$(TARGET)$objs"
+	echo -e "\nrun: \$(TARGET)\n\t./\$(TARGET)"
+	echo -n -e "\nclean:\n\trm -f \$(TARGET)$objs"
 	echo
 }
 

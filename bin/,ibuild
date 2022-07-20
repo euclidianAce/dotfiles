@@ -69,10 +69,12 @@ runCmd () {
 
 runCmdShowExit () {
 	runCmd $@
-	if [[ "$?" == "0" ]]; then
+	local last=$?
+	if [[ "$last" == "0" ]]; then
 		log -e "\033[32m\`$@\` exited with code $?\033[0m"
 	else
 		logerr -e "\033[31m\`$@\` exited with code $?\033[0m"
+		exit $last
 	fi
 }
 

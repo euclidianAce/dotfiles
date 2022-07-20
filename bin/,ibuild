@@ -88,6 +88,14 @@ toObjName() {
 	echo ".$(echo $1 | awk 'gsub(/\//, "__") || 1').o"
 }
 
+getIncludes () {
+	awk 'BEGIN { ORS=" " }; match($0, /^#\s*include\s*"(.*)"/, a) { print a[1] }' "$1"
+}
+
+getIncludesLines () {
+	awk 'match($0, /^#\s*include\s*"(.*)"/, a) { print a[1] }' "$1"
+}
+
 forEachTouchedSrc() {
 	local target="false"
 	local objects=""
@@ -110,26 +118,28 @@ build () {
 	forEachTouchedSrc "runCmdShowExit" || log "Nothing to compile"
 }
 
-getIncludes () {
-	awk 'BEGIN { ORS=" " }; match($0, /^#\s*include\s*"(.*)"/, a) { print a[1] }' "$1"
-}
-
 genMakefile () {
-	echo -e ".PHONY: run clean\n"
-	echo -e "TARGET=$TARGET"
-	echo -e "CC=$CC"
-	echo -e "CFLAGS=$CFLAGS"
-	echo -e "LDFLAGS=$LDFLAGS"
+	echo -e ".PHONY: run clean"
 	echo
+	echo "CC      := $CC"
+	echo "CFLAGS  := $CFLAGS"
+	echo "LDFLAGS := $LDFLAGS"
+	echo
+	echo    "TARGET  = $TARGET"
+	echo -n "OBJECTS ="
+
+	for f in $(getSources); do
+		echo -n " $(toObjName $f)"
+	done
+
+	echo -e "\n"
 	echo -e ".%.c.o: %.c"
 	echo -e "\t\$(CC) -o \$@ -c \$< \$(LDFLAGS)"
 	echo
 
-	local objs=""
 	for f in $(getSources); do
 		local obj=$(toObjName $f)
 		local headers=$(getIncludes $f)
-		objs="$objs $obj"
 		echo -n -e "$obj: $f"
 		if [[ -n "$headers" ]]; then
 			echo -n " $headers"
@@ -138,10 +148,10 @@ genMakefile () {
 	done
 
 	echo
-	echo -n "\$(TARGET):$objs"
+	echo -n "\$(TARGET): \$(OBJECTS)"
 	echo -e "\n\t\$(CC) -o \$@ \$^ \$(LDFLAGS)"
 	echo -e "\nrun: \$(TARGET)\n\t./\$(TARGET)"
-	echo -n -e "\nclean:\n\trm -f \$(TARGET)$objs"
+	echo -n -e "\nclean:\n\trm -f \$(TARGET) \$(OBJECTS)"
 	echo
 }
 

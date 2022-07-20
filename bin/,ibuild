@@ -148,6 +148,7 @@ case "$1" in
 	"all") clean; build;;
 	"export") genMakefile;;
 	"show")
+		echo "Would run the following commands:"
 		forEachTouchedSrc "echo"
 		exit 0
 		;;

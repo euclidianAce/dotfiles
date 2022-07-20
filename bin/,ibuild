@@ -99,16 +99,26 @@ getIncludesLines () {
 forEachTouchedSrc() {
 	local target="false"
 	local objects=""
+	local allObjects=""
 	for f in $(getSources); do
 		local obj=$(toObjName $f)
+		allObjects="$allObjects $obj"
 		if (( $(date +%s -r $obj 2>/dev/null || echo 0) < $(date +%s -r $f) )); then
 			target="true"
 			$1 $CC -c $f -o $obj $CFLAGS
-			objects="$objects $obj"
+		else
+			local includes=$(getIncludesLines $f)
+			for header in $includes; do
+				if (( $(date +%s -r $obj 2>/dev/null || echo 0) < $(date +%s -r $header) )); then
+					target="true"
+					$1 $CC -c $f -o $obj $CFLAGS
+					break
+				fi
+			done
 		fi
 	done
 	if [[ $target == "true" ]]; then
-		$1 $CC $objects -o $TARGET $LDFLAGS
+		$1 $CC $allObjects -o $TARGET $LDFLAGS
 		return 0
 	fi
 	return 1

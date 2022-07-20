@@ -1,5 +1,12 @@
 __euclidian = {}
 
+-- add local-plugins dir to rtp
+local dotdir = os.getenv "DOTFILE_DIR"
+if dotdir then
+	local pkgs = dotdir .. "/nvim/local-packages/"
+	vim.opt.packpath:append(pkgs)
+end
+
 local windows = vim.fn.has("win32") == 1
 
 -- trick the teal compat code

@@ -20,7 +20,7 @@ logwarn () {
 	echo $@ 1>&2
 }
 
-if [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; then
+if [[ "$1" == "h" || "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; then
 	echo -e "$(basename $0): An incremental C build system"
 	echo -e "  Usage $(basename $0) {run|clean|all|val|gdb|export|help} ..."
 	echo -e "      run              Compile + run your compiled program"

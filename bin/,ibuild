@@ -29,15 +29,15 @@ if [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" || "$1" == "-help" ]]; 
 	echo -e "      all              Equivalent to clean + run"
 	echo -e "      val              Like run, but use valgrind"
 	echo -e "      gdb              Like run, but use gdb"
-	echo -e "      export           export a Makefile"
-	echo -e "      help,  -h,"
-	echo -e "      -help, --help    Show this help and exit"
+	echo -e "      export           Export a Makefile"
+	echo -e "      h, help, -h"
+	echo -e "      -help --help     Show this help and exit"
 	echo -e ""
 	echo -e "  Use environment variables to control build flags + targets"
-	echo -e "      \$CC              The command to invoke the compiler [current: '$CC']"
-	echo -e "      \$CFLAGS          Flags to pass to the compiler [current: '$CFLAGS']"
-	echo -e "      \$LDFLAGS         Flags to pass to the linker [current: '$LDFLAGS']"
-	echo -e "      \$TARGET          The name of the binary to produce [current: '$TARGET']"
+	echo -e "      \$CC             The command to invoke the compiler [current: '$CC']"
+	echo -e "      \$CFLAGS         Flags to pass to the compiler [current: '$CFLAGS']"
+	echo -e "      \$LDFLAGS        Flags to pass to the linker [current: '$LDFLAGS']"
+	echo -e "      \$TARGET         The name of the binary to produce [current: '$TARGET']"
 	exit
 fi
 

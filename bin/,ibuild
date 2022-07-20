@@ -110,6 +110,10 @@ build () {
 	forEachTouchedSrc "runCmdShowExit" || log "Nothing to compile"
 }
 
+getIncludes () {
+	awk 'BEGIN { ORS=" " }; match($0, /^#\s*include\s*"(.*)"/, a) { print a[1] }' "$1"
+}
+
 genMakefile () {
 	echo -e ".PHONY: run clean\n"
 	echo -e "TARGET=$TARGET"
@@ -117,13 +121,20 @@ genMakefile () {
 	echo -e "CFLAGS=$CFLAGS"
 	echo -e "LDFLAGS=$LDFLAGS"
 	echo
+	echo -e ".%.c.o: %.c"
+	echo -e "\t\$(CC) -o \$@ -c \$< \$(LDFLAGS)"
+	echo
 
 	local objs=""
 	for f in $(getSources); do
 		local obj=$(toObjName $f)
+		local headers=$(getIncludes $f)
 		objs="$objs $obj"
-		echo -n -e "$obj: $f\n\t"
-		echo -e "\$(CC) \$(CFLAGS) -c $< -o \$@"
+		echo -n -e "$obj: $f"
+		if [[ -n "$headers" ]]; then
+			echo -n " $headers"
+		fi
+		echo
 	done
 
 	echo

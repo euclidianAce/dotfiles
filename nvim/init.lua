@@ -5,6 +5,7 @@ local dotdir = os.getenv "DOTFILE_DIR"
 if dotdir then
 	local pkgs = dotdir .. "/nvim/local-packages/"
 	vim.opt.packpath:append(pkgs)
+	pcall(vim.cmd, "source " .. pkgs .. "init.vim")
 end
 
 local windows = vim.fn.has("win32") == 1

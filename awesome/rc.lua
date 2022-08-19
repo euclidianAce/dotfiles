@@ -54,7 +54,7 @@ for s = 1, screen.count() do
 	gears.wallpaper.maximized(beautiful.wallpaper, s, true)
 end
 
-local terminal = "xterm"
+local terminal = "kitty"
 
 -- Set modkey to Win
 local modkey = "Mod4"
@@ -113,6 +113,7 @@ awful.screen.connect_for_each_screen(function(s)
 		},
 		{ -- Right Widgets
 			layout = wibox.layout.fixed.horizontal,
+			wibox.widget.systray(), spacer,
 			s.cpu, spacer,
 			s.ram, spacer,
 			s.wifi, spacer,

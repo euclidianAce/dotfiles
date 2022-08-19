@@ -9,16 +9,17 @@ XTerm*selectToClipboard: true
 XTerm*ptyInitialErase: true
 XTerm*eightBitInput: false
 XTerm*eightBitOutput: true
+XTerm*lineDrawingCharacters: true
 
 *locale: en_US.UTF-8
 
-/* *.font: xft:Terminus (TTF):size=12:antialias=true */
-/* *.font: xft:Fixedsys Excelsior 3.01:size=10 */
-*.font: xft:Termsyn:size=12
-/* *.font: xft:Terminus:size=10 */
+*.font: xft:Terminus (TTF):size=12:antialias=false
+/* *.font: xft:Fixedsys Excelsior 3.01:size=12 */
+/* *.font: xft:Termsyn:size=12:antialias=false */
+/* *.font: xft:Terminus:size=12 */
 /* *.font: xft:Ubuntu Mono:size=12:antialias=true */
 /* *.font: xft:Hasklig:size=11:antialias=true */
-/* *.font: -*-terminus-*-*-*-*-12-*-*-*-*-*-*-* */
+/* *.font: -*-terminus-*-*-*-*-14-*-*-*-*-*-*-* */
 /* *.font = xft:Julia Mono:size=12:antialias=true */
 /* *.font = xft:Fixedsys Excelsior */
 

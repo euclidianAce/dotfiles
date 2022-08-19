@@ -63,7 +63,7 @@ local function applyHighlights(
    secondaryComplement = secondaryComplement or secondary
 
    hi.Normal = { normal.fg, normal.bg }
-   hi.Visual = { nil, dark.gray }
+   hi.Visual = { normal.fg, dark[primary] }
    hi.ErrorMsg = { nil, normal.red }
    hi.Question = { dark.green }
    hi.Search = { dark[secondary], nil, "bold,reverse" }
@@ -94,7 +94,7 @@ local function applyHighlights(
    hi.FoldColumn = { dark[secondary], dark.bg, "bold" }
    hi.SignColumn = { bright.bg, dark.bg }
    hi.NonText = { bright.bg }
-   hi.MatchParen = { normal[secondary], dark[secondary], "bold" }
+   hi.MatchParen = { normal.bg, bright[secondaryComplement], "bold" }
 
    hi.Comment = { dark[secondary], nil, "italic" }
    hi.Constant = { normal[secondary] }
@@ -208,7 +208,8 @@ end
 
 local themes = {
    default = { "blue", "red", "purple", "orange" },
-   watermelon = { "cyan", "magenta" },
+   watermelon = { "cyan", "red", "magenta", "red" },
+   seafoam = { "cyan", "blue", "blue", "cyan" },
 
    blue = { "blue", "blue", "purple" },
    red = { "red", "red", "orange", "red" },

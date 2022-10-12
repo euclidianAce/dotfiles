@@ -13,11 +13,12 @@ XTerm*lineDrawingCharacters: true
 
 *locale: en_US.UTF-8
 
-*.font: xft:Terminus (TTF):size=12:antialias=false
+/* *.font: xft:Terminus (TTF):size=12:antialias=false */
 /* *.font: xft:Fixedsys Excelsior 3.01:size=12 */
-/* *.font: xft:Termsyn:size=12:antialias=false */
+*.font: xft:Termsyn:size=12:antialias=false
 /* *.font: xft:Terminus:size=12 */
-/* *.font: xft:Ubuntu Mono:size=12:antialias=true */
+/* *.font: xft:Ubuntu Mono:size=24:antialias=true */
+/* *.font: xft:Ubuntu Mono:size=36:antialias=true */
 /* *.font: xft:Hasklig:size=11:antialias=true */
 /* *.font: -*-terminus-*-*-*-*-14-*-*-*-*-*-*-* */
 /* *.font = xft:Julia Mono:size=12:antialias=true */
@@ -27,8 +28,28 @@ XTerm*lineDrawingCharacters: true
 *.lineSpace: 0
 *.scrollBar: false
 *.internalBorder: 10
-*.cursorBlink: true
+/* *.cursorBlink: true */
+*.cursorBlink: false
 URxvt.pointerBlank: true
+
+/* *.background: #d8cee4 */
+/* *.foreground: #181520 */
+/* *.color0: #000000 */
+/* *.color1: #000000 */
+/* *.color2: #000000 */
+/* *.color3: #000000 */
+/* *.color4: #000000 */
+/* *.color5: #000000 */
+/* *.color6: #000000 */
+/* *.color7: #000000 */
+/* *.color8: #000000 */
+/* *.color9: #000000 */
+/* *.color10: #000000 */
+/* *.color11: #000000 */
+/* *.color12: #000000 */
+/* *.color13: #000000 */
+/* *.color14: #000000 */
+/* *.color15: #000000 */
 
 *.foreground: #d8cee4
 *.background: #181520

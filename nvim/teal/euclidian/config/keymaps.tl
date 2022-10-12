@@ -166,8 +166,10 @@ map("n", "<leader>head", z.asyncFn(function()
 	local guard = input.input{ prompt = "Insert Header Guard: " }
 	if not guard then return end
 	guard = guard:upper()
-	if not guard:match("_H$") then
-		guard = guard .. "_H"
+	local name <const> = buf:getName()
+	local suffix <const> = (name:match("%.([^.]+)$") or "h"):upper();
+	if not guard:match("_" .. suffix .. "$") then
+		guard = guard .. "_" .. suffix
 	end
 	guard = guard:gsub("%s", "_")
 	buf:setLines(0, -1, false, {

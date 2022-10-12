@@ -4,7 +4,21 @@ local ColorName <const> = color.ColorName
 local Gradient <const> = color.Gradient
 local Palette <const> = color.Palette
 
-local p <const>: {ColorName:Gradient} = {
+local lightPalette <const>: {ColorName:Gradient} = {
+	bg      = { 0x817998, 0xD8CEE4, 0xEFEFEF },
+	fg      = { 0x16131F, 0x272335, 0x373244 },
+	purple  = { 0x532D7E, 0x6D35AB, 0x8761B2 },
+	red     = { 0x4D2D36, 0x6D2E40, 0x8A1E3D },
+	magenta = { 0x8C596C, 0xC24472, 0xE94A84 },
+	orange  = { 0xB15320, 0xDF6C2D, 0xDF814E },
+	yellow  = { 0xB39F18, 0xEDB911, 0xF4D713 },
+	green   = { 0x16703E, 0x19904D, 0x21AE5F },
+	blue    = { 0x223c75, 0x1F4492, 0x2657C1 },
+	cyan    = { 0x2A6061, 0x1E797C, 0x25979A },
+	gray    = { 0x28252F, 0x474355, 0x645F72 },
+}
+
+local darkPalette <const>: {ColorName:Gradient} = {
 	bg      = { 0x16131F, 0x181520, 0x2B2735 },
 	fg      = { 0x817998, 0xD8CEE4, 0xEFEFEF },
 	red     = { 0x77405F, 0xD16161, 0xE69090 },
@@ -25,10 +39,6 @@ local function extract(grads: {ColorName:Gradient}, idx: integer): Palette
 	end
 	return res
 end
-
-local dark <const> = extract(p, 1)
-local normal <const> = extract(p, 2)
-local bright <const> = extract(p, 3)
 
 local hi <const> = color.scheme.hi
 
@@ -51,11 +61,17 @@ local function invert(fgColor: integer): Color
 end
 
 local function applyHighlights(
+	lightMode: boolean,
 	primary: ColorName,
 	secondary: ColorName,
 	primaryComplement: ColorName,
 	secondaryComplement: ColorName
 )
+	local palette <const> = lightMode and lightPalette or darkPalette
+	local dark <const> = extract(palette, lightMode and 3 or 1)
+	local normal <const> = extract(palette, 2)
+	local bright <const> = extract(palette, lightMode and 1 or 3)
+
 	vim.g.colors_name = "euclidian"
 	primary = primary or "fg"
 	primaryComplement = primaryComplement or primary
@@ -218,7 +234,7 @@ local themes: {string:{ColorName, ColorName, ColorName, ColorName}} = {
 }
 
 local last: string = nil
-local function applyTheme(name: string)
+local function applyTheme(name: string, lightMode: boolean)
 	if name == "random" then
 		local keys <const> = vim.tbl_keys(themes)
 		if #keys > 1 then
@@ -227,14 +243,13 @@ local function applyTheme(name: string)
 		end
 		last = name
 	end
-	applyHighlights(unpack(themes[name]))
+	applyHighlights(lightMode, unpack(themes[name]))
 end
 
 return {
 	themes = themes,
-	normal = normal,
-	dark = dark,
-	bright = bright,
+	dark = darkPalette,
+	light = lightPalette,
 	applyHighlights = applyHighlights,
 	applyTheme = applyTheme,
 }

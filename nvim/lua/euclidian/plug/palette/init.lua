@@ -26,7 +26,7 @@ return function(opts)
    nvim.api.createUserCommand(
    "Theme",
    function(args)
-      api.applyTheme(args.args)
+      api.applyTheme(args.args, args.bang)
    end,
    {
       complete = function(current)
@@ -34,6 +34,7 @@ return function(opts)
          table.insert(comp, "random");
          return comp
       end,
+      bang = true,
       nargs = 1,
    });
 
@@ -41,9 +42,10 @@ return function(opts)
    nvim.api.createUserCommand(
    "CustomTheme",
    function(args)
-      api.applyHighlights(unpack(vim.split(args.args, " ")))
+      api.applyHighlights(args.bang, unpack(vim.split(args.args, " ")))
    end,
    {
+      bang = true,
       nargs = "+",
       complete = function(current)
          return getCompletions(vim.tbl_keys(api.dark), current)

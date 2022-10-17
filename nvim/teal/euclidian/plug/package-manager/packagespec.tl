@@ -15,7 +15,7 @@ local record Spec
 	kind: Kind
 
 	-- git
-	repo: string
+	remote: string
 	branch: string
 	alias: string
 
@@ -50,7 +50,11 @@ function Spec:locationInTree(): string
 		if self.alias then
 			return self.alias
 		else
-			return self.repo:match("[^/]+$")
+			local loc = self.remote:match("[^/]+$")
+			if loc:match("%.git$") then
+				return loc:sub(1, -5)
+			end
+			return loc
 		end
 	end
 end
@@ -65,7 +69,7 @@ end
 
 function Spec:title(): string
 	if self.kind == "git" then
-		return self.repo .. (self.alias and " (" .. self.alias .. ")" or "")
+		return self.remote .. (self.alias and " (" .. self.alias .. ")" or "")
 	elseif self.kind == "local" then
 		return self.path
 	end
@@ -73,7 +77,7 @@ end
 
 function Spec:installCmd(): {string}
 	if self.kind == "git" then
-		return { "git", "clone", "--progress", "https://github.com/" .. self.repo, self:location() }
+		return { "git", "clone", "--progress", "--depth=1", self.remote, self:location() }
 	end
 end
 

@@ -63,7 +63,7 @@ function loader.enableSet(setname: string)
 	for _, pkg in ipairs(ps) do
 		if pkg:isInstalled() then
 			if pkg.kind == "git" then
-				packadd(pkg.alias or pkg.repo:match("[^/]+$"))
+				packadd(pkg:locationInTree())
 			elseif pkg.kind == "local" then
 				table.insert(pre, 1, pkg.path)
 				table.insert(post, pkg.path .. "/after")

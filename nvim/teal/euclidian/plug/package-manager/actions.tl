@@ -178,9 +178,9 @@ do
 		print("Packer Package: not yet implemented")
 	end
 
-	local addGithubPackage <const>: PackageAdder = function(d: Dialog, s: {Spec})
+	local addGitPackage <const>: PackageAdder = function(d: Dialog, s: {Spec})
 		d:setLines{}
-		local repo <const> = prompt(d, "Repo: https://github.com/")
+		local remote <const> = prompt(d, "Remote: ")
 		local pkgNames <const> = {}
 		for i, v in ipairs(s) do
 			pkgNames[i] = v:title()
@@ -188,7 +188,7 @@ do
 		local p <const>: Spec = {
 			kind = "git",
 			dependents = {},
-			repo = repo,
+			remote = remote,
 		}
 		askForDependencies(d, s, p)
 		askForDependents(d, s, p)
@@ -219,7 +219,7 @@ do
 
 		menu.new.accordion{
 			"Add new package from:",
-			{ "Github", wrap(addGithubPackage) },
+			{ "Git", wrap(addGitPackage) },
 			{ "Local directory", wrap(addLocalPackage) },
 			{ "Vim-Plug expression", wrap(addVimPlugPackage) },
 			{ "Packer expression", wrap(addPackerPackage) },

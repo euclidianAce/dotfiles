@@ -28,7 +28,7 @@ local function generateDef(out: {string}, p: Spec)
 		key "alias" s(p.alias)
 	end
 	if p.kind == "git" then
-		key "repo" s(p.repo)
+		key "remote" s(p.remote)
 		if p.branch then
 			key "branch" s(p.branch)
 		end

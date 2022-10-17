@@ -4,58 +4,63 @@
 Package {
    kind = "git",
    id = 1,
-   repo = "TimUntersberger/neogit"
+   remote = "git@github.com:TimUntersberger/neogit.git"
 }
 Package {
    kind = "git",
    id = 2,
-   repo = "editorconfig/editorconfig-vim"
+   remote = "git@github.com:editorconfig/editorconfig-vim.git"
 }
 Package {
    kind = "git",
    id = 3,
-   repo = "equalsraf/neovim-gui-shim"
+   remote = "git@github.com:equalsraf/neovim-gui-shim.git"
 }
 Package {
    kind = "git",
    id = 4,
-   repo = "glacambre/firenvim"
+   remote = "git@github.com:glacambre/firenvim.git"
 }
 Package {
    kind = "git",
    id = 5,
-   repo = "iamcco/markdown-preview.nvim"
+   remote = "git@github.com:iamcco/markdown-preview.nvim.git"
 }
 Package {
    kind = "git",
    id = 6,
-   repo = "neovim/nvim-lsp"
+   remote = "git@github.com:neovim/nvim-lsp.git"
 }
 Package {
    kind = "git",
    id = 7,
-   repo = "nvim-lua/popup.nvim"
+   remote = "git@github.com:nvim-lua/popup.nvim.git"
 }
 Package {
    kind = "git",
    id = 8,
-   repo = "nvim-lua/telescope.nvim"
+   remote = "git@github.com:nvim-lua/telescope.nvim.git"
 }
 Package {
    kind = "git",
    id = 9,
-   repo = "nvim-lua/plenary.nvim",
+   remote = "git@github.com:nvim-lua/plenary.nvim.git",
    dependents = { 7, 8, 1 }
 }
 Package {
    kind = "git",
    id = 10,
-   repo = "teal-language/vim-teal"
+   remote = "git@github.com:teal-language/vim-teal.git"
 }
 Package {
    kind = "git",
    id = 11,
-   repo = "ziglang/zig.vim"
+   remote = "git@github.com:ziglang/zig.vim.git"
+}
+Package {
+   kind = "git",
+   id = 12,
+   remote = "https://tpope.io/vim/fugitive.git"
 }
 
 -- vim: ft=lua

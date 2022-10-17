@@ -4,17 +4,17 @@
 Package {
    kind = "git",
    id = 1,
-   repo = "nvim-treesitter/playground"
+   remote = "git@github.com:nvim-treesitter/playground.git"
 }
 Package {
    kind = "git",
    id = 2,
-   repo = "romgrk/nvim-treesitter-context"
+   remote = "git@github.com:romgrk/nvim-treesitter-context.git"
 }
 Package {
    kind = "git",
    id = 3,
-   repo = "nvim-treesitter/nvim-treesitter",
+   remote = "git@github.com:nvim-treesitter/nvim-treesitter.git",
    dependents = { 1, 2 }
 }
 

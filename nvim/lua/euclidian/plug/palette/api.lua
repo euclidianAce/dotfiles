@@ -177,6 +177,9 @@ local function applyHighlights(
    hi.DiagnosticWarning = { bright.orange }
 
 
+   hi.diffAdded = { normal.green }
+   hi.diffRemoved = { normal.red }
+   hi.fugitiveHunk = hi.Delimiter
    hi.DiffAdd = { dark.green }
    hi.DiffDelete = { dark.red }
    hi.NeogitDiffAddHighlight = { normal.green }

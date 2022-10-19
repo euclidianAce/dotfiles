@@ -282,6 +282,8 @@ nvim.api.createUserCommand(
 	{ nargs = 1 }
 )
 
+nvim.command[[hi! link cError NONE]]
+
 setmetatable(_G, {
 	__index = function(_, key)
 		for _, r in ipairs{libreq, plugreq} do

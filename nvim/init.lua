@@ -283,6 +283,7 @@ nvim.api.createUserCommand(
 )
 
 nvim.command[[hi! link cError NONE]]
+nvim.command[[hi! link cppError NONE]]
 
 setmetatable(_G, {
 	__index = function(_, key)

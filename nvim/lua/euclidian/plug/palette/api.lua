@@ -135,11 +135,18 @@ local function applyHighlights(
 
    hi.Underlined = { nil, nil, "underline" }
 
-   hi.TSConstructor = {}
-   hi.TSParameter = { bright[secondaryComplement] }
-   hi.TSParameterReference = { bright[secondaryComplement] }
-   hi.TSAttribute = { bright[primaryComplement] }
-   hi.TSConstBuiltin = { normal[secondary] }
+   hi["@constructor"] = {}
+   hi.TSConstructor = hi["@constructor"]
+
+   hi["@parameter"] = { bright[secondaryComplement] }
+   hi.TSParameter = hi["@parameter"]
+   hi.TSParameterReference = hi["@parameter"]
+
+   hi["@attribute"] = { bright[primaryComplement] }
+   hi.TSAttribute = hi["@attribute"]
+
+   hi["@constant.builtin"] = { normal[secondary] }
+   hi.TSConstBuiltin = hi["@constant.builtin"]
 
    hi.String = hi.Constant
    hi.Character = hi.Constant

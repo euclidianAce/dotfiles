@@ -1,9 +1,11 @@
+TMUX_COMMAND="env TERM=screen-256color tmux"
+
 find-detached-session () {
-	local s=$(tmux ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
+	local s=$($TMUX_COMMAND ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
 	if [[ -z "$s" ]]; then
-		echo "tmux"
+		echo "$TMUX_COMMAND"
 	else
-		echo "tmux attach -t $s"
+		echo "$TMUX_COMMAND attach -t $s"
 	fi
 }
 
@@ -36,14 +38,12 @@ export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
-	export PATH+=":./:$HOME/Applications:$HOME/bin:/usr/local/bin"
+	export PATH="./:$HOME/Applications:$HOME/bin:/usr/local/bin:$DOTFILE_DIR/bin/:$PATH"
 fi
 
 #################
 #### ALIASES ####
 #################
-
-export PATH="$DOTFILE_DIR/bin/:$PATH"
 
 alias mkdir="mkdir -v"
 alias rmdir="rmdir -v"

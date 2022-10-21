@@ -4,48 +4,48 @@
 Package {
    kind = "git",
    id = 1,
-   remote = "git@github.com:TimUntersberger/neogit.git"
-}
-Package {
-   kind = "git",
-   id = 2,
    remote = "git@github.com:editorconfig/editorconfig-vim.git"
 }
 Package {
    kind = "git",
-   id = 3,
+   id = 2,
    remote = "git@github.com:equalsraf/neovim-gui-shim.git"
 }
 Package {
    kind = "git",
-   id = 4,
+   id = 3,
    remote = "git@github.com:glacambre/firenvim.git"
 }
 Package {
    kind = "git",
-   id = 5,
+   id = 4,
    remote = "git@github.com:iamcco/markdown-preview.nvim.git"
 }
 Package {
    kind = "git",
-   id = 6,
+   id = 5,
    remote = "git@github.com:neovim/nvim-lsp.git"
 }
 Package {
    kind = "git",
-   id = 7,
+   id = 6,
    remote = "git@github.com:nvim-lua/popup.nvim.git"
 }
 Package {
    kind = "git",
-   id = 8,
+   id = 7,
    remote = "git@github.com:nvim-lua/telescope.nvim.git"
+}
+Package {
+   kind = "git",
+   id = 8,
+   remote = "git@github.com:TimUntersberger/neogit.git"
 }
 Package {
    kind = "git",
    id = 9,
    remote = "git@github.com:nvim-lua/plenary.nvim.git",
-   dependents = { 7, 8, 1 }
+   dependents = { 6, 7, 8 }
 }
 Package {
    kind = "git",

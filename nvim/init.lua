@@ -68,8 +68,8 @@ set(vim.g, {
 set(vim.opt, {
 	-- guicursor = "i-c:ver15,o-r-v:hor30,a:Cursor",
 	-- guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
-	guicursor = "a:block",
-	-- guicursor = "n:hor15",
+	-- guicursor = "a:block",
+	guicursor = "n:hor15",
 	-- guicursor = "n:hor15,i:ver30",
 
 	undofile = true,
@@ -107,7 +107,7 @@ set(vim.opt, {
 	laststatus = 2,
 	-- cmdheight = 0,
 	scrolloff = 2,
-	virtualedit = "block",
+	virtualedit = { "block", "onemore" },
 	foldmethod = "marker",
 	foldenable = true,
 	cursorline = true,
@@ -193,7 +193,7 @@ do
 		desc = ".h files are c files"
 	})
 	group:add({ "BufReadPost", "BufNewFile" }, {
-		pattern = { "*.adb", "*.ads" },
+		pattern = { "*.adb", "*.ads", "*.gpr" },
 		callback = function()
 			local buf = nvim.Buffer()
 			buf:setOption("shiftwidth", 3)
@@ -230,7 +230,7 @@ do
 	})
 end
 
-local lspconfig = require("lspconfig")
+require("lspconfig")
 
 vim.diagnostic.config{
 	virtual_text = {

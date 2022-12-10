@@ -24,6 +24,7 @@ end
 
 function align.byPattern(lines, pattern, raw)
    local resultbuf = {}
+   local ignore = {}
    local longest = 0
    for i, line in ipairs(lines) do
       local parts = chunks(line, pattern, raw)
@@ -31,18 +32,19 @@ function align.byPattern(lines, pattern, raw)
          longest = #parts
       end
       resultbuf[i] = parts
+      ignore[i] = #parts == 1
    end
 
    for i = 1, longest do
       local len = 0
-      for _, line in ipairs(resultbuf) do
-         if line[i] and len < #line[i] then
+      for linei, line in ipairs(resultbuf) do
+         if not ignore[linei] and line[i] and len < #line[i] then
             len = #line[i]
          end
       end
 
-      for _, line in ipairs(resultbuf) do
-         if line[i] and i ~= #line then
+      for linei, line in ipairs(resultbuf) do
+         if not ignore[linei] and line[i] and i ~= #line then
             line[i] = pad(line[i], len)
          end
       end

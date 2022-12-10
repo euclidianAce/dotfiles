@@ -170,14 +170,6 @@ do
 		end
 	end
 
-	local addVimPlugPackage <const>: PackageAdder = function(_d: Dialog, _s: {Spec})
-		print("Vim Plug Package: not yet implemented")
-	end
-
-	local addPackerPackage <const>: PackageAdder = function(_d: Dialog, _s: {Spec})
-		print("Packer Package: not yet implemented")
-	end
-
 	local addGitPackage <const>: PackageAdder = function(d: Dialog, s: {Spec})
 		d:setLines{}
 		local remote <const> = prompt(d, "Remote: ")
@@ -221,8 +213,6 @@ do
 			"Add new package from:",
 			{ "Git", wrap(addGitPackage) },
 			{ "Local directory", wrap(addLocalPackage) },
-			{ "Vim-Plug expression", wrap(addVimPlugPackage) },
-			{ "Packer expression", wrap(addPackerPackage) },
 			{ "Lua rock", wrap(addLuaRock) },
 		}(d, { persist = true })
 

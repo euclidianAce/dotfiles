@@ -69,7 +69,10 @@ end
 
 function Spec:title(): string
 	if self.kind == "git" then
-		return self.remote .. (self.alias and " (" .. self.alias .. ")" or "")
+		if self.alias then
+			return self.alias .. " (" .. self:locationInTree() .. ")"
+		end
+		return self:locationInTree()
 	elseif self.kind == "local" then
 		return self.path
 	end

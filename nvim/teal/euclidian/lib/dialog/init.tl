@@ -36,6 +36,9 @@ local record Dialog
 		centered: boolean | Center
 
 		border: nvim.Window.Config.Border
+
+		title: string | {{string, string}}
+		titlePosition: nvim.Window.Config.TitlePosition
 	end
 
 	regions: {TextRegion} -- sorted by location
@@ -81,6 +84,21 @@ local function copyWinHl(m: {string:string}): {string:string}
 	return copy
 end
 
+local function copyTitle(title: string | {{string, string}}): string | {{string, string}}
+	if title is string then
+		return title
+	else
+		if not title then
+			return
+		end
+		local copy <const>: {{string, string}} = {}
+		for i, tuple in ipairs(title) do
+			copy[i] = { tuple[1], tuple[2] }
+		end
+		return copy
+	end
+end
+
 local function copyOpts(o: Dialog.Opts): Dialog.Opts
 	-- TODO: We should totally steal zig's `inline for` for teal
 	return {
@@ -95,6 +113,8 @@ local function copyOpts(o: Dialog.Opts): Dialog.Opts
 		border = o.border,
 		centered = copyCenterOpts(o.centered),
 		winhl = copyWinHl(o.winhl),
+		title = copyTitle(o.title),
+		titlePosition = o.titlePosition,
 	}
 end
 
@@ -166,6 +186,8 @@ function dialog.optsToWinConfig(opts: Dialog.Opts): nvim.Window.Config
 		border = opts.border or defaultBorder,
 		focusable = opts.interactive,
 		zindex = opts.zindex,
+		title = copyTitle(opts.title),
+		title_pos = opts.titlePosition,
 	}
 	local ui <const> = nvim.ui()
 
@@ -320,7 +342,13 @@ function Dialog:ensureWin(): nvim.Window
 	assert(wins[self]:isValid(), "Dialog:ensureWin() produced an invalid window")
 	return wins[self]
 end
-
+function Dialog:setTitle(title: string | {{string, string}}): Dialog
+	local win <const> = assert(self:win(), "attempt to set title without a window")
+	local cfg <const> = win:getConfig()
+	cfg.title = title
+	win:setConfig(cfg)
+	return self
+end
 function Dialog:isModifiable(): boolean
 	return self:buf():getOption("modifiable")
 end
@@ -549,6 +577,17 @@ function Dialog:close()
 	if w:isValid() then
 		w:close(true)
 	end
+end
+function Dialog:deleteBuffer(force: boolean)
+	local buf <const> = self:buf()
+	if buf:isValid() then
+		buf:delete({ force = force })
+	end
+end
+
+function Dialog:delete()
+	self:deleteBuffer()
+	self:close()
 end
 
 local linkedFns <const>: {string:boolean} = {

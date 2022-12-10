@@ -70,10 +70,8 @@ function loader.enableSet(setname: string)
 			end
 		end
 	end
-	local rtp <const> = nvim.api.listRuntimePaths()
-	vim.list_extend(pre, rtp)
-	vim.list_extend(pre, post)
-	;(vim as {string:table}).opt.runtimepath = pre
+	vim.opt.runtimepath:prepend(pre)
+	vim.opt.runtimepath:append(post)
 end
 
 return loader

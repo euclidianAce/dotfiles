@@ -302,7 +302,7 @@ static void setup_git_branch_component(void) {
 	FILE *pipe = popen_or_exit("git branch --show-current 2>/dev/null", "r");
 
 	size_t i = 0;
-	char c;
+	int c;
 	while ((c = getc(pipe)) != EOF) {
 		if (c == '\n')
 			break;

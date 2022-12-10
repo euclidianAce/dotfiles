@@ -100,6 +100,7 @@ local record Buffer
 		"buflisted"
 		"cindent"
 		"copyindent"
+		"endoffile"
 		"endofline"
 		"expandtab"
 		"fixendofline"
@@ -206,6 +207,11 @@ local record Window
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }
+		enum TitlePosition
+			"left"
+			"center"
+			"right"
+		end
 
 		win: Id
 		relative: Relativity
@@ -215,11 +221,14 @@ local record Window
 		width: integer
 		height: integer
 		zindex: integer
-		bufpos: integer
+		bufpos: { integer, integer }
 		focusable: boolean
 		external: boolean
 		style: Style
 		border: Border
+		noautocmd: boolean
+		title: string | {{string, string}}
+		title_pos: TitlePosition
 	end
 	getConfig: function(Window): Config
 	setConfig: function(Window, Config)

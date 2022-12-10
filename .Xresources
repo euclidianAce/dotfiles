@@ -15,8 +15,9 @@ XTerm*lineDrawingCharacters: true
 
 /* *.font: xft:Terminus (TTF):size=12:antialias=false */
 /* *.font: xft:Fixedsys Excelsior 3.01:size=12 */
-*.font: xft:Termsyn:size=12:antialias=false
+/* *.font: xft:Termsyn:size=12:antialias=false */
 /* *.font: xft:Terminus:size=12 */
+*.font: xft:Cozette:size=12
 /* *.font: xft:Ubuntu Mono:size=24:antialias=true */
 /* *.font: xft:Ubuntu Mono:size=36:antialias=true */
 /* *.font: xft:Hasklig:size=11:antialias=true */

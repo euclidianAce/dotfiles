@@ -247,3 +247,35 @@ end)
 
 local group <const> = nvim.createAugroup("Statusline")
 group:add({ "WinEnter", "BufWinEnter" }, { callback = function() updateAll() end })
+
+-- __euclidian.makeTabLine = function(): string
+	-- local acc <const>: {string} = {}
+	-- local currentId <const> = nvim.api.getCurrentTabpage()
+
+	-- table.insert(acc, "%#TabLine% ")
+	-- for i, tabid in ipairs(nvim.api.listTabpages()) do
+		-- local tab <const> = nvim.Tab(tabid)
+		-- local win <const> = nvim.Window(tab:getWin())
+		-- local buf <const> = nvim.Buffer(win:getBuf())
+
+		-- if tabid == currentId then
+			-- table.insert(acc, "%#TabLineSel% ")
+		-- end
+
+		-- table.insert(acc, (" %%%dT "):format(i))
+		-- local nWins <const> = #tab:listWins()
+		-- if nWins > 1 then
+			-- table.insert(acc, (" [%d] "):format(nWins))
+		-- end
+		-- table.insert(acc, buf:getName())
+		-- table.insert(acc, " %T ")
+
+		-- if tabid == currentId then
+			-- table.insert(acc, "%#TabLine%")
+		-- end
+	-- end
+
+	-- return table.concat(acc)
+-- end
+
+-- vim.o.tabline = '%{%luaeval("__euclidian.makeTabLine()")%}'

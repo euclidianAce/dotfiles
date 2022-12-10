@@ -229,6 +229,8 @@ local clientkeys = gears.table.join(
 		{m}, "f",
 		function(c)
 			c.fullscreen = not c.fullscreen
+			c.maximized_horizontal = c.fullscreen
+			c.maximized_vertical = c.fullscreen
 			c:emit_signal("property::window")
 		end,
 		{ description="toggle fullscreen", group="client" }

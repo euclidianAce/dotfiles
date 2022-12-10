@@ -1,4 +1,5 @@
-TMUX_COMMAND="env TERM=screen-256color tmux"
+TMUX_COMMAND="tmux"
+# TMUX_COMMAND="env TERM=screen-256color tmux"
 
 find-detached-session () {
 	local s=$($TMUX_COMMAND ls 2>/dev/null | awk -F':' '!/\(attached\)$/{print $1}' | head -n 1)
@@ -38,7 +39,7 @@ export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
-	export PATH="./:$HOME/Applications:$HOME/bin:/usr/local/bin:$DOTFILE_DIR/bin/:$PATH"
+	export PATH="./:$HOME/Applications:$HOME/bin:$HOME/bin/result/bin:/usr/local/bin:$DOTFILE_DIR/bin/:$PATH"
 fi
 
 #################

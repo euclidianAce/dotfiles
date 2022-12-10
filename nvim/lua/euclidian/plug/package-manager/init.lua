@@ -94,5 +94,3 @@ end
 for _, s in ipairs(cfg.enable) do
    loader.enableSet(s)
 end
-
-nvim.command("packloadall")

@@ -137,6 +137,9 @@ for _, v in ipairs{
 	end)
 end
 
+map("i", "<esc>", "<esc>l")
+map("n", "$", "g$")
+
 map("n", "K", vim.lsp.buf.hover)
 map("n", "<leader>N", vim.diagnostic.goto_next)
 map("n", "<leader>P", vim.diagnostic.goto_prev)

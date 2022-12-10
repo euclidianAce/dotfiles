@@ -39,27 +39,22 @@ Package {
 Package {
    kind = "git",
    id = 8,
-   remote = "git@github.com:TimUntersberger/neogit.git"
+   remote = "git@github.com:nvim-lua/plenary.nvim.git",
+   dependents = { 6, 7 }
 }
 Package {
    kind = "git",
    id = 9,
-   remote = "git@github.com:nvim-lua/plenary.nvim.git",
-   dependents = { 6, 7, 8 }
-}
-Package {
-   kind = "git",
-   id = 10,
    remote = "git@github.com:teal-language/vim-teal.git"
 }
 Package {
    kind = "git",
-   id = 11,
+   id = 10,
    remote = "git@github.com:ziglang/zig.vim.git"
 }
 Package {
    kind = "git",
-   id = 12,
+   id = 11,
    remote = "https://tpope.io/vim/fugitive.git"
 }
 

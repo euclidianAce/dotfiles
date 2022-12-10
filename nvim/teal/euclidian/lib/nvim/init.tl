@@ -69,7 +69,7 @@ local function genSetMetatable<T>(t: T, prefix: string)
 end
 genSetMetatable(auto.Buffer, "buf")
 genSetMetatable(auto.Window, "win")
-genSetMetatable(auto.Tab, "tab")
+genSetMetatable(auto.Tab, "tabpage")
 
 setmetatable(auto.api, {
 	__index = function(self: {string:any}, key: string): any

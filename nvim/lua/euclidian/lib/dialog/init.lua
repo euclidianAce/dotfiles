@@ -41,6 +41,9 @@ local Dialog = {Opts = {Center = {}, }, }
 
 
 
+
+
+
 local bufs = setmetatable({}, { __mode = "k", __index = function() return nvim.Buffer(-1) end })
 local wins = setmetatable({}, { __mode = "k", __index = function() return nvim.Window(-1) end })
 local links = setmetatable({}, { __mode = "k", __index = function(self, k)
@@ -81,6 +84,21 @@ local function copyWinHl(m)
    return copy
 end
 
+local function copyTitle(title)
+   if type(title) == "string" then
+      return title
+   else
+      if not title then
+         return
+      end
+      local copy = {}
+      for i, tuple in ipairs(title) do
+         copy[i] = { tuple[1], tuple[2] }
+      end
+      return copy
+   end
+end
+
 local function copyOpts(o)
 
    return {
@@ -95,6 +113,8 @@ local function copyOpts(o)
       border = o.border,
       centered = copyCenterOpts(o.centered),
       winhl = copyWinHl(o.winhl),
+      title = copyTitle(o.title),
+      titlePosition = o.titlePosition,
    }
 end
 
@@ -166,6 +186,8 @@ function dialog.optsToWinConfig(opts)
       border = opts.border or defaultBorder,
       focusable = opts.interactive,
       zindex = opts.zindex,
+      title = copyTitle(opts.title),
+      title_pos = opts.titlePosition,
    }
    local ui = nvim.ui()
 
@@ -320,7 +342,13 @@ function Dialog:ensureWin()
    assert(wins[self]:isValid(), "Dialog:ensureWin() produced an invalid window")
    return wins[self]
 end
-
+function Dialog:setTitle(title)
+   local win = assert(self:win(), "attempt to set title without a window")
+   local cfg = win:getConfig()
+   cfg.title = title
+   win:setConfig(cfg)
+   return self
+end
 function Dialog:isModifiable()
    return self:buf():getOption("modifiable")
 end
@@ -549,6 +577,17 @@ function Dialog:close()
    if w:isValid() then
       w:close(true)
    end
+end
+function Dialog:deleteBuffer(force)
+   local buf = self:buf()
+   if buf:isValid() then
+      buf:delete({ force = force })
+   end
+end
+
+function Dialog:delete()
+   self:deleteBuffer()
+   self:close()
 end
 
 local linkedFns = {

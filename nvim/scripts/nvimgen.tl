@@ -206,6 +206,11 @@ local namespaces: {NamespaceName:Namespace} = {
 			"shadow"
 		end
 		type Border = PredefinedBorder | { string | { string, string } }
+		enum TitlePosition
+			"left"
+			"center"
+			"right"
+		end
 
 		win: Id
 		relative: Relativity
@@ -215,11 +220,14 @@ local namespaces: {NamespaceName:Namespace} = {
 		width: integer
 		height: integer
 		zindex: integer
-		bufpos: integer
+		bufpos: { integer, integer }
 		focusable: boolean
 		external: boolean
 		style: Style
 		border: Border
+		noautocmd: boolean
+		title: string | {{string, string}}
+		title_pos: TitlePosition
 	end]],
 			"getConfig: function(Window): Config",
 			"setConfig: function(Window, Config)",

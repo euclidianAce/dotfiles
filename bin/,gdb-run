@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+exec gdb --eval-command run --eval-command quit --args $@

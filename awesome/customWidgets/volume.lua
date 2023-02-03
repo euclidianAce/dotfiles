@@ -1,22 +1,29 @@
 local awful = require "awful"
 local wibox = require "wibox"
 local naughty = require "naughty"
+local beautiful = require "beautiful"
 
 -- TODO find a nice little icon
 
-local textbox = wibox.widget.textbox()
-local function updateVolumeText(after)
+local widget = wibox.widget {
+	widget = wibox.container.arcchart,
+	value = 0,
+	min_value = 0,
+	max_value = 100,
+	thickness = 3,
+	colors = { beautiful.bg_focus },
+	bg = beautiful.bg_normal,
+}
+
+local function updateVisual(after)
 	awful.spawn.easy_async("amixer sget Master", function(stdout, stderr, reason, exit_code)
 		if exit_code ~= 0 then
-			textbox:set_text("volume: ?? %")
+			return
 		end
-		local p = stdout:match("%d+%s*%%")
+		local p = tonumber(stdout:match("(%d+)%s*%%"))
 		if p then
-			textbox:set_text("volume: " .. p)
-		else
-			textbox:set_text("volume: ?? %")
+			widget.value = p
 		end
-
 		if after then
 			gears.timer.delayed_call(after)
 		end
@@ -31,22 +38,22 @@ end
 local function addVolume(delta_percent)
 	awful.spawn.easy_async(("amixer set Master %d%%%s"):format(math.abs(delta_percent), delta_percent >= 0 and "+" or "-"), function()
 		pop()
-		updateVolumeText()
+		updateVisual()
 	end)
 end
 
 local function muteToggle()
 	awful.spawn.easy_async("amixer sset Master toggle", function()
-		updateVolumeText()
+		updateVisual()
 	end)
 end
 
-updateVolumeText()
+updateVisual()
 
 local delta = 10
 
 return {
-	widget = textbox,
+	widget = widget,
 	keys = {
 		awful.key({}, "XF86AudioRaiseVolume", function() addVolume(delta) end),
 		awful.key({}, "XF86AudioLowerVolume", function() addVolume(-delta) end),

@@ -15,8 +15,6 @@ local naughty 		= require "naughty"
 local menubar 		= require "menubar"
 local hotkeys_popup	= require("awful.hotkeys_popup").widget
 
-local volume = require "customWidgets.volume"
-
 -- Enable hotkeys help widget for vim and other things
 			  require "awful.hotkeys_popup.keys"
 
@@ -50,6 +48,8 @@ end
 -- Use custom theme
 beautiful.init("~/.config/awesome/theme.lua")
 --local icon_path = "/home/corey/.config/awesome/icons/"
+
+local volume = require "customWidgets.volume"
 
 -- Set Wallpaper
 for s = 1, screen.count() do

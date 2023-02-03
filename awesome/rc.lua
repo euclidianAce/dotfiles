@@ -15,6 +15,8 @@ local naughty 		= require "naughty"
 local menubar 		= require "menubar"
 local hotkeys_popup	= require("awful.hotkeys_popup").widget
 
+local volume = require "customWidgets.volume"
+
 -- Enable hotkeys help widget for vim and other things
 			  require "awful.hotkeys_popup.keys"
 
@@ -119,6 +121,7 @@ awful.screen.connect_for_each_screen(function(s)
 			s.wifi, spacer,
 			s.battery or wibox.widget.textbox(" "),
 			s.battery and spacer or wibox.widget.textbox(" "),
+			volume.widget, spacer,
 			s.taglist,
 		},
 	}
@@ -250,6 +253,8 @@ local clientkeys = gears.table.join(
 	)
 )
 
+globalkeys = gears.table.join(globalkeys, (unpack or table.unpack)(volume.keys))
+
 for i = 1, #tags do
 	globalkeys = gears.table.join(
 		globalkeys,
@@ -300,7 +305,6 @@ for i = 1, #tags do
 			end,
 			{ description="toggle focused client on tag #" .. i, group="tag" }
 		)
-
 	)
 end
 

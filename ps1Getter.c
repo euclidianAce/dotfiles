@@ -127,7 +127,7 @@ int main(void) {
 	// 5 base lines
 	// +1 per component beyond the first
 	// +some padding for safety
-	if (w.ws_col < 10 + component_length + num_components - 1) {
+	if (getenv("SHORT_PS1") || w.ws_col < 10 + component_length + num_components - 1) {
 		put_color(line_color);
 		fputs(CORNER_TOP_LEFT LINE_HORIZONTAL T_LEFT, stdout);
 		printf(CMP_FMT, CMP_ARG(components[1]));

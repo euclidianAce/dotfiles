@@ -1,31 +1,22 @@
 -- {{{ Requires
--- Standard lib
-local gears 		= require "gears"
-local awful 		= require "awful"
-			  require "awful.autofocus"
-
--- Widget lib
-local wibox 		= require "wibox"
-
--- Theme lib
-local beautiful		= require "beautiful"
-
--- Notification lib
-local naughty 		= require "naughty"
-local menubar 		= require "menubar"
-local hotkeys_popup	= require("awful.hotkeys_popup").widget
-
--- Enable hotkeys help widget for vim and other things
-			  require "awful.hotkeys_popup.keys"
-
+local gears = require "gears"
+local awful = require "awful"
+require "awful.autofocus"
+local wibox = require "wibox"
+local beautiful = require "beautiful"
+local naughty = require "naughty"
+local menubar = require "menubar"
+local hotkeys_popup= require("awful.hotkeys_popup").widget
+require "awful.hotkeys_popup.keys"
 -- }}}
 -- {{{ Error handling from default rc.lua
-
 -- Check for startup errors
 if awesome.startup_errors then
-	naughty.notify({ preset = naughty.config.presets.critical,
-			 title  = "Errors during startup",
-			 text   = awesome.startup_errors })
+	naughty.notify {
+		preset = naughty.config.presets.critical,
+		title  = "Errors during startup",
+		text   = awesome.startup_errors,
+	}
 end
 
 -- Handle runtime errors
@@ -36,12 +27,13 @@ do
 		if in_error then return end
 		in_error = true
 
-		naughty.notify({ preset = naughty.config.presets.critical,
-		title  = "Error Occured",
-		text   = tostring(err) })
+		naughty.notify {
+			preset = naughty.config.presets.critical,
+			title  = "Error Occured",
+			text   = tostring(err),
+		}
 	end)
 end
-
 -- }}}
 -- {{{ Themes and defaults
 
@@ -62,9 +54,7 @@ local terminal = "kitty"
 local modkey = "Mod4"
 
 -- Layouts for window tiling
-awful.layout.layouts = {
-	require("layout"),
-}
+awful.layout.layouts = { require("layout"), }
 
 -- }}}
 -- {{{ Helpers:
@@ -130,64 +120,64 @@ end)
 -- {{{ Key Bindings
 
 -- Aliases for convenience
-local m 	= modkey
-local crtl 	= "Control"
-local shft 	= "Shift"
-local alt 	= "Mod1"
+local m    = modkey
+local crtl = "Control"
+local shft = "Shift"
+local alt  = "Mod1"
 
 
 local globalkeys = gears.table.join(
 	awful.key(
 		{m}, "s",
 		hotkeys_popup.show_help,
-		{ description="show help", group="awesome" }
+		{ description = "show help", group = "awesome" }
 	),
 	awful.key(
 		{m, shft}, "h",
 		awful.tag.viewprev,
-		{ description="view previous", group="tag" }
+		{ description = "view previous", group = "tag" }
 	),
 	awful.key(
 		{m,shft}, "l",
 		awful.tag.viewnext,
-		{ description="view next", group="tag" }
+		{ description = "view next", group = "tag" }
 	),
 	awful.key(
 		{m}, "k",
 		partial(awful.client.focus.byidx, -1),
-		{ description="focus previous by index", group="client" }
+		{ description = "focus previous by index", group = "client" }
 	),
 	awful.key(
 		{m}, "j",
 		partial(awful.client.focus.byidx, 1),
-		{ description="focus next by index", group="client" }
+		{ description = "focus next by index", group = "client" }
 	),
 
 	-- Layouts
 	awful.key(
 		{m,shft}, "j",
 		partial(awful.client.swap.byidx, 1),
-		{ description="swap with next client by index", group="client" }
+		{ description = "swap with next client by index", group = "client" }
 	),
 	awful.key(
 		{m,shft}, "k",
 		partial(awful.client.swap.byidx, -1),
-		{ description="swap with previous client by index", group="client" }
+		{ description = "swap with previous client by index", group = "client" }
 	),
 	awful.key(
 		{m,crtl}, "j",
 		partial(awful.screen.focus_relative, 1)
-		{ description="focus the next screen", group="screen" }
+		{ description = "focus the next screen", group = "screen" }
 	),
 	awful.key(
 		{m,crtl}, "k",
 		partial(awful.screen.focus_relative, -1)
-		{ description="focus the previous screen", group="screen" }
+		{ description = "focus the previous screen", group = "screen" }
 	),
 	awful.key(
 		{m}, "Return",
 		partial(awful.spawn, terminal),
-		{ description="open a terminal", group="launcher" }
+		{ description = "open a terminal", group = "launcher" }
 	),
 	awful.key(
 		{m,shft}, "Return",
@@ -200,22 +190,22 @@ local globalkeys = gears.table.join(
 				placement = awful.placement.under_mouse,
 			})
 		end,
-		{ description="open a floating terminal", group="launcher" }
+		{ description = "open a floating terminal", group = "launcher" }
 	),
 	awful.key(
 		{m,crtl}, "r",
 		awesome.restart,
-		{ description="restart awesome", group="awesome" }
+		{ description = "restart awesome", group = "awesome" }
 	),
 	awful.key(
 		{m,shft}, "q",
 		awesome.quit,
-		{ description="quit awesome", group="awesome" }
+		{ description = "quit awesome", group = "awesome" }
 	),
 	awful.key(
 		{m}, "r",
 		menubar.show,
-		{ description="run prompt", group="launcher" }
+		{ description = "run prompt", group = "launcher" }
 	),
 	awful.key(
 		{m,shft}, "r",
@@ -223,7 +213,7 @@ local globalkeys = gears.table.join(
 			menubar.refresh()
 			menubar.show()
 		end,
-		{ description="reload and run prompt", group="launcher" }
+		{ description = "reload and run prompt", group = "launcher" }
 	)
 )
 
@@ -236,12 +226,12 @@ local clientkeys = gears.table.join(
 			c.maximized_vertical = c.fullscreen
 			c:emit_signal("property::window")
 		end,
-		{ description="toggle fullscreen", group="client" }
+		{ description = "toggle fullscreen", group = "client" }
 	),
 	awful.key(
 		{m,shft}, "c",
 		function(c) c:kill() end,
-		{ description="close", group="client" }
+		{ description = "close", group = "client" }
 	),
 	awful.key(
 		{m}, "space",
@@ -249,7 +239,7 @@ local clientkeys = gears.table.join(
 			awful.client.floating.toggle(c)
 			c:emit_signal("property::window")
 		end,
-		{ description="toggle floating", group="client" }
+		{ description = "toggle floating", group = "client" }
 	)
 )
 
@@ -267,7 +257,7 @@ for i = 1, #tags do
 					tag:view_only()
 				end
 			end,
-			{ description="view tag #" .. i, group="tag" }
+			{ description = "view tag #" .. i, group = "tag" }
 		),
 		awful.key(
 			{m,shft}, "#" .. (i+9),
@@ -279,7 +269,7 @@ for i = 1, #tags do
 					end
 				end
 			end,
-			{ description="move focused client to tag #"..i, group="tag" }
+			{ description = "move focused client to tag #"..i, group = "tag" }
 		),
 		awful.key(
 			{"Mod1",shft}, "#" .. (i+9),
@@ -290,7 +280,7 @@ for i = 1, #tags do
 					awful.tag.viewtoggle(tag)
 				end
 			end,
-			{ description="toggle tag #" .. i, group="tag" }
+			{ description = "toggle tag #" .. i, group = "tag" }
 		),
 
 		awful.key(
@@ -303,7 +293,7 @@ for i = 1, #tags do
 					end
 				end
 			end,
-			{ description="toggle focused client on tag #" .. i, group="tag" }
+			{ description = "toggle focused client on tag #" .. i, group = "tag" }
 		)
 	)
 end
@@ -330,19 +320,22 @@ local clientbuttons = gears.table.join(
 awful.mouse.snap.edge_enabled = false
 
 awful.rules.rules = {
-	{rule = {},
-	 properties = { border_width	= beautiful.border_width,
-	 		border_color	= beautiful.border_normal,
-			focus		= awful.client.focus.filter,
-			raise		= true,
-			keys		= clientkeys,
-			buttons		= clientbuttons,
-			titlebars_enabled=false,
-			screen		= awful.screen.preferred,
-			honor_padding	= true,
-			size_hints_honor= false,
-			placement 	= awful.placement.no_offscreen }},
-
+	{
+		rule = {},
+		properties = {
+			border_width      = beautiful.border_width,
+			border_color      = beautiful.border_normal,
+			focus             = awful.client.focus.filter,
+			raise             = true,
+			keys              = clientkeys,
+			buttons           = clientbuttons,
+			titlebars_enabled = false,
+			screen            = awful.screen.preferred,
+			honor_padding     = true,
+			size_hints_honor  = false,
+			placement         = awful.placement.no_offscreen,
+		}
+	},
 }
 -- }}}
 -- {{{ Signals
@@ -353,16 +346,16 @@ client.connect_signal("manage", function(c)
 		awful.placement.no_offscreen(c)
 	end
 
-	--local buttons = gears.table.join(
-	--awful.button({}, 1, function()
-		--c:emit_signal("request::activate", "titlebar", {raise=true})
-		--awful.mouse.client.move(c)
-	--end),
-	--awful.button({}, 3, function()
-		--c:emit_signal("request::activate", "titlebar", {raise=true})
-		--awful.mouse.client.resize(c)
-	--end)
-	--)
+	-- local buttons = gears.table.join(
+	-- awful.button({}, 1, function()
+	-- c:emit_signal("request::activate", "titlebar", {raise=true})
+	-- awful.mouse.client.move(c)
+	-- end),
+	-- awful.button({}, 3, function()
+	-- c:emit_signal("request::activate", "titlebar", {raise=true})
+	-- awful.mouse.client.resize(c)
+	-- end)
+	-- )
 	c:emit_signal("property::window")
 end)
 

@@ -5,12 +5,19 @@ local beautiful = require "beautiful"
 local gears = require "gears"
 local gio = require "lgi".Gio
 
+-- check if battery exists
+if not gears.filesystem.file_readable "/sys/class/power_supply/BAT0/charge_now"
+	or not gears.filesystem.file_readable "/sys/class/power_supply/BAT0/charge_full"
+then
+	return wibox.widget.textbox("")
+end
+
 local function p(...)
 	local t = {}
 	for i = 1, select("#", ...) do
 		t[i] = tostring((select(i, ...)))
 	end
-	naughty.notify { title = "p", text = table.concat(t, "\n") }
+	naughty.notify { title = "dbg", text = table.concat(t, "\n") }
 end
 
 local function readAll(filename)
@@ -37,25 +44,20 @@ end
 local charge_now_path = "/sys/class/power_supply/BAT0/charge_now"
 local charge_full_path = "/sys/class/power_supply/BAT0/charge_full"
 
+local bar = wibox.widget.progressbar()
+local text = wibox.widget.textbox()
+
 local function updater()
 	local now = tonumber(readAll(charge_now_path)) or 0
 	local full = tonumber(readAll(charge_full_path)) or 1
-	widget:set_value(charge_now / charge_full)
-	text:set_text(math.floor(charge_now * 100 / charge_full) .. "%")
+	bar:set_value(now / full)
+	text:set_text(tostring(math.floor(now * 100 / full)) .. "%")
 end
 
--- check if battery exists
-if not gears.filesystem.file_readable "/sys/class/power_supply/BAT0/charge_now"
-	or not gears.filesystem.file_readable "/sys/class/power_supply/BAT0/charge_full"
-then
-	return wibox.widget.textbox("")
-end
-
-local bar = wibox.widget.progressbar()
-local text = wibox.widget.textbox()
 local timer = gears.timer {
-	timeout = 60,
+	timeout = 20,
 	autostart = true,
+	call_now = true,
 	callback = function()
 		local co = coroutine.create(updater)
 		gears.timer.delayed_call(function()
@@ -82,7 +84,5 @@ local indicator = wibox.widget {
 	},
 	{ widget = text }
 }
-
-
 
 return indicator

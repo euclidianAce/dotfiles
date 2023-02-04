@@ -4,6 +4,7 @@ local awful = require "awful"
 local beautiful = require "beautiful"
 local gears = require "gears"
 local gio = require "lgi".Gio
+local async = require "async"
 
 -- check if battery exists
 if not gears.filesystem.file_readable "/sys/class/power_supply/BAT0/charge_now"
@@ -20,27 +21,6 @@ local function p(...)
 	naughty.notify { title = "dbg", text = table.concat(t, "\n") }
 end
 
-local function readAll(filename)
-	local to_resume = coroutine.running()
-	gio.Async.start(function()
-		local file = gio.File.new_for_path(filename)
-		local info, err = file:async_query_info("standard::size", "NONE")
-		if not info then
-			gears.timer.delayed_call(function()
-				coroutine.resume(to_resume, nil, err)
-			end)
-			return
-		end
-		local stream = file:async_read()
-		local bytes = stream:async_read_bytes(info:get_size())
-		stream:async_close()
-		gears.timer.delayed_call(function()
-			coroutine.resume(to_resume, bytes.data)
-		end)
-	end)()
-	return coroutine.yield()
-end
-
 local charge_now_path = "/sys/class/power_supply/BAT0/charge_now"
 local charge_full_path = "/sys/class/power_supply/BAT0/charge_full"
 
@@ -48,8 +28,8 @@ local bar = wibox.widget.progressbar()
 local text = wibox.widget.textbox()
 
 local function updater()
-	local now = tonumber(readAll(charge_now_path)) or 0
-	local full = tonumber(readAll(charge_full_path)) or 1
+	local now = tonumber(async.readAll(charge_now_path)) or 0
+	local full = tonumber(async.readAll(charge_full_path)) or 1
 	bar:set_value(now / full)
 	text:set_text(tostring(math.floor(now * 100 / full)) .. "%")
 end

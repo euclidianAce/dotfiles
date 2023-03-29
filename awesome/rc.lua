@@ -74,7 +74,7 @@ menubar.utils.terminal = terminal
 menubar.show_categories = false
 menubar.refresh()
 
-local tags = {"1","2","3","4"}
+local tags = { "1", "2", "3", "4", "5" }
 
 awful.screen.connect_for_each_screen(function(s)
 	local spacer = wibox.widget.textbox("  ")

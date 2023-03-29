@@ -1,7 +1,8 @@
 local awful = require "awful"
-local wibox = require "wibox"
-local naughty = require "naughty"
 local beautiful = require "beautiful"
+local gears = require "gears"
+local naughty = require "naughty"
+local wibox = require "wibox"
 
 -- TODO find a nice little icon
 
@@ -48,7 +49,14 @@ local function muteToggle()
 	end)
 end
 
-updateVisual()
+gears.timer {
+	timeout = 10,
+	autostart = true,
+	call_now = true,
+	callback = function()
+		updateVisual()
+	end,
+}
 
 local delta = 10
 

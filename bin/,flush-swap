@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# my computer is old and slow
+# so if anything starts using swap (games, the modern web, etc) everything else
+# slows to a crawl even after the offending process is done
+# forcing the other apps to stop using swap makes them reasonable again
+
+set -xe
+
+sudo sh -c 'echo "swapoff..."; swapoff /dev/sda2 && swapon /dev/sda2'

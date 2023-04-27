@@ -2,7 +2,7 @@
 	name = Corey Williamson
 	email = euclidianAce@protonmail.com
 [diff]
-	tool = vimdiff
+	tool = nvimdiff
 	prompt = NO
 [core]
 	pager = less -F -X

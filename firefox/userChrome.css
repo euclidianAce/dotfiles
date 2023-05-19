@@ -5,13 +5,30 @@
 #sidebar-header { display: none; }
 
 /* set browser content to be top window (setting tabs/url bar to bottom) */
-#browser { -moz-box-ordinal-group: 0 !important; }
+#browser {
+	-moz-box-ordinal-group: 0 !important; /* firefox <113 */
+	order: -1; !important; /* firefox >= 113 */
+}
 
 /* make search suggestions grow upwards now that the bar is at the bottom */
 #urlbar {
-	top: unset !important;
+	top: auto !important;
 	bottom: calc((var(--urlbar-toolbar-height) - var(--urlbar-height)) / 2) !important;
 	box-shadow: none !important;
 	display: flex !important;
-	flex-direction: column !important;
+
+	/* column will make the text entry be at the top, column-reverse will keep it where it is */
+	flex-direction: column-reverse !important;
+}
+
+#navigator-toolbox { padding-top: var(--uc-titlebar-padding,0px) !important; }
+
+/* make navbar go away in fullscreen */
+#navigator-toolbox[inFullscreen]{ margin-top: 0 !important }
+#navigator-toolbox[inFullscreen][style*="margin-top"]{ visibility: collapse }
+#fullscr-toggler{ bottom: 0; top: unset !important; }
+
+#titlebar {
+	-moz-appearance: none !important;
+	--tabs-navbar-shadow-size: 0px;
 }

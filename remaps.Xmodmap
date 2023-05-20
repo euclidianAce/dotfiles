@@ -1,4 +1,0 @@
-
-! Right alt to control
-keycode 108 = Control_R
-add control = Control_L Control_R

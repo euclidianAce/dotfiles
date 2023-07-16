@@ -5,6 +5,7 @@
 git -> $XDG_CONFIG_HOME/
 nvim -> $XDG_CONFIG_HOME/
 kitty -> $XDG_CONFIG_HOME/
+wezterm -> $XDG_CONFIG_HOME/
 awesome -> $XDG_CONFIG_HOME/
 .tmux.conf -> $HOME/
 zathura -> $XDG_CONFIG_HOME/

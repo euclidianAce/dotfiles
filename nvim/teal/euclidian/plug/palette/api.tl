@@ -126,7 +126,7 @@ local function applyHighlights(
 	hi.StorageClass            = { bright[primaryComplement], nil, "bold" }
 
 	hi.Special                 = { bright[secondary] }
-	hi.Delimiter               = { dark[primary] }
+	hi.Delimiter               = { bright.gray }
 
 	hi.PreProc                 = { bright[secondary] }
 

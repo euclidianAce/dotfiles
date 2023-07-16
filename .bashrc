@@ -26,7 +26,7 @@ export HISTFILESIZE=20000
 export HISTSIZE=10000
 shopt -s histappend
 HISTCONTROL=ignoredups
-export HISTIGNORE="&:l[sal]:[bf]g:clear:exit:.."
+export HISTIGNORE="&:l[sal]:[bf]g:clear:exit:..:sdn:rb:reboot:shutdown"
 
 ##########################
 #### ENVIRONMENT VARS ####

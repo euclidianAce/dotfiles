@@ -48,7 +48,7 @@ for s = 1, screen.count() do
 	gears.wallpaper.maximized(beautiful.wallpaper, s, true)
 end
 
-local terminal = "kitty"
+local terminal = "wezterm"
 
 -- Set modkey to Win
 local modkey = "Mod4"

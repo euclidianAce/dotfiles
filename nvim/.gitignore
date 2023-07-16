@@ -2,7 +2,6 @@ scripts/.nvimgen.lua
 .scripter/
 plugged
 ftdetect
-syntax
 teal-types
 .last_nvim_commit
 local-packages/

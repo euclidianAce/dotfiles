@@ -66,5 +66,9 @@ return {
 		awful.key({}, "XF86AudioRaiseVolume", function() addVolume(delta) end),
 		awful.key({}, "XF86AudioLowerVolume", function() addVolume(-delta) end),
 		awful.key({}, "XF86AudioMute", function() muteToggle() end),
+
+		awful.key({}, "XF86AudioPause", function() awful.spawn.easy_async("playerctl pause", function() end) end),
+		awful.key({}, "XF86AudioPlay", function() awful.spawn.easy_async("playerctl play", function() end) end),
+		awful.key({}, "XF86AudioPlayPause", function() awful.spawn.easy_async("playerctl play-pause", function() end) end),
 	},
 }

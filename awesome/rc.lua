@@ -74,7 +74,7 @@ menubar.utils.terminal = terminal
 menubar.show_categories = false
 menubar.refresh()
 
-local tags = { "1", "2", "3", "4", "5" }
+local tags = { "-2", "-1", "0", "+1", "+2" }
 
 awful.screen.connect_for_each_screen(function(s)
 	local spacer = wibox.widget.textbox("  ")
@@ -86,6 +86,12 @@ awful.screen.connect_for_each_screen(function(s)
 
 	-- each screens tag layout
 	awful.tag(tags, s, awful.layout.layouts[1])
+	do
+		local middle = math.floor((#s.tags + 1) / 2)
+		if middle == 0 then middle = 1 end
+		s.tags[middle]:view_only()
+	end
+
 	-- tags
 	s.taglist = awful.widget.taglist(
 		s, -- screen

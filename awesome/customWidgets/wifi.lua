@@ -62,7 +62,7 @@ for line in configContents:gmatch("[^\n]") do
 			name,
 			function()
 				naughty.notify{ text = "selected network: " .. name }
-				awful.spawn.easy_async(wpafmt:format("select_network " .. num))
+				awful.spawn.easy_async(wpafmt:format("select_network " .. num), function() end)
 			end
 		})
 	end

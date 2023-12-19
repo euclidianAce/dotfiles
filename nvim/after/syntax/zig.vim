@@ -1,1 +1,1 @@
-syntax match Delimiter /[()\[\],\.:;{}]/
+syntax match Delimiter /[()[\],.:;{}]/

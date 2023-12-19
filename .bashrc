@@ -86,10 +86,6 @@ ebrc () {
 	$EDITOR "$DOTFILE_DIR/.bashrc" && source ~/.bashrc
 }
 
-envrc () {
-	$EDITOR +'cd $DOTFILE_DIR/nvim/' +'Telescope find_files'
-}
-
 alias gs="git status --short"
 alias gsl="git status"
 

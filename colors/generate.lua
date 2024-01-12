@@ -156,7 +156,7 @@ local function generate_vim_colorscheme()
 		["SpecialComment"] = "syntax-todo",
 		["Todo"] = "syntax-todo",
 		["SpecialChar"] = "syntax-string-escape",
-		["Function"] = "syntax-keyword",
+		["Function"] = "syntax-call",
 		["Special"] = "bright-text",
 		["Tag"] = "bright-text",
 

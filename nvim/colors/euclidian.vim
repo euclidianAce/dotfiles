@@ -33,7 +33,7 @@ hi FoldColumn guifg=#77405F guibg=#16131F
 hi clear Folded
 hi Folded guifg=#77405F guibg=#2B2735
 hi clear Function
-hi Function guifg=#799AE0
+hi Function guifg=#AAC3FD
 hi clear Identifier
 hi Identifier guifg=#D8CEE4 guibg=#181520
 hi clear IncSearch

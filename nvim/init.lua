@@ -142,6 +142,8 @@ set(vim.opt, {
 	equalalways = false,
 	list = true,
 	formatoptions = "croqlj",
+
+	statusline = " %4n %t %{FugitiveStatusline()} %h%q%m%w %= Line %l of %L "
 })
 
 vim.cmd "colorscheme euclidian"

@@ -86,7 +86,7 @@ end
 
 function Spec:updateCmd(): {string}
 	if self.kind == "git" then
-		return { "git", "-C", self:location(), "pull" }
+		return { "git", "-C", self:location(), "pull", "--depth=1" }
 	end
 end
 

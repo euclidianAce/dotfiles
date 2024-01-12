@@ -1,4 +1,6 @@
-plugin { git = "https://github.com/editorconfig/editorconfig-vim" }
+-- neovim comes with this now
+-- plugin { git = "https://github.com/editorconfig/editorconfig-vim" }
+
 plugin { git = "https://github.com/teal-language/vim-teal" }
 plugin { git = "https://tpope.io/vim/fugitive.git" }
 

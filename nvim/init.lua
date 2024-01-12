@@ -148,6 +148,6 @@ set(vim.opt, {
 
 vim.cmd "colorscheme euclidian"
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
-vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>")
+vim.keymap.set("n", "<leader>n", "<cmd>echo \"Use <c-l> instead!\"<cr>")
 vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>")
 vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>")

@@ -32,8 +32,8 @@ syntax-call	bright.blue
 
 paren-matching	normal.bg	bright.orange
 
-git-diff-add	dark.green
-git-diff-delete	dark.red
+git-diff-add	normal.green
+git-diff-delete	normal.red
 
 ansi-terminal-0	normal.gray
 ansi-terminal-1	normal.red

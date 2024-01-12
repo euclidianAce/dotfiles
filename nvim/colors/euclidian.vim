@@ -101,7 +101,7 @@ hi WarningMsg guibg=#D16161
 hi clear WildMenu
 hi WildMenu guifg=#181520 guibg=#D5C876
 hi clear diffAdded
-hi diffAdded guifg=#32754B
+hi diffAdded guifg=#53B67E
 hi clear diffRemoved
-hi diffRemoved guifg=#77405F
+hi diffRemoved guifg=#D16161
 finish

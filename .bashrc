@@ -142,6 +142,17 @@ mkcd () {
 	mkdir -v -p "$1" && cd "$1"
 }
 
+lcat () {
+	local kind=$(stat -c %F "$1")
+	if [[ "$kind" == "directory" ]]; then
+		ls "$1"
+	elif [[ -n "$kind" ]]; then
+		cat "$1"
+	else
+		return 1
+	fi
+}
+
 alias sdn="sudo shutdown -h now"
 alias rb="sudo reboot"
 
@@ -156,12 +167,13 @@ ps1swap () {
 	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
 }
 update_ps1 () {
+	local last_exit_code="$?"
 	if (( $SET_DEFAULT_PS1 == 1 )); then
 		PS1=$MY_PS1
 		return 0
 	fi
 
-	PS1=$($DOTFILE_DIR/ps1-bash 2> /tmp/ps1ErrLog.log)
+	PS1=$($DOTFILE_DIR/ps1-bash $last_exit_code 2> /tmp/ps1ErrLog.log)
 	if [ "$PS1" = "" ]; then
 		PS1=$MY_PS1
 	fi

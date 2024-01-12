@@ -1,52 +1,95 @@
-__euclidian = {}
+-- lil baby plugin manager
+do
+	local plugin_specs = {}
+	repeat
+		local function add_spec(spec)
+			local result = {}
+			for _, kind in ipairs { "git", "local_dir" } do
+				if spec[kind] then
+					result.kind = kind
+					result.data = spec[kind]
+					break
+				end
+			end
+			if not result.kind then
+				error("Unknown plugin kind '" .. tostring((next(spec))) .. "'", 2)
+			end
+			table.insert(plugin_specs, result)
+		end
+		local f, err = loadfile(os.getenv "HOME" .. "/.config/nvim/plugins.lua")
+		if not f then
+			vim.notify("Could not load plugin list: " .. tostring(err), vim.log.levels.WARN)
+			break
+		end
+		setfenv(f, setmetatable({}, { __index = function(self, k)
+			if k == "plugin" then return add_spec end
+			return _G[k]
+		end}))
+		local ok, err = pcall(f)
+		if not ok then
+			vim.notify("Error loading plugin list: " .. tostring(err), vim.log.levels.ERROR)
+			-- don't load anything on error
+			plugin_specs = {}
+			break
+		end
+	until true
+
+	local function run(...)
+		local command = table.concat({ ... }, " ")
+		local result = vim.fn.system(command, " ")
+		if vim.v.shell_error ~= 0 then
+			vim.notify("Error running command '" .. command .. "':\n" .. result)
+			return nil, result
+		end
+		return result
+	end
+
+	local data_path = vim.fn.stdpath "data" .. "/site/pack/plugins/opt"
+	if not vim.loop.fs_stat(data_path) then
+		run("mkdir", "-p", data_path)
+	end
+
+	local anything_fetched = false
+	for _, spec in ipairs(plugin_specs) do
+		repeat
+			if spec.kind == "git" then
+				-- transform to local path
+				local s, e = spec.data:find("/([^/]-)$")
+				assert(s)
+				local name = spec.data:sub(s + 1, e)
+				if name:sub(-4, -1) == ".git" then
+					name = name:sub(1, -5)
+				end
+				assert(#name > 0)
+				local location = data_path .. "/" .. name
+				if not vim.loop.fs_stat(location) then
+					print("Fetching plugin " .. spec.data)
+					if not run("mkdir", "-p", data_path) then break end
+					if not run("git", "-C", data_path, "clone", "--depth=1", "--", spec.data, name) then break end
+					anything_fetched = true
+				end
+				vim.cmd("packadd! " .. name)
+			elseif spec.kind == "local_dir" then
+				vim.opt.runtimepath:append(spec.data)
+			end
+		until true
+	end
+
+	if anything_fetched then
+		print("Regenerating helptags")
+		vim.cmd "helptags ALL"
+	end
+end
 
 -- add local-plugins dir to rtp
 local dotdir = os.getenv "DOTFILE_DIR"
 if dotdir then
-	local pkgs = dotdir .. "/nvim/local-packages/"
+	local pkgs = dotdir .. "/nvim/local-plugins/"
 	vim.opt.packpath:append(pkgs)
 	pcall(vim.cmd, "source " .. pkgs .. "init.vim")
 end
 
-local windows = vim.fn.has("win32") == 1
-
--- trick the teal compat code
-bit32 = require("bit")
-
-function unload(lib)
-	package.loaded[lib] = nil
-end
-
-function req(lib)
-	unload(lib)
-	return require(lib)
-end
-
-confload = vim.schedule_wrap(function(lib, reload)
-	if reload then unload("euclidian.config." .. lib) end
-	require("euclidian.config." .. lib)
-end)
-function libreq(lib, reload)
-	if reload then unload("euclidian.lib." .. lib) end
-	return require("euclidian.lib." .. lib)
-end
-function plugreq(lib, reload)
-	if reload then unload("euclidian.plug." .. lib .. ".api") end
-	return require("euclidian.plug." .. lib .. ".api")
-end
-function plugload(lib, reload)
-	if reload then unload("euclidian.plug." .. lib) end
-	return require("euclidian.plug." .. lib)
-end
-
-local nvim = libreq("nvim")
-nvim.command[[colorscheme euclidian]]
-
-hi = libreq("color").scheme.hi
-
-nvim.command[[filetype indent on]]
-nvim.command[[syntax enable]]
-
+-- configuration
 local function set(t, options)
 	for opt, val in pairs(options) do
 		t[opt] = val
@@ -66,29 +109,18 @@ set(vim.g, {
 })
 
 set(vim.opt, {
-	guicursor = "i-c:ver15,o-r-v:hor30,a:Cursor",
-	-- guicursor = "i-c:ver15,o-r-v:hor30,a:blinkwait700-blinkon1200-blinkoff400-Cursor",
-	-- guicursor = "a:block",
-	-- guicursor = "n:hor15",
-	-- guicursor = "n:hor15,i:ver30",
-
+	termguicolors = true,
+	guicursor = "a:block",
+	number = true,
+	relativenumber = true,
+	numberwidth = 4,
 	undofile = true,
 	mouse = "nv",
-	termguicolors = true,
-	belloff = "all",
-	swapfile = false,
-	updatetime = 1250,
-	switchbuf = "useopen",
-	wildmenu = true,
-	showcmd = true,
 	breakindent = true,
 	lazyredraw = true,
 	splitbelow = true,
 	splitright = true,
-	incsearch = true,
-	showmode = false,
-	modeline = true,
-	linebreak = true,
+	-- showmode = false,
 	ignorecase = true,
 	smartcase = true,
 	gdefault = true,
@@ -103,200 +135,17 @@ set(vim.opt, {
 		vertright = " ",
 		verthoriz = " ",
 	},
-	inccommand = "nosplit",
-	laststatus = 2,
-	-- cmdheight = 0,
 	scrolloff = 2,
 	virtualedit = { "block", "onemore" },
-	foldmethod = "marker",
-	foldenable = true,
 	cursorline = true,
 	cursorlineopt = { "number", "line" },
 	equalalways = false,
-
-	formatoptions = "lrojq",
-
 	list = true,
-
-	signcolumn = "yes:1",
-	numberwidth = 4,
-	number = true,
-	relativenumber = true,
+	formatoptions = "croqlj",
 })
 
-plugload "package-manager"
--- TODO: package-manager needs a way to do this
-require "treesitter-context".setup {}
-
-local shell = windows and "nu" or "bash"
-plugload "floatterm" {
-	{
-		{ row = 1, wid = 0.9, hei = 0.8, centered = { horizontal = true }, notMinimal = true },
-		shell,
-		{},
-		{ toggle = { {"n", "t"}, ""} }
-	},
-	{
-		{ row = 3, wid = 0.9, hei = 0.8, centered = { horizontal = true }, notMinimal = true },
-		shell,
-		{},
-		{ toggle = { {"n", "t"}, ""} }
-	},
-}
-plugload "spacehighlighter" {
-	highlight = "TrailingWhitespace",
-}
-plugload "printmode" {
-	mode = "inspect",
-}
-plugload "manfolder"
-plugload "locationjump" {
-	vmap = "J",
-	openWith = function(file, line)
-		local ft = plugreq("floatterm")
-		local term = ft.fromWindow()
-		if term then term:hide() end
-		plugreq("locationjump").jump(file, line)
-	end,
-}
-plugload "palette" { theme = "default" }
-plugload "ui"
-plugload "align"
-
-if not windows then
-	-- Treesitter is finicky on windows
-	local tsLangs = { "teal", "lua", "javascript", "c", "query", "nix" }
-	require("nvim-treesitter.configs").setup{
-		ensure_installed = tsLangs,
-		highlight = { enable = tsLangs },
-	}
-end
-
-local function isExecutable(name) return vim.fn.executable(name) == 1 end
-
-do
-	local group = nvim.createAugroup("Custom")
-	group:add("FileType", {
-		pattern = { "teal", "lua" },
-		callback = function()
-			local buf = nvim.Buffer()
-			buf:setOption("shiftwidth", 3)
-			buf:setOption("tabstop", 3)
-		end,
-		desc = "Set tabstop and shiftwidth",
-	})
-	group:add({ "BufReadPost", "BufNewFile" }, {
-		pattern = "*.h",
-		callback = function()
-			nvim.Buffer():setOption("filetype", "c")
-		end,
-		desc = ".h files are c files"
-	})
-	group:add({ "BufReadPost", "BufNewFile" }, {
-		pattern = { "*.adb", "*.ads", "*.gpr" },
-		callback = function()
-			local buf = nvim.Buffer()
-			buf:setOption("shiftwidth", 3)
-			buf:setOption("tabstop", 3)
-			buf:setOption("expandtab", true)
-
-			buf:delKeymap("i", "<space>aj")
-			buf:delKeymap("i", "<space>al")
-		end,
-		desc = "Remove stupid Ada insert mode bindings",
-	})
-	group:add({ "BufReadPost", "BufNewFile" }, {
-		pattern = { "*.c", "*.h", "*.cpp", "*.hpp" },
-		callback = function()
-			local buf = nvim.Buffer()
-			buf:setOption("commentstring", "// %s")
-		end,
-		desc = "Set proper commentstring",
-	})
-	group:add("TextYankPost", {
-		callback = function()
-			vim.highlight.on_yank{ higroup = "STLNormal", timeout = 175, on_macro = true }
-		end,
-		desc = "Highlight yanks",
-	})
-	group:add("TermOpen", {
-		callback = function()
-			local win = nvim.Window()
-			win:setOption("number", false)
-			win:setOption("relativenumber", false)
-			win:setOption("signcolumn", "no")
-		end,
-		desc = "Set window options for terminal windows (remove line numbers and sign column)",
-	})
-end
-
-require("lspconfig")
-
-vim.diagnostic.config{
-	virtual_text = {
-		prefix = "",
-	}
-}
-
-confload("statusline")
-confload("keymaps")
-
-local function requirer(str)
-	return setmetatable({}, {
-		__index = function(self, key)
-			rawset(self, key, require(str .. "." .. key))
-			return rawget(self, key)
-		end,
-	})
-end
-
-if vim.fn.exists(":GuiRenderLigatures") == 2 then
-	nvim.command[[GuiRenderLigatures 1]]
-end
-if vim.fn.exists(":GuiFont") == 2 then
-	-- apparently just "JuliaMono" doesn't have ligatures?
-	-- nvim.command[[GuiFont! JuliaMono Medium:h10]]
-	nvim.command[[GuiFont! Ubuntu Mono:h12]]
-end
-
-nvim.api.createUserCommand("Lua", ":lua print(<args>)<cr>", { complete = "lua", nargs = "*" })
-nvim.api.createUserCommand(
-	"Make",
-	function()
-		local buf = nvim.Buffer()
-		nvim.command("make")
-		vim.diagnostic.set(
-			nvim.api.createNamespace("euclidian.Make"),
-			buf.id,
-			vim.diagnostic.fromqflist(vim.fn.getqflist())
-		)
-	end,
-	{}
-)
-
-nvim.api.createUserCommand(
-	"ToHex",
-	function(args)
-		print(("0x%x"):format(tonumber(args.args)))
-	end,
-	{ nargs = 1 }
-)
-
-nvim.command[[hi! link cError NONE]]
-nvim.command[[hi! link cppError NONE]]
-
-setmetatable(_G, {
-	__index = function(_, key)
-		for _, r in ipairs{libreq, plugreq} do
-			local ok, res = pcall(r, key)
-			if ok then
-				return res
-			end
-		end
-		local ok, res = pcall(require, key)
-		if ok then
-			return res
-		end
-		return nil
-	end
-})
+vim.cmd "colorscheme euclidian"
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>")
+vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>")
+vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>")

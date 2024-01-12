@@ -1,0 +1,76 @@
+group-name	foreground	background
+text	normal.fg	normal.bg
+faded-text	normal.gray	dark.bg
+highlighted-text	normal.fg	dark.blue
+
+dark-bg		dark.bg
+
+error	bright.red
+warning	bright.orange
+hint	bright.fg
+
+searched-highlighted-text		normal.red
+searched-selected-highlighted-text		bright.red
+
+ui-unfocused-element-background		dark.gray
+ui-focused-element-background		dark.red
+
+cursor-line-highlight		bright.bg
+
+syntax-comment	dark.red
+syntax-todo	bright.red
+syntax-literal	normal.red
+syntax-string-escape	bright.red
+syntax-keyword	normal.blue
+syntax-type	bright.purple
+syntax-attribute	bright.purple
+syntax-operator	normal.purple
+syntax-delimiter	normal.gray
+syntax-parameter	bright.orange
+syntax-call	bright.blue
+
+paren-matching	normal.bg	bright.orange
+
+git-diff-add	dark.green
+git-diff-delete	dark.red
+
+ansi-terminal-0	normal.gray
+ansi-terminal-1	normal.red
+ansi-terminal-2	normal.green
+ansi-terminal-3	normal.yellow
+ansi-terminal-4	normal.blue
+ansi-terminal-5	normal.magenta
+ansi-terminal-6	normal.cyan
+ansi-terminal-7	bright.gray
+ansi-terminal-8	bright.gray
+ansi-terminal-9	bright.red
+ansi-terminal-10	bright.green
+ansi-terminal-11	bright.yellow
+ansi-terminal-12	bright.blue
+ansi-terminal-13	bright.magenta
+ansi-terminal-14	bright.cyan
+ansi-terminal-15	bright.fg
+
+vim-TabLine	dark.red	normal.gray
+vim-TabLineSel	normal.red	normal.gray
+vim-TabLineFill		dark.gray
+
+vim-Title	dark.red
+
+vim-FloatBorder	dark.fg	bright.bg
+
+vim-Pmenu	normal.fg	bright.bg
+vim-PmenuSel		normal.gray
+vim-PmenuSbar		bright.gray
+vim-PmenuThumb		normal.gray
+
+vim-Question	normal.green
+
+vim-Folded	dark.red	bright.bg
+vim-FoldColumn	dark.red	dark.bg
+vim-SignColumn	bright.bg	dark.bg
+vim-NonText	bright.bg
+
+vim-Directory	normal.blue
+vim-WarningMsg		normal.red
+vim-WildMenu	normal.bg	normal.yellow

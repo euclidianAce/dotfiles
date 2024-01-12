@@ -85,6 +85,7 @@ static inline void put_color(Ansi_Color col) {
 static void setup_time_component(void);
 static void setup_username_component(void);
 static void setup_cwd_component(void);
+static void setup_exit_code_component(char const *);
 static void setup_git_branch_component(void);
 static const char *username;
 
@@ -110,13 +111,14 @@ static size_t compute_length(void) {
 	return result;
 }
 
-int main(void) {
+int main(int argc, char const **argv) {
 	username = getenv("USER");
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) != 0) {
 		perror("ioctl");
 		exit(EXIT_FAILURE);
 	}
 
+	setup_exit_code_component(argc >= 2 ? argv[1] : NULL);
 	setup_time_component();
 	setup_username_component();
 	setup_cwd_component();
@@ -286,6 +288,17 @@ static void setup_cwd_component(void) {
 	while (dir_component->len < minlen) {
 		dir_component->data[dir_component->len++] = ' ';
 	}
+}
+
+static void setup_exit_code_component(char const *last_exit_code) {
+	if (!last_exit_code) return;
+	size_t len = strlen(last_exit_code);
+	if (len == 0) return;
+	if (len == 1 && last_exit_code[0] == '0') return;
+
+	Component *exit_code_component = next_component();
+	exit_code_component->color = ANSI_RED;
+	strcpy_component(exit_code_component, last_exit_code);
 }
 
 static FILE *popen_or_exit(char const *command, char const *type) {

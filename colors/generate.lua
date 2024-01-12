@@ -74,8 +74,6 @@ local groups = parse_tsv "group-names.tsv"
 local function generate_vim_colorscheme()
 	local lines = {
 		"set background=dark",
-		"let s:t_Co = &t_Co",
-		"hi clear",
 		"let g:colors_name = 'euclidian'"
 	}
 
@@ -102,7 +100,7 @@ local function generate_vim_colorscheme()
 	end
 
 	local function hi(vim_group_name, group)
-		local buf = { "hi ", vim_group_name, " ctermfg=NONE ctermbg=NONE cterm=NONE" }
+		local buf = { "hi ", vim_group_name }
 
 		if group.foreground then
 			local actual = get_color_by_string(group.foreground)
@@ -116,7 +114,7 @@ local function generate_vim_colorscheme()
 			table.insert(buf, actual)
 		end
 
-
+		table.insert(lines, "hi clear " .. vim_group_name)
 		table.insert(lines, table.concat(buf))
 	end
 
@@ -146,6 +144,24 @@ local function generate_vim_colorscheme()
 		["DiagnosticHint"] = "hint",
 		["DiagnosticInfo"] = "text",
 		["DiagnosticWarning"] = "warning",
+
+		["Delimiter"] = "syntax-delimiter",
+
+		["Statement"] = "syntax-keyword",
+		["Keyword"] = "syntax-keyword",
+		["Operator"] = "syntax-operator",
+		["PreProc"] = "syntax-keyword",
+		["Type"] = "syntax-type",
+		["StorageClass"] = "syntax-attribute",
+		["SpecialComment"] = "syntax-todo",
+		["Todo"] = "syntax-todo",
+		["SpecialChar"] = "syntax-string-escape",
+		["Function"] = "syntax-keyword",
+		["Special"] = "bright-text",
+		["Tag"] = "bright-text",
+
+		["diffRemoved"] = "git-diff-delete",
+		["diffAdded"] = "git-diff-add",
 	}
 
 	-- add all the vim-* groups
@@ -169,7 +185,6 @@ local function generate_vim_colorscheme()
 		end
 	end
 
-	table.insert(lines, "unlet s:t_Co")
 	table.insert(lines, "finish")
 
 	return table.concat(lines, "\n")

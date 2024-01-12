@@ -2,6 +2,7 @@ group-name	foreground	background
 text	normal.fg	normal.bg
 faded-text	normal.gray	dark.bg
 highlighted-text	normal.fg	dark.blue
+bright-text	bright.blue
 
 dark-bg		dark.bg
 
@@ -9,11 +10,11 @@ error	bright.red
 warning	bright.orange
 hint	bright.fg
 
-searched-highlighted-text		normal.red
-searched-selected-highlighted-text		bright.red
+searched-highlighted-text	dark.bg	normal.red
+searched-selected-highlighted-text	dark.bg	bright.red
 
-ui-unfocused-element-background		dark.gray
-ui-focused-element-background		dark.red
+ui-unfocused-element-background		normal.gray
+ui-focused-element-background	dark.bg	dark.red
 
 cursor-line-highlight		bright.bg
 
@@ -25,7 +26,7 @@ syntax-keyword	normal.blue
 syntax-type	bright.purple
 syntax-attribute	bright.purple
 syntax-operator	normal.purple
-syntax-delimiter	normal.gray
+syntax-delimiter	bright.gray
 syntax-parameter	bright.orange
 syntax-call	bright.blue
 

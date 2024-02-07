@@ -162,7 +162,7 @@ alias rb="sudo reboot"
 
 SET_DEFAULT_PS1=0
 export MY_PS1=$PS1
-export PS2=" \[\e[90m\]│\[\e[0m\] "
+export PS2=" \[\e[90m\]│\[\e[0m\]  "
 ps1swap () {
 	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
 }

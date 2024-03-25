@@ -127,7 +127,7 @@ end)
 
 -- Aliases for convenience
 local m    = modkey
-local crtl = "Control"
+local ctrl = "Control"
 local shft = "Shift"
 local alt  = "Mod1"
 
@@ -147,6 +147,16 @@ local globalkeys = gears.table.join(
 		{m,shft}, "l",
 		awful.tag.viewnext,
 		{ description = "view next", group = "tag" }
+	),
+	awful.key(
+		{m,ctrl}, "h",
+		partial(awful.screen.focus_relative, -1),
+		{ description = "focus previous screen", group = "screen" }
+	),
+	awful.key(
+		{m,ctrl}, "l",
+		partial(awful.screen.focus_relative, 1),
+		{ description = "focus next screen", group = "screen" }
 	),
 	awful.key(
 		{m}, "k",
@@ -171,12 +181,12 @@ local globalkeys = gears.table.join(
 		{ description = "swap with previous client by index", group = "client" }
 	),
 	awful.key(
-		{m,crtl}, "j",
+		{m,ctrl}, "j",
 		partial(awful.screen.focus_relative, 1)
 		{ description = "focus the next screen", group = "screen" }
 	),
 	awful.key(
-		{m,crtl}, "k",
+		{m,ctrl}, "k",
 		partial(awful.screen.focus_relative, -1)
 		{ description = "focus the previous screen", group = "screen" }
 	),
@@ -199,7 +209,7 @@ local globalkeys = gears.table.join(
 		{ description = "open a floating terminal", group = "launcher" }
 	),
 	awful.key(
-		{m,crtl}, "r",
+		{m,ctrl}, "r",
 		awesome.restart,
 		{ description = "restart awesome", group = "awesome" }
 	),
@@ -290,7 +300,7 @@ for i = 1, #tags do
 		),
 
 		awful.key(
-			{m,crtl,shft}, "#" .. (i+9),
+			{m,ctrl,shft}, "#" .. (i+9),
 			function()
 				if client.focus then
 					local tag = client.focus.screen.tags[i]

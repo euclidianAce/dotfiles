@@ -1,5 +1,5 @@
 group-name	foreground	background
-text	normal.fg	normal.bg
+text	normal.fg
 faded-text	normal.gray	dark.bg
 highlighted-text	normal.fg	dark.blue
 bright-text	bright.blue

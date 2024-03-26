@@ -17,7 +17,7 @@ hi DiagnosticError guifg=#E69090
 hi clear DiagnosticHint
 hi DiagnosticHint guifg=#EFEFEF
 hi clear DiagnosticInfo
-hi DiagnosticInfo guifg=#D8CEE4 guibg=#181520
+hi DiagnosticInfo guifg=#D8CEE4
 hi clear DiagnosticWarning
 hi DiagnosticWarning guifg=#FFC590
 hi clear Directory
@@ -35,7 +35,7 @@ hi Folded guifg=#77405F guibg=#2B2735
 hi clear Function
 hi Function guifg=#AAC3FD
 hi clear Identifier
-hi Identifier guifg=#D8CEE4 guibg=#181520
+hi Identifier guifg=#D8CEE4
 hi clear IncSearch
 hi IncSearch guifg=#16131F guibg=#E69090
 hi clear Keyword
@@ -45,7 +45,7 @@ hi LineNr guifg=#464252 guibg=#16131F
 hi clear NonText
 hi NonText guifg=#2B2735
 hi clear Normal
-hi Normal guifg=#D8CEE4 guibg=#181520
+hi Normal guifg=#D8CEE4
 hi clear Operator
 hi Operator guifg=#9876D9
 hi clear Pmenu

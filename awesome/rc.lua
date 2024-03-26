@@ -250,6 +250,16 @@ local clientkeys = gears.table.join(
 		{ description = "close", group = "client" }
 	),
 	awful.key(
+		{m,ctrl,shft}, "h",
+		function(c) c:move_to_screen(c.screen.index - 1) end,
+		{ description = "move current window to previous screen", group = "client" }
+	),
+	awful.key(
+		{m,ctrl,shft}, "l",
+		function(c) c:move_to_screen(c.screen.index + 1) end,
+		{ description = "move current window to next screen", group = "client" }
+	),
+	awful.key(
 		{m}, "space",
 		function(c)
 			awful.client.floating.toggle(c)

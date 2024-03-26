@@ -12,3 +12,6 @@
 	detachedHead = false
 [pull]
 	rebase = true
+[grep]
+	lineNumber = true
+

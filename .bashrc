@@ -38,6 +38,8 @@ export DOTFILE_DIR="$HOME/dotfiles"
 export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
+export FZF_DEFAULT_COMMAND="$(which fd 2>/dev/null || echo find -type f)"
+
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
 	export PATH="./:$HOME/Applications:$HOME/bin:$HOME/bin/result/bin:/usr/local/bin:$DOTFILE_DIR/bin/:$PATH"
 fi

@@ -131,7 +131,6 @@ local ctrl = "Control"
 local shft = "Shift"
 local alt  = "Mod1"
 
-
 local globalkeys = gears.table.join(
 	awful.key(
 		{m}, "s",

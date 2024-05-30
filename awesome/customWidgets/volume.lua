@@ -8,6 +8,7 @@ local wibox = require "wibox"
 
 local widget = wibox.widget {
 	widget = wibox.container.arcchart,
+	start_angle = 3 * math.pi / 2,
 	value = 0,
 	min_value = 0,
 	max_value = 100,
@@ -31,6 +32,7 @@ local function updateVisual(after)
 	end)
 end
 
+-- TODO get some pure synthesized soundbyte here, there is a very noticable static to the current one
 local wav = "/home/corey/.config/awesome/pop.wav"
 local function pop()
 	awful.spawn.easy_async("aplay " .. wav, function() end)

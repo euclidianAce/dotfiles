@@ -26,6 +26,8 @@ hi clear Error
 hi Error guifg=#E69090
 hi clear ErrorMsg
 hi ErrorMsg guifg=#E69090
+hi clear Exception
+hi Exception guifg=#FFC590 gui=bold
 hi clear FloatBorder
 hi FloatBorder guifg=#817998 guibg=#2B2735
 hi clear FoldColumn

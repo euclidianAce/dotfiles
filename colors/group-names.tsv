@@ -1,4 +1,4 @@
-group-name	foreground	background
+group-name	foreground	background	extra
 text	normal.fg
 faded-text	normal.gray	dark.bg
 highlighted-text	normal.fg	dark.blue
@@ -29,6 +29,7 @@ syntax-operator	normal.purple
 syntax-delimiter	bright.gray
 syntax-parameter	bright.orange
 syntax-call	bright.blue
+syntax-exceptional	bright.orange		emphasis
 
 paren-matching	normal.bg	bright.orange
 
@@ -75,3 +76,8 @@ vim-NonText	bright.bg
 vim-Directory	normal.blue
 vim-WarningMsg		normal.red
 vim-WildMenu	normal.bg	normal.yellow
+
+nu-filepath	bright.cyan
+nu-filesize	normal.cyan
+nu-header	bright.green
+nu-row_index	bright.green

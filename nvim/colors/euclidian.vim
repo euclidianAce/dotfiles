@@ -44,10 +44,12 @@ hi clear Keyword
 hi Keyword guifg=#799AE0
 hi clear LineNr
 hi LineNr guifg=#464252 guibg=#16131F
+hi clear MatchParen
+hi MatchParen guifg=#181520 guibg=#FFC590
 hi clear NonText
 hi NonText guifg=#2B2735
 hi clear Normal
-hi Normal guifg=#D8CEE4
+hi Normal guifg=#D8CEE4 guibg=#181520
 hi clear Operator
 hi Operator guifg=#9876D9
 hi clear Pmenu
@@ -80,6 +82,8 @@ hi clear StatusLineNC
 hi StatusLineNC guibg=#464252
 hi clear StorageClass
 hi StorageClass guifg=#C7B1F2
+hi clear String
+hi String guifg=#D16161
 hi clear TabLine
 hi TabLine guifg=#77405F guibg=#464252
 hi clear TabLineFill
@@ -102,6 +106,8 @@ hi clear WarningMsg
 hi WarningMsg guibg=#D16161
 hi clear WildMenu
 hi WildMenu guifg=#181520 guibg=#D5C876
+hi clear WinSeparator
+hi WinSeparator guibg=#464252
 hi clear diffAdded
 hi diffAdded guifg=#53B67E
 hi clear diffRemoved

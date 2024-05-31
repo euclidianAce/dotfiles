@@ -89,6 +89,18 @@ local function get_color_by_string(str)
 	return palette[b][a]
 end
 
+local function add_all_groups_with_prefix(prefix, to_add_to)
+	for k, v in pairs(groups) do
+		if k:sub(1, #prefix) == prefix then
+			local name = k:sub(#prefix + 1, -1)
+			if to_add_to[name] then
+				io.stderr:write("Warning: ", name, " was overridden by ", k, " in group-names.tsv\n")
+			end
+			to_add_to[name] = k
+		end
+	end
+end
+
 local function generate_vim_colorscheme()
 	local lines = {
 		"set background=dark",
@@ -123,7 +135,7 @@ local function generate_vim_colorscheme()
 	end
 
 	local vim_group_to_group = {
-		["Normal"] = "text",
+		["Normal"] = "normal-fg-bg",
 		["Visual"] = "highlighted-text",
 		["Search"] = "searched-highlighted-text",
 		["IncSearch"] = "searched-selected-highlighted-text",
@@ -131,6 +143,7 @@ local function generate_vim_colorscheme()
 		["StatusLine"] = "ui-focused-element-background",
 		["StatusLineNC"] = "ui-unfocused-element-background",
 		["VertSplit"] = "ui-unfocused-element-background",
+		["WinSeparator"] = "ui-unfocused-element-background",
 
 		["CursorLine"] = "cursor-line-highlight",
 		["CursorLineNr"] = "dark-bg",
@@ -139,6 +152,7 @@ local function generate_vim_colorscheme()
 
 		["Comment"] = "syntax-comment",
 		["Constant"] = "syntax-literal",
+		["String"] = "syntax-literal",
 		["Identifier"] = "text",
 
 		["Error"] = "error",
@@ -148,6 +162,8 @@ local function generate_vim_colorscheme()
 		["DiagnosticHint"] = "hint",
 		["DiagnosticInfo"] = "text",
 		["DiagnosticWarning"] = "warning",
+
+		["MatchParen"] = "paren-matching",
 
 		["Delimiter"] = "syntax-delimiter",
 
@@ -170,12 +186,7 @@ local function generate_vim_colorscheme()
 		["diffAdded"] = "git-diff-add",
 	}
 
-	-- add all the vim-* groups
-	for k, v in pairs(groups) do
-		if k:sub(1, 4) == "vim-" then
-			vim_group_to_group[k:sub(5, -1)] = k
-		end
-	end
+	add_all_groups_with_prefix("vim-", vim_group_to_group)
 
 	local p = {}
 	for k, v in pairs(vim_group_to_group) do
@@ -211,8 +222,6 @@ local function generate_nushell_colorscheme()
 		separator = "syntax-delimiter",
 
 		date = "syntax-literal",
-		filesize = "syntax-literal",
-		row_index = "nu-row_index",
 
 		hints = "hint",
 		shape_garbage = "error",
@@ -240,7 +249,6 @@ local function generate_nushell_colorscheme()
 		shape_string = "bright-text",
 		shape_string_interpolation = "syntax-string-escape",
 
-		shape_filepath = "nu-filepath",
 		shape_keyword = "syntax-keyword",
 
 		shape_variable = "syntax-type",
@@ -250,10 +258,10 @@ local function generate_nushell_colorscheme()
 
 		shape_matching_brackets = "paren-matching",
 
-		header = "nu-header",
-		filesize = "nu-filesize",
-
 		search_result = "searched-selected-highlighted-text",
+
+		shape_external = "bright-text",
+		shape_externalarg = "text",
 
 		-- duration: white
 		-- range: white
@@ -262,7 +270,6 @@ local function generate_nushell_colorscheme()
 		-- nothing: white
 		-- binary: white
 		-- cell-path: white
-		-- row_index: green_bold
 		-- record: white
 		-- list: white
 		-- block: white
@@ -274,8 +281,6 @@ local function generate_nushell_colorscheme()
 		-- shape_custom: green
 		-- shape_datetime: cyan_bold
 		-- shape_directory: cyan
-		-- shape_external: cyan
-		-- shape_externalarg: green_bold
 		-- shape_flag: blue_bold
 		-- shape_float: purple_bold
 		-- shape_globpattern: cyan_bold
@@ -288,6 +293,8 @@ local function generate_nushell_colorscheme()
 		-- shape_signature: green_bold
 		-- shape_table: blue_bold
 	}
+
+	add_all_groups_with_prefix("nu-", nu_group_to_group)
 
 	do
 		local consts_to_make = {}

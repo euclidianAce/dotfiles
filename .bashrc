@@ -1,3 +1,8 @@
+if [[ "$(tty)" =~ ^/dev/tty ]]; then
+	# Don't auto start tmux in non pseudo tty
+	export NO_TMUX=1
+fi
+
 TMUX_COMMAND="tmux"
 # TMUX_COMMAND="env TERM=screen-256color tmux"
 
@@ -77,8 +82,7 @@ trash () {
 		mkdir -p "$TRASH_DIRECTORY" || return 1
 	fi
 
-	let unslashed=$(echo "$1" | sed 's,/,_,g')
-	mv -v "$1" "$TRASH_DIRECTORY/$unslashed.$(date '+%F')"
+	mv -v "$1" "$TRASH_DIRECTORY/$(echo "$1" | sed 's,/,_,g').$(date '+%F')"
 }
 
 #stolen from fzf install script
@@ -167,13 +171,10 @@ mkcd () {
 }
 
 lcat () {
-	local kind=$(stat -c %F "$1")
-	if [[ "$kind" == "directory" ]]; then
+	if [[ -d "$1" ]]; then
 		ls "$1"
-	elif [[ -n "$kind" ]]; then
-		cat "$1"
 	else
-		return 1
+		cat "$1"
 	fi
 }
 
@@ -188,6 +189,17 @@ export PS2=" \[\e[90m\]│\[\e[0m\]  "
 update_ps1 () {
 	local last_exit_code="$?"
 	PS1=$($DOTFILE_DIR/ps1-bash $last_exit_code 2> /tmp/ps1ErrLog.log)
+
+	# local working_directory="$PWD"
+	# if [[ "$working_directory" =~ ^$HOME(.*) ]]; then
+	# 	working_directory="~${BASH_REMATCH[1]}"
+	# fi
+	# PS1=$($DOTFILE_DIR/prompt \
+	# 	$([[ $last_exit_code == '0' ]] || echo "attr=red $last_exit_code") \
+	# 	attr=gray "$(date '+%I:%M:%S %p')" \
+	# 	attr=red "$USER@$(hostname)" \
+	# 	attr=blue $working_directory \
+	# 	attr=bright_green "$(git branch --show-current 2>/dev/null)")
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

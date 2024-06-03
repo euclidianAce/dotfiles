@@ -184,23 +184,10 @@ alias rb="sudo reboot"
 #### PS1 STUFFS ####
 ####################
 
-SET_DEFAULT_PS1=0
-export MY_PS1=$PS1
 export PS2=" \[\e[90m\]│\[\e[0m\]  "
-ps1swap () {
-	SET_DEFAULT_PS1=$((1-$SET_DEFAULT_PS1))
-}
 update_ps1 () {
 	local last_exit_code="$?"
-	if (( $SET_DEFAULT_PS1 == 1 )); then
-		PS1=$MY_PS1
-		return 0
-	fi
-
 	PS1=$($DOTFILE_DIR/ps1-bash $last_exit_code 2> /tmp/ps1ErrLog.log)
-	if [ "$PS1" = "" ]; then
-		PS1=$MY_PS1
-	fi
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

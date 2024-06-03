@@ -38,6 +38,8 @@ export DOTFILE_DIR="$HOME/dotfiles"
 export EDITOR="nvim"
 export MANPAGER="nvim +Man!"
 
+export TRASH_DIRECTORY="$HOME/.trash"
+
 export FZF_DEFAULT_COMMAND="$(which fd 2>/dev/null || echo find -type f)"
 
 if ! [[ "$SHELL" =~ /nix/store.* ]]; then
@@ -52,12 +54,32 @@ alias mkdir="mkdir -v"
 alias rmdir="rmdir -v"
 alias mv="mv -v"
 alias cp="cp -v"
-alias rm="rm -v"
 alias ls="ls -hN   --file-type --color=auto --group-directories-first"
 alias la="ls -AhN  --file-type --color=auto --group-directories-first"
 alias ll="ls -AhNl --file-type --color=auto --group-directories-first"
 alias grep="grep --color=auto"
 alias nd="nix develop"
+
+rm () {
+	echo Nope. Use trash instead.
+}
+
+trash () {
+	if [[ -z "$1" ]]; then
+		return
+	fi
+
+	if ! [[ -d "$TRASH_DIRECTORY" ]]; then
+		if [[ -a "$TRASH_DIRECTORY" ]]; then
+			echo "[error] TRASH_DIRECTORY ($TRASH_DIRECTORY) exists but is not a folder" 1>&2
+			return 1
+		fi
+		mkdir -p "$TRASH_DIRECTORY" || return 1
+	fi
+
+	let unslashed=$(echo "$1" | sed 's,/,_,g')
+	mv -v "$1" "$TRASH_DIRECTORY/$unslashed.$(date '+%F')"
+}
 
 #stolen from fzf install script
 __fzfcmd () {

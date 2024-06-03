@@ -6,7 +6,10 @@ if wezterm.config_builder then
 	config = wezterm.config_builder()
 end
 
-config.font = wezterm.font "UbuntuMono"
+config.font = wezterm.font "CozetteVector"
+config.font_size = 9
+
+-- config.font = wezterm.font "UbuntuMono"
 -- config.font = wezterm.font "Terminus (TTF)"
 
 config.colors = {

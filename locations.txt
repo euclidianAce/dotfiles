@@ -9,3 +9,4 @@ wezterm -> $XDG_CONFIG_HOME/
 awesome -> $XDG_CONFIG_HOME/
 .tmux.conf -> $HOME/
 zathura -> $XDG_CONFIG_HOME/
+nushell -> $XDG_CONFIG_HOME/

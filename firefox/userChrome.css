@@ -13,11 +13,11 @@
 /* make search suggestions grow upwards now that the bar is at the bottom */
 #urlbar {
 	top: auto !important;
-	bottom: calc((var(--urlbar-toolbar-height) - var(--urlbar-height)) / 2) !important;
+	bottom: var(--urlbar-margin-inline) !important;
 	box-shadow: none !important;
-	display: flex !important;
 
-	/* column will make the text entry be at the top, column-reverse will keep it where it is */
+	display: flex !important;
+	/* column will make the text entry be at the top, column-reverse will keep it where it is (at the bottom) */
 	flex-direction: column-reverse !important;
 }
 

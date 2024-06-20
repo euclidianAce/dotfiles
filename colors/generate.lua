@@ -111,8 +111,17 @@ local function generate_vim_colorscheme()
 		table.insert(lines, table.concat{...})
 	end
 
+	local quirky_groups = {
+		["Normal"] = true,
+		["EuclidianYankHighlight"] = true,
+	}
+
 	local function hi(vim_group_name, group)
-		local buf = { "hi ", vim_group_name }
+		local theme_group_name = quirky_groups[vim_group_name]
+			and vim_group_name
+			or "Euclidian" .. vim_group_name:sub(1, 1):upper() .. vim_group_name:sub(2, -1):gsub("%-([a-z])", string.upper)
+
+		local buf = { "hi ", theme_group_name }
 
 		if group.foreground then
 			local actual = get_color_by_string(group.foreground)
@@ -130,8 +139,11 @@ local function generate_vim_colorscheme()
 			table.insert(buf, " gui=bold")
 		end
 
-		table.insert(lines, "hi clear " .. vim_group_name)
 		table.insert(lines, table.concat(buf))
+		if not quirky_groups[vim_group_name] then
+			ins("hi clear ", vim_group_name)
+			ins("hi! link ", vim_group_name, " ", theme_group_name)
+		end
 	end
 
 	local vim_group_to_group = {
@@ -184,6 +196,9 @@ local function generate_vim_colorscheme()
 
 		["diffRemoved"] = "git-diff-delete",
 		["diffAdded"] = "git-diff-add",
+
+		-- custom
+		["EuclidianYankHighlight"] = "bright-highlighted-text",
 	}
 
 	add_all_groups_with_prefix("vim-", vim_group_to_group)

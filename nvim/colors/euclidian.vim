@@ -1,115 +1,173 @@
 set background=dark
 let g:colors_name = 'euclidian'
+hi EuclidianComment guifg=#77405F
 hi clear Comment
-hi Comment guifg=#77405F
+hi! link Comment EuclidianComment
+hi EuclidianConstant guifg=#D16161
 hi clear Constant
-hi Constant guifg=#D16161
+hi! link Constant EuclidianConstant
+hi EuclidianCursor guifg=#16131F guibg=#EFEFEF
+hi clear Cursor
+hi! link Cursor EuclidianCursor
+hi EuclidianCursorColumn guibg=#2B2735
 hi clear CursorColumn
-hi CursorColumn guibg=#2B2735
+hi! link CursorColumn EuclidianCursorColumn
+hi EuclidianCursorLine guibg=#2B2735
 hi clear CursorLine
-hi CursorLine guibg=#2B2735
+hi! link CursorLine EuclidianCursorLine
+hi EuclidianCursorLineNr guibg=#16131F
 hi clear CursorLineNr
-hi CursorLineNr guibg=#16131F
+hi! link CursorLineNr EuclidianCursorLineNr
+hi EuclidianDelimiter guifg=#817998
 hi clear Delimiter
-hi Delimiter guifg=#817998
+hi! link Delimiter EuclidianDelimiter
+hi EuclidianDiagnosticError guifg=#E69090
 hi clear DiagnosticError
-hi DiagnosticError guifg=#E69090
+hi! link DiagnosticError EuclidianDiagnosticError
+hi EuclidianDiagnosticHint guifg=#EFEFEF
 hi clear DiagnosticHint
-hi DiagnosticHint guifg=#EFEFEF
+hi! link DiagnosticHint EuclidianDiagnosticHint
+hi EuclidianDiagnosticInfo guifg=#D8CEE4
 hi clear DiagnosticInfo
-hi DiagnosticInfo guifg=#D8CEE4
+hi! link DiagnosticInfo EuclidianDiagnosticInfo
+hi EuclidianDiagnosticWarning guifg=#FFC590
 hi clear DiagnosticWarning
-hi DiagnosticWarning guifg=#FFC590
+hi! link DiagnosticWarning EuclidianDiagnosticWarning
+hi EuclidianDirectory guifg=#799AE0
 hi clear Directory
-hi Directory guifg=#799AE0
+hi! link Directory EuclidianDirectory
+hi EuclidianError guifg=#E69090
 hi clear Error
-hi Error guifg=#E69090
+hi! link Error EuclidianError
+hi EuclidianErrorMsg guifg=#E69090
 hi clear ErrorMsg
-hi ErrorMsg guifg=#E69090
+hi! link ErrorMsg EuclidianErrorMsg
+hi EuclidianYankHighlight guifg=#181520 guibg=#AAC3FD
+hi EuclidianException guifg=#FFC590 gui=bold
 hi clear Exception
-hi Exception guifg=#FFC590 gui=bold
+hi! link Exception EuclidianException
+hi EuclidianFloatBorder guifg=#817998 guibg=#2B2735
 hi clear FloatBorder
-hi FloatBorder guifg=#817998 guibg=#2B2735
+hi! link FloatBorder EuclidianFloatBorder
+hi EuclidianFoldColumn guifg=#77405F guibg=#16131F
 hi clear FoldColumn
-hi FoldColumn guifg=#77405F guibg=#16131F
+hi! link FoldColumn EuclidianFoldColumn
+hi EuclidianFolded guifg=#77405F guibg=#2B2735
 hi clear Folded
-hi Folded guifg=#77405F guibg=#2B2735
+hi! link Folded EuclidianFolded
+hi EuclidianFunction guifg=#AAC3FD
 hi clear Function
-hi Function guifg=#AAC3FD
+hi! link Function EuclidianFunction
+hi EuclidianIdentifier guifg=#D8CEE4
 hi clear Identifier
-hi Identifier guifg=#D8CEE4
+hi! link Identifier EuclidianIdentifier
+hi EuclidianIncSearch guifg=#16131F guibg=#E69090
 hi clear IncSearch
-hi IncSearch guifg=#16131F guibg=#E69090
+hi! link IncSearch EuclidianIncSearch
+hi EuclidianKeyword guifg=#799AE0
 hi clear Keyword
-hi Keyword guifg=#799AE0
+hi! link Keyword EuclidianKeyword
+hi EuclidianLineNr guifg=#464252 guibg=#16131F
 hi clear LineNr
-hi LineNr guifg=#464252 guibg=#16131F
+hi! link LineNr EuclidianLineNr
+hi EuclidianMatchParen guifg=#181520 guibg=#FFC590
 hi clear MatchParen
-hi MatchParen guifg=#181520 guibg=#FFC590
+hi! link MatchParen EuclidianMatchParen
+hi EuclidianNonText guifg=#2B2735
 hi clear NonText
-hi NonText guifg=#2B2735
-hi clear Normal
+hi! link NonText EuclidianNonText
 hi Normal guifg=#D8CEE4 guibg=#181520
+hi EuclidianOperator guifg=#9876D9
 hi clear Operator
-hi Operator guifg=#9876D9
+hi! link Operator EuclidianOperator
+hi EuclidianPmenu guifg=#D8CEE4 guibg=#2B2735
 hi clear Pmenu
-hi Pmenu guifg=#D8CEE4 guibg=#2B2735
+hi! link Pmenu EuclidianPmenu
+hi EuclidianPmenuSbar guibg=#817998
 hi clear PmenuSbar
-hi PmenuSbar guibg=#817998
+hi! link PmenuSbar EuclidianPmenuSbar
+hi EuclidianPmenuSel guibg=#464252
 hi clear PmenuSel
-hi PmenuSel guibg=#464252
+hi! link PmenuSel EuclidianPmenuSel
+hi EuclidianPmenuThumb guibg=#464252
 hi clear PmenuThumb
-hi PmenuThumb guibg=#464252
+hi! link PmenuThumb EuclidianPmenuThumb
+hi EuclidianPreProc guifg=#799AE0
 hi clear PreProc
-hi PreProc guifg=#799AE0
+hi! link PreProc EuclidianPreProc
+hi EuclidianQuestion guifg=#53B67E
 hi clear Question
-hi Question guifg=#53B67E
+hi! link Question EuclidianQuestion
+hi EuclidianSearch guifg=#16131F guibg=#D16161
 hi clear Search
-hi Search guifg=#16131F guibg=#D16161
+hi! link Search EuclidianSearch
+hi EuclidianSignColumn guifg=#2B2735 guibg=#16131F
 hi clear SignColumn
-hi SignColumn guifg=#2B2735 guibg=#16131F
+hi! link SignColumn EuclidianSignColumn
+hi EuclidianSpecial guifg=#AAC3FD
 hi clear Special
-hi Special guifg=#AAC3FD
+hi! link Special EuclidianSpecial
+hi EuclidianSpecialChar guifg=#E69090
 hi clear SpecialChar
-hi SpecialChar guifg=#E69090
+hi! link SpecialChar EuclidianSpecialChar
+hi EuclidianSpecialComment guifg=#E69090
 hi clear SpecialComment
-hi SpecialComment guifg=#E69090
+hi! link SpecialComment EuclidianSpecialComment
+hi EuclidianStatement guifg=#799AE0
 hi clear Statement
-hi Statement guifg=#799AE0
+hi! link Statement EuclidianStatement
+hi EuclidianStatusLine guifg=#16131F guibg=#77405F
 hi clear StatusLine
-hi StatusLine guifg=#16131F guibg=#77405F
+hi! link StatusLine EuclidianStatusLine
+hi EuclidianStatusLineNC guibg=#464252
 hi clear StatusLineNC
-hi StatusLineNC guibg=#464252
+hi! link StatusLineNC EuclidianStatusLineNC
+hi EuclidianStorageClass guifg=#C7B1F2
 hi clear StorageClass
-hi StorageClass guifg=#C7B1F2
+hi! link StorageClass EuclidianStorageClass
+hi EuclidianString guifg=#D16161
 hi clear String
-hi String guifg=#D16161
+hi! link String EuclidianString
+hi EuclidianTabLine guifg=#77405F guibg=#464252
 hi clear TabLine
-hi TabLine guifg=#77405F guibg=#464252
+hi! link TabLine EuclidianTabLine
+hi EuclidianTabLineFill guibg=#332F3C
 hi clear TabLineFill
-hi TabLineFill guibg=#332F3C
+hi! link TabLineFill EuclidianTabLineFill
+hi EuclidianTabLineSel guifg=#D16161 guibg=#464252
 hi clear TabLineSel
-hi TabLineSel guifg=#D16161 guibg=#464252
+hi! link TabLineSel EuclidianTabLineSel
+hi EuclidianTag guifg=#AAC3FD
 hi clear Tag
-hi Tag guifg=#AAC3FD
+hi! link Tag EuclidianTag
+hi EuclidianTitle guifg=#77405F
 hi clear Title
-hi Title guifg=#77405F
+hi! link Title EuclidianTitle
+hi EuclidianTodo guifg=#E69090
 hi clear Todo
-hi Todo guifg=#E69090
+hi! link Todo EuclidianTodo
+hi EuclidianType guifg=#C7B1F2
 hi clear Type
-hi Type guifg=#C7B1F2
+hi! link Type EuclidianType
+hi EuclidianVertSplit guibg=#464252
 hi clear VertSplit
-hi VertSplit guibg=#464252
+hi! link VertSplit EuclidianVertSplit
+hi EuclidianVisual guifg=#D8CEE4 guibg=#395081
 hi clear Visual
-hi Visual guifg=#D8CEE4 guibg=#395081
+hi! link Visual EuclidianVisual
+hi EuclidianWarningMsg guibg=#D16161
 hi clear WarningMsg
-hi WarningMsg guibg=#D16161
+hi! link WarningMsg EuclidianWarningMsg
+hi EuclidianWildMenu guifg=#181520 guibg=#D5C876
 hi clear WildMenu
-hi WildMenu guifg=#181520 guibg=#D5C876
+hi! link WildMenu EuclidianWildMenu
+hi EuclidianWinSeparator guibg=#464252
 hi clear WinSeparator
-hi WinSeparator guibg=#464252
+hi! link WinSeparator EuclidianWinSeparator
+hi EuclidianDiffAdded guifg=#53B67E
 hi clear diffAdded
-hi diffAdded guifg=#53B67E
+hi! link diffAdded EuclidianDiffAdded
+hi EuclidianDiffRemoved guifg=#D16161
 hi clear diffRemoved
-hi diffRemoved guifg=#D16161
+hi! link diffRemoved EuclidianDiffRemoved
 finish

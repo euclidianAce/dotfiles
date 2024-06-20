@@ -4,6 +4,7 @@ normal-fg-bg	normal.fg	normal.bg
 text	normal.fg
 faded-text	normal.gray	dark.bg
 highlighted-text	normal.fg	dark.blue
+bright-highlighted-text	normal.bg	bright.blue
 bright-text	bright.blue
 
 dark-bg		dark.bg
@@ -62,6 +63,8 @@ vim-TabLineFill		dark.gray
 vim-Title	dark.red
 
 vim-FloatBorder	dark.fg	bright.bg
+
+vim-Cursor	dark.bg	bright.fg
 
 vim-Pmenu	normal.fg	bright.bg
 vim-PmenuSel		normal.gray

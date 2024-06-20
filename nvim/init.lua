@@ -63,7 +63,7 @@ do
 				assert(#name > 0)
 				local location = data_path .. "/" .. name
 				if not vim.loop.fs_stat(location) then
-					print("Fetching plugin " .. spec.data)
+					vim.notify("Fetching plugin " .. spec.data)
 					if not run("mkdir", "-p", data_path) then break end
 					if not run("git", "-C", data_path, "clone", "--depth=1", "--", spec.data, name) then break end
 					anything_fetched = true
@@ -76,7 +76,7 @@ do
 	end
 
 	if anything_fetched then
-		print("Regenerating helptags")
+		vim.notify("Regenerating helptags")
 		vim.cmd "helptags ALL"
 	end
 end
@@ -110,7 +110,9 @@ set(vim.g, {
 
 set(vim.opt, {
 	termguicolors = true,
-	guicursor = "a:block",
+	-- guicursor = "a:block",
+	-- guicursor = "i-c-ci-ve:ver5,r-cr-o:hor25,n-v-sm:block,a:Cursor",
+	guicursor = "i-c-ci-ve-r-cr-o:block,n-v-sm:hor15,a:Cursor",
 	number = true,
 	relativenumber = true,
 	numberwidth = 4,
@@ -143,7 +145,15 @@ set(vim.opt, {
 	list = true,
 	formatoptions = "croqlj",
 
-	statusline = " %4n %t %{FugitiveStatusline()} %h%q%m%w %= Line %l of %L "
+	statusline = " %4n %t %{FugitiveStatusline()} %h%q%m%w %= Line %l of %L ",
+})
+
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
+	callback = function()
+		vim.highlight.on_yank { higroup = "EuclidianYankHighlight", timeout = 400 }
+	end,
+	desc = "Highlight yanked text",
 })
 
 vim.cmd "colorscheme euclidian"

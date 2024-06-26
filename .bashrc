@@ -70,10 +70,6 @@ rm () {
 }
 
 trash () {
-	if [[ -z "$1" ]]; then
-		return
-	fi
-
 	if ! [[ -d "$TRASH_DIRECTORY" ]]; then
 		if [[ -a "$TRASH_DIRECTORY" ]]; then
 			echo "[error] TRASH_DIRECTORY ($TRASH_DIRECTORY) exists but is not a folder" 1>&2
@@ -82,7 +78,13 @@ trash () {
 		mkdir -p "$TRASH_DIRECTORY" || return 1
 	fi
 
-	mv -v "$1" "$TRASH_DIRECTORY/$(echo "$1" | sed 's,/,_,g').$(date '+%F')"
+	for f in "$@"; do
+		if [[ -z "$f" ]]; then
+			continue
+		fi
+
+		mv -v "$f" "$TRASH_DIRECTORY/$(echo "$f" | sed 's,/,_,g').$(date '+%F')"
+	done
 }
 
 #stolen from fzf install script
@@ -185,21 +187,30 @@ alias rb="sudo reboot"
 #### PS1 STUFFS ####
 ####################
 
-export PS2=" \[\e[90m\]│\[\e[0m\]  "
+export PS2=" \[\e[90m\]│\[\e[0m\]     "
 update_ps1 () {
 	local last_exit_code="$?"
-	PS1=$($DOTFILE_DIR/ps1-bash $last_exit_code 2> /tmp/ps1ErrLog.log)
+	# PS1=$($DOTFILE_DIR/ps1-bash $last_exit_code 2> /tmp/ps1ErrLog.log)
 
-	# local working_directory="$PWD"
-	# if [[ "$working_directory" =~ ^$HOME(.*) ]]; then
-	# 	working_directory="~${BASH_REMATCH[1]}"
-	# fi
-	# PS1=$($DOTFILE_DIR/prompt \
-	# 	$([[ $last_exit_code == '0' ]] || echo "attr=red $last_exit_code") \
-	# 	attr=gray "$(date '+%I:%M:%S %p')" \
-	# 	attr=red "$USER@$(hostname)" \
-	# 	attr=blue $working_directory \
-	# 	attr=bright_green "$(git branch --show-current 2>/dev/null)")
+	local working_directory="$PWD"
+	if [[ "$working_directory" =~ ^$HOME(.*) ]]; then
+		working_directory="~${BASH_REMATCH[1]}"
+	fi
+	local current_git_branch="$(git branch --show-current 2>/dev/null)"
+	if [[ -z "$current_git_branch" ]]; then
+		# show-current shows nothing with a detached head
+		current_git_branch="$(git rev-parse --short HEAD 2>/dev/null)"
+	fi
+	if [[ -n "$current_git_branch" ]]; then
+		current_git_branch="* $current_git_branch"
+	fi
+	# attr=yellow "今日は"
+	PS1=$($DOTFILE_DIR/prompt \
+		attr=red "$([[ $last_exit_code == '0' ]] || echo "罰 $last_exit_code")" \
+		attr=gray "$(date '+%I:%M:%S %p')" \
+		attr=red "$USER@$(hostname)" \
+		attr=blue pad=10 "$working_directory" \
+		attr=bright_green "$current_git_branch")
 }
 update_ps1
 PROMPT_COMMAND=update_ps1

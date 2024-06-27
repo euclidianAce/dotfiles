@@ -16,10 +16,13 @@ $env.PROMPT_COMMAND = {||
 
     let working_directory = $env.PWD | str replace -r ("^" + $env.HOME) "~"
 
+    let tmux_status = if ($env | get TMUX?) != null { "" } else { "not in tmux" }
+
     (
         run-external
         $prompt
         attr=red $exit_code
+        attr=yellow $tmux_status
         attr=gray (run-external date '+%I:%M:%S %p')
         attr=red ($env.USER + "@" + (run-external hostname))
         attr=blue pad=10 $working_directory

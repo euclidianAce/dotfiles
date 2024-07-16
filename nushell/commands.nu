@@ -4,12 +4,9 @@ export def e [...arguments] {
 	run-external $env.EDITOR ...$arguments
 }
 
-export def gs [--long] {
-	if $long {
-		^git status
-	} else {
-		^git status --short
-	}
+export def gs [--long (-l)] {
+	let flag = if $long { "" } else { "--short" }
+	^git status $flag
 }
 
 export def ga [...arguments] {
@@ -17,34 +14,33 @@ export def ga [...arguments] {
 	^git status --short
 }
 
-export def gc [] { ^git commit --verbose }
-export def gl [--long] {
-	if $long {
-		^git log --graph --decorate
-	} else {
-		^git log --graph --format='%C(auto)%h %<(15)%ar %d %s'
-	}
+export def gc [--quiet (-q)] {
+	let flag = if $quiet { "" } else { "--verbose" }
+	^git commit $flag
 }
+
+export def gl [--long (-l)] {
+	let arg = if $long {
+		"--decorate"
+	} else {
+		# note, we dont need quotes after the = here since it will be passed as a string
+		"--format=%C(auto)%h %<(15)%ar %d %s"
+	}
+	^git log --graph $arg
+}
+
+export def gd [] { ^git diff }
 
 export def --env mkcd [directory: path] {
 	mkdir -v $directory
 	cd $directory
 }
 
-export def tmux-sessions [] {
-	^tmux list-sessions -F '#{session_name},#{?session_attached,true,false}' err> (std null-device)
-		| from csv --noheaders
-		| rename session_name is_attached
-		| update is_attached { into bool }
-}
-
-export def tmux-new-or-attach [] {
-	let unattached_session_name = tmux-sessions
-		| where is_attached == false
-		| get 0?.session_name
-	if $unattached_session_name == null {
-		^tmux
-	} else {
-		^tmux attach -t $unattached_session_name
-	}
+export def throttle [
+	--limit (-l): int
+	--verbose (-v)
+	...rest
+] {
+	let v = if $verbose { "--verbose" } else { "--quiet" }
+	^cpulimit $v --foreground --monitor-forks --limit $limit -- ...$rest
 }

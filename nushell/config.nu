@@ -1,6 +1,8 @@
 use theme.nu theme
 use keys.nu keys
 source commands.nu
+use log.nu
+use tmux.nu
 
 $env.config = {
 	show_banner: false

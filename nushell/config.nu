@@ -124,20 +124,6 @@ $env.config = {
 			}
 		}
 		{
-			name: history_menu
-			only_buffer_difference: true
-			marker: "? "
-			type: {
-				layout: list
-				page_size: 10
-			}
-			style: {
-				text: green
-				selected_text: green_reverse
-				description_text: yellow
-			}
-		}
-		{
 			name: help_menu
 			only_buffer_difference: true
 			marker: "? "

@@ -7,17 +7,29 @@ export const keys = [
 		event: {
 			until: [
 				{ send: menu name: completion_menu }
-			{ send: menunext }
-			{ edit: complete }
+				{ send: menunext }
+				{ edit: complete }
 			]
 		}
 	}
 	{
-		name: history_menu
+		name: fzf_history
 		modifier: control
 		keycode: char_r
 		mode: [emacs, vi_insert, vi_normal]
-		event: { send: menu name: history_menu }
+		event: {
+			send: executehostcommand
+			cmd: "commandline edit (
+				history
+				| get command
+				| uniq
+				| reverse
+				| str join (char -i 0)
+				| fzf --read0 --tiebreak=chunk --layout=reverse --height=70% --border=rounded
+				| decode utf-8
+				| str trim
+			)"
+		}
 	}
 	{
 		name: help_menu
@@ -48,7 +60,7 @@ export const keys = [
 		event: {
 			until: [
 				{ send: menupageprevious }
-			{ edit: undo }
+				{ edit: undo }
 			]
 		}
 	}
@@ -102,7 +114,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menuup}
-			{send: up}
+				{send: up}
 			]
 		}
 	}
@@ -114,7 +126,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menudown}
-			{send: down}
+				{send: down}
 			]
 		}
 	}
@@ -126,7 +138,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menuleft}
-			{send: left}
+				{send: left}
 			]
 		}
 	}
@@ -138,8 +150,8 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintcomplete}
-			{send: menuright}
-			{send: right}
+				{send: menuright}
+				{send: right}
 			]
 		}
 	}
@@ -158,7 +170,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintwordcomplete}
-			{edit: movewordright}
+				{edit: movewordright}
 			]
 		}
 	}
@@ -184,7 +196,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintcomplete}
-			{edit: movetolineend}
+				{edit: movetolineend}
 			]
 		}
 	}
@@ -196,7 +208,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintcomplete}
-			{edit: movetolineend}
+				{edit: movetolineend}
 			]
 		}
 	}
@@ -222,7 +234,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menuup}
-			{send: up}
+				{send: up}
 			]
 		}
 	}
@@ -234,7 +246,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menudown}
-			{send: down}
+				{send: down}
 			]
 		}
 	}
@@ -302,7 +314,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: menuleft}
-			{send: left}
+				{send: left}
 			]
 		}
 	}
@@ -314,8 +326,8 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintcomplete}
-			{send: menuright}
-			{send: right}
+				{send: menuright}
+				{send: right}
 			]
 		}
 	}
@@ -383,7 +395,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintwordcomplete}
-			{edit: movewordright}
+				{edit: movewordright}
 			]
 		}
 	}
@@ -402,7 +414,7 @@ export const keys = [
 		event: {
 			until: [
 				{send: historyhintwordcomplete}
-			{edit: movewordright}
+				{edit: movewordright}
 			]
 		}
 	}

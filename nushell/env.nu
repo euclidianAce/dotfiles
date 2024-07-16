@@ -18,13 +18,15 @@ $env.PROMPT_COMMAND = {||
 
     let tmux_status = if ($env | get TMUX?) != null { "" } else { "not in tmux" }
 
+    let ssh_status = if ($env | get SSH_CLIENT?) != null { "(ssh) " } else { "" }
+
     (
         run-external
         $prompt
         attr=red $exit_code
         attr=yellow $tmux_status
         attr=gray (run-external date '+%I:%M:%S %p')
-        attr=red ($env.USER + "@" + (run-external hostname))
+        attr=red $"($ssh_status)($env.USER)@(^hostname)"
         attr=blue pad=10 $working_directory
         attr=bright_green $current_git_head
     )

@@ -383,9 +383,6 @@ const wcwidth = struct {
     //    - All remaining characters (including all printable
     //      ISO 8859-1 and WGL4 characters, Unicode control characters,
     //      etc.) have a column width of 1.
-    //
-    // This implementation assumes that wchar_t characters are encoded
-    // in ISO 10646.
 
     pub fn width(ucs: Codepoint) ?u8 {
         // test for 8-bit control characters

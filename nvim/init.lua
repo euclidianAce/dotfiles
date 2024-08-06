@@ -24,7 +24,7 @@ do
 		setfenv(f, setmetatable({}, { __index = function(self, k)
 			if k == "plugin" then return add_spec end
 			return _G[k]
-		end}))
+		end }))
 		local ok, err = pcall(f)
 		if not ok then
 			vim.notify("Error loading plugin list: " .. tostring(err), vim.log.levels.ERROR)
@@ -35,10 +35,9 @@ do
 	until true
 
 	local function run(...)
-		local command = table.concat({ ... }, " ")
-		local result = vim.fn.system(command, " ")
+		local result = vim.fn.system({ ... }, "")
 		if vim.v.shell_error ~= 0 then
-			vim.notify("Error running command '" .. command .. "':\n" .. result)
+			vim.notify("Error running command '" .. table.concat({ ... }, " ") .. "':\n" .. result)
 			return nil, result
 		end
 		return result

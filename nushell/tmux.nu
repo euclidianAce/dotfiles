@@ -10,45 +10,45 @@ export def list-sessions-vars [
        --attached             # Number of clients session is attached to
        --attached-list        # List of clients session is attached to
        --created              # Time session created
-       --format               # true if format is for a session
+       --format               # True if format is for a session
        --group                # Name of session group
        --group-attached       # Number of clients sessions in group are attached to
        --group-attached-list  # List of clients sessions in group are attached to
        --group-list           # List of sessions in group
-       --group-many-attached  # true if multiple clients attached to sessions in group
+       --group-many-attached  # True if multiple clients attached to sessions in group
        --group-size           # Size of session group
-       --grouped              # true if session in a group
+       --grouped              # True if session in a group
        --id                   # Unique session ID
        --last-attached        # Time session last attached
-       --many-attached        # true if multiple clients attached
-       --marked               # true if this session contains the marked pane
+       --many-attached        # True if multiple clients attached
+       --marked               # True if this session contains the marked pane
        --name                 # Session name
        --path                 # Working directory of session
        --stack                # Window indexes in most recent order
        --windows              # Number of windows in session
 ] {
-	let transform = [[name,include,tag];
-		[ 'activity',             $activity,            null ]
-		[ 'alerts',               $alerts,              null ]
-		[ 'attached',             $attached,            "bool" ]
-		[ 'attached_list',        $attached_list,       null ]
-		[ 'created',              $created,             null ]
-		[ 'format',               $format,              "bool" ]
-		[ 'group',                $group,               null ]
-		[ 'group_attached',       $group_attached,      "int" ]
-		[ 'group_attached_list',  $group_attached_list, null ]
-		[ 'group_list',           $group_list,          null ]
-		[ 'group_many_attached',  $group_many_attached, "bool" ]
-		[ 'group_size',           $group_size,          "int" ]
-		[ 'grouped',              $grouped,             "bool" ]
-		[ 'id',                   $id,                  null ]
-		[ 'last_attached',        $last_attached,       null ]
-		[ 'many_attached',        $many_attached,       "bool" ]
-		[ 'marked',               $marked,              "bool" ]
-		[ 'name',                 $name,                null ]
-		[ 'path',                 $path,                null ]
-		[ 'stack',                $stack,               null ]
-		[ 'windows',              $windows,             "int" ]
+	let transform = [[name,include,tag,list_item];
+		[ 'activity',             $activity,            "time",   null ]
+		[ 'alerts',               $alerts,              "list",   "int" ]
+		[ 'attached',             $attached,            "bool",   null ]
+		[ 'attached_list',        $attached_list,       "list",   null ]
+		[ 'created',              $created,             "time",   null ]
+		[ 'format',               $format,              "bool",   null ]
+		[ 'group',                $group,               "str",    null ]
+		[ 'group_attached',       $group_attached,      "int",    null ]
+		[ 'group_attached_list',  $group_attached_list, "list",   null ]
+		[ 'group_list',           $group_list,          "list",   null ]
+		[ 'group_many_attached',  $group_many_attached, "bool",   null ]
+		[ 'group_size',           $group_size,          "int",    null ]
+		[ 'grouped',              $grouped,             "bool",   null ]
+		[ 'id',                   $id,                  "str",    null ]
+		[ 'last_attached',        $last_attached,       "time",   null ]
+		[ 'many_attached',        $many_attached,       "bool",   null ]
+		[ 'marked',               $marked,              "bool",   null ]
+		[ 'name',                 $name,                "str",    null ]
+		[ 'path',                 $path,                "str",    null ]
+		[ 'stack',                $stack,               "list",   "int" ]
+		[ 'windows',              $windows,             "int",    null ]
 	]
 
 	let names_and_format = $transform
@@ -68,9 +68,14 @@ export def list-sessions-vars [
 			| update $tf.name {|it| $it
 				| get $tf.name
 				| match $tf.tag {
-					"bool" => { into bool },
-					"int" => { into int },
-					_ => { echo $"($in)" }
+					"bool" => { into bool }
+					"int" => { into int }
+					"time" => { into int | $in * 1_000_000_000 | into datetime }
+					"str" => { into string }
+					"list" => { split row ',' | match $tf.list_item {
+						"int" => { into int }
+						_ => { into string }
+					} }
 				}
 			}
 		)
@@ -82,7 +87,7 @@ export def list-sessions-vars [
 export def new-or-attach [] {
 	let unattached_session_name = list-sessions-vars --name --attached
 		| where not attached 
-		| where ($it.name | str ends-with '*' | not $in)
+		| where not ($it.name | str ends-with '*')
 		| get 0?.name
 
 	if $unattached_session_name == null {

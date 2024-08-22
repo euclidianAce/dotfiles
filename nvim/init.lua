@@ -4,7 +4,7 @@ do
 	repeat
 		local function add_spec(spec)
 			local result = {}
-			for _, kind in ipairs { "git", "local_dir" } do
+			for _, kind in ipairs { "git", "local_dir", "tar" } do
 				if spec[kind] then
 					result.kind = kind
 					result.data = spec[kind]
@@ -62,7 +62,7 @@ do
 				assert(#name > 0)
 				local location = data_path .. "/" .. name
 				if not vim.loop.fs_stat(location) then
-					vim.notify("Fetching plugin " .. spec.data)
+					vim.notify("Fetching (git) plugin " .. spec.data)
 					if not run("mkdir", "-p", data_path) then break end
 					if not run("git", "-C", data_path, "clone", "--depth=1", "--", spec.data, name) then break end
 					anything_fetched = true
@@ -70,6 +70,27 @@ do
 				vim.cmd("packadd! " .. name)
 			elseif spec.kind == "local_dir" then
 				vim.opt.runtimepath:append(spec.data)
+			elseif spec.kind == "tar" then
+				if not spec.data.name then
+					vim.notify("Tar plugin without a name '" .. spec.data.url .. "'")
+					break
+				end
+				local location = data_path .. "/" .. spec.data.name
+				if not vim.loop.fs_stat(location) then
+					if not run("mkdir", "-p", location) then break end
+					vim.notify("Fetching (tar) plugin " .. spec.data.name)
+					if not run("wget", "--output-document=" .. location .. ".tarball", spec.data.url) then break end
+					local is_gzip = spec.data.url:match("%.gz$")
+					if not run(
+						"tar",
+						"--directory=" .. location,
+						"--strip-components=1",
+						"-x" .. (is_gzip and "z" or "") .. "f",
+						location .. ".tarball"
+					) then break end
+					run("rm", location .. ".tarball")
+				end
+				vim.cmd("packadd! " .. spec.data.name)
 			end
 		until true
 	end
@@ -144,6 +165,8 @@ set(vim.opt, {
 	list = true,
 	formatoptions = "croqlj",
 
+	signcolumn = "yes:1",
+
 	statusline = " %4n %t %{FugitiveStatusline()} %h%q%m%w %= Line %l of %L ",
 })
 
@@ -160,3 +183,29 @@ vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>")
 vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>")
 vim.keymap.set({"v", "n"}, "K", "<nop>") -- get rid of stupidly laggy man page mapping
+
+local function optional_require(name)
+	local ok, ret = pcall(require, name)
+	if not ok then return nil end
+	return ret
+end
+
+local lspconfig = optional_require "lspconfig"
+
+if lspconfig then
+	vim.g.zig_fmt_autosave = 0
+	lspconfig.zls.setup {}
+
+	vim.api.nvim_create_autocmd("LspAttach", {
+		callback = function(ev)
+			local keymap_options = { buffer = ev.buf }
+			vim.keymap.set("n", "<leader>lf", function() vim.lsp.buf.format { async = true } end, keymap_options)
+			vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, keymap_options)
+		end
+	})
+
+	vim.diagnostic.config {
+		underline = false,
+		virtual_text = false,
+	}
+end

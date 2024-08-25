@@ -1,5 +1,8 @@
 set background=dark
 let g:colors_name = 'euclidian'
+hi Euclidian@variable guifg=#D8CEE4
+hi clear @variable
+hi! link @variable Euclidian@variable
 hi EuclidianComment guifg=#77405F
 hi clear Comment
 hi! link Comment EuclidianComment

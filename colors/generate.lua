@@ -166,6 +166,7 @@ local function generate_vim_colorscheme()
 		["Constant"] = "syntax-literal",
 		["String"] = "syntax-literal",
 		["Identifier"] = "text",
+		["@variable"] = "text",
 
 		["Error"] = "error",
 		["ErrorMsg"] = "error",
@@ -363,6 +364,10 @@ if to_generate == "vim" then
 	print(generate_vim_colorscheme())
 elseif to_generate == "nu" then
 	print(generate_nushell_colorscheme())
+elseif to_generate then
+	io.stderr:write(("Unknown target %q\n"):format(to_generate))
+	os.exit(1)
 else
-	exit(1)
+	io.stderr:write("Usage: generate.lua <target>\n")
+	os.exit(1)
 end

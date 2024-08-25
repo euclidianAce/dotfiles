@@ -180,9 +180,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 vim.cmd "colorscheme euclidian"
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
-vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>")
-vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>")
+vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>", { desc = "Open fzf" })
+vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>", { desc = "Open ripgrep" })
 vim.keymap.set({"v", "n"}, "K", "<nop>") -- get rid of stupidly laggy man page mapping
+vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
+vim.keymap.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Set location list from diagnostics" })
 
 local function optional_require(name)
 	local ok, ret = pcall(require, name)
@@ -195,12 +197,15 @@ local lspconfig = optional_require "lspconfig"
 if lspconfig then
 	vim.g.zig_fmt_autosave = 0
 	lspconfig.zls.setup {}
+	lspconfig.rust_analyzer.setup {}
 
 	vim.api.nvim_create_autocmd("LspAttach", {
 		callback = function(ev)
-			local keymap_options = { buffer = ev.buf }
-			vim.keymap.set("n", "<leader>lf", function() vim.lsp.buf.format { async = true } end, keymap_options)
-			vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, keymap_options)
+			local function o(desc) return { buffer = ev.buf, desc = desc } end
+			vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format { async = true } end, o "LSP: Run formatter")
+			vim.keymap.set({ "n", "v" }, "<leader>a", vim.lsp.buf.code_action, o "LSP: Code action")
+			vim.keymap.set("n", "K", vim.lsp.buf.hover, o "LSP: Hover")
+			vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, o "LSP: Signature help")
 		end
 	})
 

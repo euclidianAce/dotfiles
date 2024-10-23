@@ -185,6 +185,9 @@ vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>", { desc = "Open ripgrep" })
 vim.keymap.set({"v", "n"}, "K", "<nop>") -- get rid of stupidly laggy man page mapping
 vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
 vim.keymap.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Set location list from diagnostics" })
+vim.keymap.set("n", "<C-l>", "<cmd>echo \"Nope, use leader-n\"<cr>")
+
+vim.api.nvim_set_hl(0, "LspInlayHint", { link = "EuclidianDelimiter" })
 
 local function optional_require(name)
 	local ok, ret = pcall(require, name)
@@ -210,7 +213,8 @@ if lspconfig then
 	})
 
 	vim.diagnostic.config {
-		underline = false,
 		virtual_text = false,
 	}
+
+	vim.lsp.inlay_hint.enable()
 end

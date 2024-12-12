@@ -69,6 +69,28 @@ local palette = parse_tsv "palette-dark.tsv"
 	-- end
 -- end
 
+local function dump_ansi()
+	local keys = {}
+	for k in pairs(palette) do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+
+	for _, k in ipairs(keys) do
+		local v = palette[k]
+		local buf = {}
+		for _, str_component in ipairs{ v.dark, v.normal, v.bright } do
+			local component = tonumber(str_component, 16)
+			table.insert(buf, ("\x1b[48;2;%d;%d;%dm      \x1b[0m"):format(
+				component >> 16,
+				(component >> 8) & 0xff,
+				component & 0xff
+			))
+		end
+		print(k, table.concat(buf, " "))
+	end
+end
+
 local groups = parse_tsv "group-names.tsv"
 
 local function get_color_by_string(str)
@@ -358,14 +380,43 @@ local function generate_nushell_colorscheme()
 	return table.concat(lines, "\n")
 end
 
+local function generate_css()
+	local lines = {}
+
+	for name, entry in pairs(palette) do
+		table.insert(lines, string.format("--palette-%s-dark: #%s;", name, entry.dark))
+		table.insert(lines, string.format("--palette-%s-normal: #%s;", name, entry.normal))
+		table.insert(lines, string.format("--palette-%s-bright: #%s;", name, entry.bright))
+	end
+
+	local function swap(a, b) return b, a end
+
+	for k, v in pairs(groups) do
+		if k:sub(1, 7) == "syntax-" then
+			table.insert(
+				lines,
+				string.format(".%s { color: var(--palette-%s-%s); }", k, swap(v.foreground:match("(%w+)%.(%w+)")))
+			)
+		end
+	end
+
+	table.sort(lines)
+
+	return table.concat(lines, "\n")
+end
+
 local to_generate = ...
 
 if to_generate == "vim" then
 	print(generate_vim_colorscheme())
 elseif to_generate == "nu" then
 	print(generate_nushell_colorscheme())
+elseif to_generate == "css" then
+	print(generate_css())
+elseif to_generate == "ansi" then
+	dump_ansi()
 elseif to_generate then
-	io.stderr:write(("Unknown target %q\n"):format(to_generate))
+	io.stderr:write(("Unknown target %q\n   Expected 'vim', 'nu', 'css', or 'ansi'\n"):format(to_generate))
 	os.exit(1)
 else
 	io.stderr:write("Usage: generate.lua <target>\n")

@@ -85,14 +85,12 @@ $env.config = {
 	}
 
 	color_config: $theme
-	use_grid_icons: true
 	footer_mode: auto # always, never, number_of_rows, auto
 	float_precision: 2
 	buffer_editor: ""
 	use_ansi_coloring: true
 	bracketed_paste: true
 	edit_mode: emacs
-	shell_integration: true # enables terminal shell integration. Off by default, as some terminals have issues with this.
 	render_right_prompt_on_last_line: false
 	use_kitty_protocol: false
 

@@ -1,42 +1,42 @@
 use std
 
-export def e [...arguments] {
+export def --wrapped e [...arguments: path] {
 	run-external $env.EDITOR ...$arguments
 }
 
-export def gs [--long (-l)] {
+export def --wrapped gs [--long (-l), ...rest] {
 	let flag = if $long { "" } else { "--short" }
-	^git status $flag
+	^git status $flag ...$rest
 }
 
-export def ga [...arguments] {
+export def --wrapped ga [...arguments] {
 	^git add ...$arguments
 	^git status --short
 }
 
-export def gc [--quiet (-q)] {
+export def --wrapped gc [--quiet (-q), ...rest] {
 	let flag = if $quiet { "" } else { "--verbose" }
-	^git commit $flag
+	^git commit $flag ...$rest
 }
 
-export def gl [--long (-l)] {
+export def --wrapped gl [--long (-l), ...rest] {
 	let arg = if $long {
 		"--decorate"
 	} else {
 		# note, we dont need quotes after the = here since it will be passed as a string
 		"--format=%C(auto)%h %<(15)%ar %d %s"
 	}
-	^git log --graph $arg
+	^git log --graph $arg ...$rest
 }
 
-export def gd [] { ^git diff }
+export def --wrapped gd [...rest] { ^git diff ...$rest }
 
 export def --env mkcd [directory: path] {
-	mkdir -v $directory
+	mkdir -v $directory # nushell mkdir doesn't need -p
 	cd $directory
 }
 
-export def throttle [
+export def --wrapped throttle [
 	--limit (-l): int
 	--verbose (-v)
 	...rest

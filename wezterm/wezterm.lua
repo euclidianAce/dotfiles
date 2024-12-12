@@ -7,7 +7,7 @@ if wezterm.config_builder then
 end
 
 config.font = wezterm.font "CozetteVector"
-config.font_size = 9
+config.font_size = 10
 
 -- config.font = wezterm.font "UbuntuMono"
 -- config.font = wezterm.font "Terminus (TTF)"

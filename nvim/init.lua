@@ -199,6 +199,12 @@ local lspconfig = optional_require "lspconfig"
 
 if lspconfig then
 	vim.g.zig_fmt_autosave = 0
+
+	-- semantic tokens are buggy
+	lspconfig.util.default_config.on_init = function(client)
+		client.server_capabilities.semanticTokensProvider = nil
+	end
+
 	lspconfig.zls.setup {}
 	lspconfig.rust_analyzer.setup {}
 
@@ -216,5 +222,7 @@ if lspconfig then
 		virtual_text = false,
 	}
 
-	vim.lsp.inlay_hint.enable()
+	if vim.lsp.inlay_hint then
+		vim.lsp.inlay_hint.enable()
+	end
 end

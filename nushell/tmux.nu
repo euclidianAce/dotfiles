@@ -72,7 +72,7 @@ export def list-sessions-vars [
 					"int" => { into int }
 					"time" => { into int | $in * 1_000_000_000 | into datetime }
 					"str" => { into string }
-					"list" => { split row ',' | match $tf.list_item {
+					"list" => { split row ',' | filter { length | $in == 0 } | match $tf.list_item {
 						"int" => { into int }
 						_ => { into string }
 					} }

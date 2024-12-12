@@ -124,7 +124,7 @@ set(vim.g, {
 	loaded_zipPlugin = 1,
 	loaded_2html_plugin = 1,
 	loaded_spec = 1,
-
+	loaded_netrwPlugin = 1,
 	netrw_banner = 0,
 })
 
@@ -177,6 +177,20 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 	desc = "Highlight yanked text",
 })
+
+do
+	local mode_regex = vim.regex "(c|r.?|!t)"
+	vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+		pattern = "*",
+		callback = function(event)
+			local mode = vim.api.nvim_get_mode().mode
+			if not mode_regex:match_str(mode) and vim.fn.getcmdwintype() == "" then
+				vim.cmd "checktime"
+			end
+		end,
+		desc = "Reloads files when they are changed on disk",
+	})
+end
 
 vim.cmd "colorscheme euclidian"
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")

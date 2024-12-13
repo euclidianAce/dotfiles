@@ -45,6 +45,7 @@ hi! link Error EuclidianError
 hi EuclidianErrorMsg guifg=#E69090
 hi clear ErrorMsg
 hi! link ErrorMsg EuclidianErrorMsg
+hi EuclidianTrailingWhitespace guifg=#181520 guibg=#E69090
 hi EuclidianYankHighlight guifg=#181520 guibg=#AAC3FD
 hi EuclidianException guifg=#FFC590 gui=bold
 hi clear Exception

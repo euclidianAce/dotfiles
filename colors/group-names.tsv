@@ -16,6 +16,8 @@ hint	bright.fg
 searched-highlighted-text	dark.bg	normal.red
 searched-selected-highlighted-text	dark.bg	bright.red
 
+trailing-whitespace	normal.bg	bright.red
+
 ui-unfocused-element-background		normal.gray
 ui-focused-element-background	dark.bg	dark.red
 

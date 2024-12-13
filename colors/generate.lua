@@ -136,6 +136,7 @@ local function generate_vim_colorscheme()
 	local quirky_groups = {
 		["Normal"] = true,
 		["EuclidianYankHighlight"] = true,
+		["EuclidianTrailingWhitespace"] = true,
 	}
 
 	local function hi(vim_group_name, group)
@@ -222,6 +223,7 @@ local function generate_vim_colorscheme()
 
 		-- custom
 		["EuclidianYankHighlight"] = "bright-highlighted-text",
+		["EuclidianTrailingWhitespace"] = "trailing-whitespace",
 	}
 
 	add_all_groups_with_prefix("vim-", vim_group_to_group)

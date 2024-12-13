@@ -23,15 +23,27 @@ pkgs.mkShell {
     # lua52Packages.compat53
     # lua52Packages.inspect
 
-    lua5_3
-    lua53Packages.luarocks
-    lua53Packages.argparse
-    lua53Packages.luafilesystem
-    lua53Packages.busted
-    lua53Packages.compat53
-    lua53Packages.inspect
+    # lua5_3
+    # lua53Packages.luarocks
+    # lua53Packages.argparse
+    # lua53Packages.luafilesystem
+    # lua53Packages.busted
+    # lua53Packages.compat53
+    # lua53Packages.inspect
+
+    lua5_4
+    lua54Packages.luarocks
+    lua54Packages.argparse
+    lua54Packages.luafilesystem
+    lua54Packages.busted
+    lua54Packages.compat53
+    lua54Packages.inspect
+
 
     tree-sitter
+    gcc
+    gnumake
+    gdb
   ];
   shellHook = ''
     append-to-path () {

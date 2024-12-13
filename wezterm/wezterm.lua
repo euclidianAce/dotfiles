@@ -11,6 +11,7 @@ config.font_size = 10
 
 -- config.font = wezterm.font "UbuntuMono"
 -- config.font = wezterm.font "Terminus (TTF)"
+config.front_end = "WebGpu"
 
 config.colors = {
 	foreground = "#d8cee4",

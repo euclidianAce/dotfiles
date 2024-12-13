@@ -42,9 +42,13 @@ const prompt_color = Attribute.magenta;
 const root_prompt_str = "# ";
 const root_prompt_color = Attribute.red;
 
+var stdout: std.fs.File.Writer = undefined;
 pub fn main() void {
-    parseArguments() catch {};
-    printComponents() catch {};
+    stdout = std.io.getStdOut().writer();
+    parseArguments() catch return;
+    stdout.writeAll(begin_synchronized_update) catch {};
+    defer stdout.writeAll(end_synchronized_update) catch {};
+    printComponents() catch return;
 }
 
 fn parseArguments() !void {
@@ -102,10 +106,14 @@ fn getTerminalWidth() ?usize {
         null;
 }
 
+// Terminal synchronized output
+// https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036
+// TODO: is it worth testing for support?
+const begin_synchronized_update = "\x1b[?2026h";
+const end_synchronized_update = "\x1b[?2026l";
+
 fn printComponents() !void {
     const components = static.components.slice();
-
-    const stdout = std.io.getStdOut().writer();
 
     if (components.len == 0) {
         try printPrompt(stdout);

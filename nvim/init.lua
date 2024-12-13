@@ -192,13 +192,12 @@ do
 end
 
 vim.cmd "colorscheme euclidian"
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Make <Esc> be normal in terminal mode" })
 vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>", { desc = "Open fzf" })
 vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>", { desc = "Open ripgrep" })
-vim.keymap.set({"v", "n"}, "K", "<nop>") -- get rid of stupidly laggy man page mapping
+vim.keymap.set({"v", "n"}, "K", "<nop>", { desc = "Get rid of stupidly laggy man page mapping" })
 vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
 vim.keymap.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Set location list from diagnostics" })
-vim.keymap.set("n", "<C-l>", "<cmd>echo \"Nope, use leader-n\"<cr>")
 
 vim.api.nvim_set_hl(0, "LspInlayHint", { link = "EuclidianDelimiter" })
 

@@ -1,16 +1,16 @@
 local wezterm = require "wezterm"
 
-local config = {}
+local config = wezterm.config_builder and wezterm.config_builder() or {}
 
-if wezterm.config_builder then
-	config = wezterm.config_builder()
-end
-
-config.font = wezterm.font "CozetteVector"
-config.font_size = 10
+-- config.font = wezterm.font "CozetteVector"
+-- config.font_size = 8
 
 -- config.font = wezterm.font "UbuntuMono"
--- config.font = wezterm.font "Terminus (TTF)"
+-- config.font_size = 10
+
+config.font = wezterm.font "Terminus (TTF)"
+config.font_size = 10
+
 config.front_end = "WebGpu"
 
 config.colors = {

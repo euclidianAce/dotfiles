@@ -203,6 +203,20 @@ vim.keymap.set("n", "<C-l>", "<cmd>echo \"Nope, use leader-n\"<cr>")
 
 vim.api.nvim_set_hl(0, "LspInlayHint", { link = "EuclidianDelimiter" })
 
+vim.api.nvim_create_user_command("Term", function(opts)
+	for _, id in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_get_name(id):sub(1, 7) == "term://" then
+			vim.cmd("sp | buffer " .. id)
+			vim.notify("Found existing terminal (buffer " .. id .. ")")
+			return
+		end
+	end
+	vim.cmd("sp +term")
+	vim.notify("Created new terminal")
+end, {
+	desc = "Find or create a terminal",
+})
+
 local function optional_require(name)
 	local ok, ret = pcall(require, name)
 	if not ok then return nil end
@@ -216,7 +230,7 @@ if lspconfig then
 
 	-- semantic tokens are buggy
 	lspconfig.util.default_config.on_init = function(client)
-		client.server_capabilities.semanticTokensProvider = nil
+		client.server_capabilities["semanticTokensProvider"] = nil
 	end
 
 	lspconfig.zls.setup {}

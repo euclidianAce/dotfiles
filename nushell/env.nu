@@ -1,9 +1,9 @@
 use std
 
-def --env replace-home-with-tilde [p: string] -> string {
+def --env replace-home-with-tilde []: string -> string {
 	let home = $env.HOME
-	if $p == $home { return "~" }
-	$p | str replace -r ("^" + $home + "/") "~/"
+	if $in == $home { return "~" }
+	$in | str replace -r ("^" + $home + "/") "~/"
 }
 
 $env.PROMPT_COMMAND = {||
@@ -22,7 +22,7 @@ $env.PROMPT_COMMAND = {||
 		$current_git_head = "* " + $current_git_head
 	}
 
-	let working_directory = replace-home-with-tilde $env.PWD
+	let working_directory = $env.PWD | replace-home-with-tilde 
 
 	let tmux_status = if ($env | get TMUX?) != null { "" } else { "not in tmux" }
 
@@ -53,16 +53,6 @@ $env.PROMPT_INDICATOR_VI_INSERT = "(i) "
 $env.PROMPT_INDICATOR_VI_NORMAL = "(n) "
 $env.PROMPT_MULTILINE_INDICATOR = " │ "
 
-let path_conversion = {
-	from_string: { |s| $s | split row (char esep) | path expand --no-symlink }
-		     to_string: { |v| $v | path expand --no-symlink | str join (char esep) }
-}
-
-$env.ENV_CONVERSIONS = {
-	"PATH": path_conversion
-	"Path": path_conversion
-}
-
 $env.NU_LIB_DIRS = [
 	($nu.default-config-dir | path join 'scripts')
 	$nu.default-config-dir
@@ -72,6 +62,6 @@ $env.NU_PLUGIN_DIRS = [
 	($nu.default-config-dir | path join 'plugins')
 ]
 
-$env.EDITOR = "nvim"
-$env.MANPAGER = "nvim +Man!"
+$env.EDITOR = if $env.NVIM? != null { "nvim --server " + $env.NVIM + " --remote" } else { "nvim" }
+$env.MANPAGER = if $env.NVIM? != null { "less" } else { "nvim +Man!" }
 $env.DOTFILE_DIR = ($env.HOME | path join "dotfiles")

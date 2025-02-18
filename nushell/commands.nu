@@ -1,7 +1,7 @@
 use std
 
 export def --wrapped e [...arguments: path] {
-	run-external $env.EDITOR ...$arguments
+	run-external ...($env.EDITOR | split row ' ') ...($arguments | path expand)
 }
 
 export def --wrapped gs [--long (-l), ...rest] {

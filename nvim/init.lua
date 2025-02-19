@@ -124,7 +124,6 @@ set(vim.g, {
 	loaded_zipPlugin = 1,
 	loaded_2html_plugin = 1,
 	loaded_spec = 1,
-	loaded_netrwPlugin = 1,
 	netrw_banner = 0,
 })
 

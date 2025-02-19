@@ -4,6 +4,15 @@ source commands.nu
 use log.nu
 use tmux.nu
 
+let filesize = if (version | get minor) < 102 {
+	{
+		metric: false
+		format: "auto"
+	}
+} else {
+	{ unit: "metric" }
+}
+
 $env.config = {
 	show_banner: false
 
@@ -73,9 +82,7 @@ $env.config = {
 		}
 	}
 
-	filesize: {
-		unit: "metric",
-	 }
+	filesize: $filesize
 
 	cursor_shape: {
 		emacs: block # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (line is the default)
@@ -111,7 +118,7 @@ $env.config = {
 			type: {
 				layout: columnar
 				columns: 4
-				col_width: 20	 # Optional value. If missing all the screen width is used to calculate column width
+				col_width: 20 # Optional value. If missing all the screen width is used to calculate column width
 				col_padding: 2
 			}
 			style: {
@@ -127,7 +134,7 @@ $env.config = {
 			type: {
 				layout: description
 				columns: 4
-				col_width: 20	 # Optional value. If missing all the screen width is used to calculate column width
+				col_width: 20 # Optional value. If missing all the screen width is used to calculate column width
 				col_padding: 2
 				selection_rows: 4
 				description_rows: 10

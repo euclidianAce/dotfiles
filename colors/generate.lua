@@ -407,6 +407,25 @@ local function generate_css()
 	return table.concat(lines, "\n")
 end
 
+local function generate_ppm()
+	io.write("P6\n5 11\n255\n")
+
+	for _, row in ipairs{
+		"bg", "fg",
+		"purple", "red", "magenta",
+		"orange", "yellow", "green",
+		"blue", "cyan", "gray",
+	} do
+		for _, col in ipairs{"darker","dark","normal","bright","brighter"} do
+			local str = palette[row][col]
+			local r = tonumber(str:sub(1, 2), 16)
+			local g = tonumber(str:sub(3, 4), 16)
+			local b = tonumber(str:sub(5, 6), 16)
+			io.write(string.char(r, g, b))
+		end
+	end
+end
+
 local to_generate = ...
 
 if to_generate == "vim" then
@@ -417,10 +436,12 @@ elseif to_generate == "css" then
 	print(generate_css())
 elseif to_generate == "ansi" then
 	dump_ansi()
+elseif to_generate == "ppm" then
+	print(generate_ppm())
 elseif to_generate then
-	io.stderr:write(("Unknown target %q\n   Expected 'vim', 'nu', 'css', or 'ansi'\n"):format(to_generate))
+	io.stderr:write(("Unknown target %q\n   Expected 'vim', 'nu', 'css', 'ppm', or 'ansi'\n"):format(to_generate))
 	os.exit(1)
 else
-	io.stderr:write("Usage: generate.lua <target>\n")
+	io.stderr:write("Usage: generate.lua <target>\n   target: one of 'vim', 'nu', 'css', 'ppm', or 'ansi'\n")
 	os.exit(1)
 end

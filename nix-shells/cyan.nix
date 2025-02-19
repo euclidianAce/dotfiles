@@ -3,6 +3,7 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     # TODO: make this configurable?
     # lua5_1
+    # lua51Packages.luasystem
     # lua51Packages.argparse
     # lua51Packages.luafilesystem
     # lua51Packages.busted
@@ -10,6 +11,7 @@ pkgs.mkShell {
     # lua51Packages.compat53
 
     # luajit
+    # luajitPackages.luasystem
     # luajitPackages.argparse
     # luajitPackages.luafilesystem
     # luajitPackages.busted
@@ -17,6 +19,7 @@ pkgs.mkShell {
     # luajitPackages.compat53
 
     # lua5_2
+    # lua52Packages.luasystem
     # lua52Packages.argparse
     # lua52Packages.luafilesystem
     # lua52Packages.busted
@@ -24,6 +27,7 @@ pkgs.mkShell {
     # lua52Packages.inspect
 
     # lua5_3
+    # lua53Packages.luasystem
     # lua53Packages.luarocks
     # lua53Packages.argparse
     # lua53Packages.luafilesystem
@@ -32,6 +36,7 @@ pkgs.mkShell {
     # lua53Packages.inspect
 
     lua5_4
+    lua54Packages.luasystem
     lua54Packages.luarocks
     lua54Packages.argparse
     lua54Packages.luafilesystem
@@ -39,9 +44,8 @@ pkgs.mkShell {
     lua54Packages.compat53
     lua54Packages.inspect
 
-
-    tree-sitter
     gcc
+    glibc
     gnumake
     gdb
   ];

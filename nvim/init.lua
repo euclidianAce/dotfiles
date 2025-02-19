@@ -1,38 +1,36 @@
 -- lil baby plugin manager
-do
+local function do_plugins(force_update)
 	local plugin_specs = {}
-	repeat
-		local function add_spec(spec)
-			local result = {}
-			for _, kind in ipairs { "git", "local_dir", "tar" } do
-				if spec[kind] then
-					result.kind = kind
-					result.data = spec[kind]
-					break
-				end
+	local function add_spec(spec)
+		local result = {}
+		for _, kind in ipairs { "git", "local_dir", "tar" } do
+			if spec[kind] then
+				result.kind = kind
+				result.data = spec[kind]
+				break
 			end
-			if not result.kind then
-				error("Unknown plugin kind '" .. tostring((next(spec))) .. "'", 2)
-			end
-			table.insert(plugin_specs, result)
 		end
-		local f, err = loadfile(os.getenv "HOME" .. "/.config/nvim/plugins.lua")
-		if not f then
-			vim.notify("Could not load plugin list: " .. tostring(err), vim.log.levels.WARN)
-			break
+		if not result.kind then
+			error("Unknown plugin kind '" .. tostring((next(spec))) .. "'", 2)
 		end
-		setfenv(f, setmetatable({}, { __index = function(self, k)
-			if k == "plugin" then return add_spec end
-			return _G[k]
-		end }))
-		local ok, err = pcall(f)
-		if not ok then
-			vim.notify("Error loading plugin list: " .. tostring(err), vim.log.levels.ERROR)
-			-- don't load anything on error
-			plugin_specs = {}
-			break
-		end
-	until true
+		table.insert(plugin_specs, result)
+	end
+	local f, err = loadfile(os.getenv "HOME" .. "/.config/nvim/plugins.lua")
+	if not f then
+		vim.notify("Could not load plugin list: " .. tostring(err), vim.log.levels.WARN)
+		return
+	end
+	setfenv(f, setmetatable({}, { __index = function(self, k)
+		if k == "plugin" then return add_spec end
+		return _G[k]
+	end }))
+	local ok, err = pcall(f)
+	if not ok then
+		vim.notify("Error loading plugin list: " .. tostring(err), vim.log.levels.ERROR)
+		-- don't load anything on error
+		plugin_specs = {}
+		return
+	end
 
 	local function run(...)
 		local result = vim.fn.system({ ... }, "")
@@ -44,8 +42,11 @@ do
 	end
 
 	local data_path = vim.fn.stdpath "data" .. "/site/pack/plugins/opt"
-	if not vim.loop.fs_stat(data_path) then
-		run("mkdir", "-p", data_path)
+	if force_update then
+		if not run("rm", "-r", data_path) then return end
+	end
+	if force_update or not vim.loop.fs_stat(data_path) then
+		if not run("mkdir", "-p", data_path) then return end
 	end
 
 	local anything_fetched = false
@@ -61,7 +62,7 @@ do
 				end
 				assert(#name > 0)
 				local location = data_path .. "/" .. name
-				if not vim.loop.fs_stat(location) then
+				if force_update or not vim.loop.fs_stat(location) then
 					vim.notify("Fetching (git) plugin " .. spec.data)
 					if not run("mkdir", "-p", data_path) then break end
 					if not run("git", "-C", data_path, "clone", "--depth=1", "--", spec.data, name) then break end
@@ -76,11 +77,12 @@ do
 					break
 				end
 				local location = data_path .. "/" .. spec.data.name
-				if not vim.loop.fs_stat(location) then
+				if force_update or not vim.loop.fs_stat(location) then
 					if not run("mkdir", "-p", location) then break end
 					vim.notify("Fetching (tar) plugin " .. spec.data.name)
 					if not run("wget", "--output-document=" .. location .. ".tarball", spec.data.url) then break end
 					local is_gzip = spec.data.url:match("%.gz$")
+					vim.notify("Extracting (tar) plugin " .. spec.data.name)
 					if not run(
 						"tar",
 						"--directory=" .. location,
@@ -100,6 +102,15 @@ do
 		vim.cmd "helptags ALL"
 	end
 end
+
+do_plugins()
+
+vim.api.nvim_create_user_command("UpdatePlugins", function()
+	vim.notify("Updating/redownloading plugins...")
+	do_plugins(true)
+end, {
+	desc = "Redownload all plugins"
+})
 
 -- add local-plugins dir to rtp
 local dotdir = os.getenv "DOTFILE_DIR"

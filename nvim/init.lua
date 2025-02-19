@@ -203,7 +203,23 @@ do
 end
 
 do
-	local ns = vim.api.nvim_create_namespace("trailing-whitespace-highlighter")
+	local ns = vim.api.nvim_create_namespace("whitespace-highlighter")
+
+	local function add_mark(bufnr, row, start, finish)
+		vim.api.nvim_buf_set_extmark(bufnr, ns, row, start - 1, {
+			ephemeral = true,
+			end_line = row,
+			end_col = finish,
+			hl_group = "EuclidianTrailingWhitespace",
+		})
+	end
+
+	local function check_line(bufnr, row, line, patt)
+		local start, finish = line:match(patt)
+		if start ~= finish then
+			add_mark(bufnr, row, start, finish)
+		end
+	end
 
 	local function enable()
 		vim.api.nvim_set_decoration_provider(ns, {
@@ -216,15 +232,9 @@ do
 			end,
 			on_line = function(_, _winid, bufnr, row)
 				local ln = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1];
-				local start, finish = ln:match("()%s+()$")
-				if start ~= finish then
-					vim.api.nvim_buf_set_extmark(bufnr, ns, row, start - 1, {
-						ephemeral = true,
-						end_line = row,
-						end_col = finish,
-						hl_group = "EuclidianTrailingWhitespace",
-					})
-				end
+				check_line(bufnr, row, ln, "()%s+()$")
+				check_line(bufnr, row, ln, "() +\t*()\t")
+				check_line(bufnr, row, ln, "()\t+ *() ")
 
 				return true
 			end,
@@ -237,7 +247,7 @@ do
 
 	enable()
 
-	vim.api.nvim_create_user_command("HighlightTrailingSpaces", function(args)
+	vim.api.nvim_create_user_command("HighlightSpaces", function(args)
 		(args.bang and disable or enable)()
 	end, { bang = true })
 end

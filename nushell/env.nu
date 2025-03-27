@@ -64,6 +64,8 @@ $env.NU_PLUGIN_DIRS = [
 
 $env.EDITOR = if $env.NVIM? != null { "nvim --server " + $env.NVIM + " --remote" } else { "nvim" }
 $env.MANPAGER = if $env.NVIM? != null { "less" } else { "nvim +Man!" }
-$env.DOTFILE_DIR = ($env.HOME | path join "dotfiles")
+if $env.DOTFILE_DIR? == null {
+	$env.DOTFILE_DIR = ($env.HOME | path join "dotfiles")
+}
 
 $env.SHELL_DEPTH = (($env.SHELL_DEPTH? | default 0) | into int) + 1

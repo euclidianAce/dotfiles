@@ -16,17 +16,17 @@
 // ```bash
 // export PS2=" \[\e[90m\]│\[\e[0m\]  "
 // update_ps1 () {
-//	local last_exit_code="$?"
-//	local working_directory="$PWD"
-//	if [[ "$working_directory" =~ ^$HOME(.*) ]]; then
-//		working_directory="~${BASH_REMATCH[1]}"
-//	fi
-//	PS1=$($DOTFILE_DIR/prompt \
-//		$([[ $last_exit_code == '0' ]] || echo "attr=red $last_exit_code") \
-//		attr=gray "$(date '+%I:%M:%S %p')" \
-//		attr=red "$USER@$(hostname)" \
-//		attr=blue $working_directory \
-//		attr=bright_green "$(git branch --show-current 2>/dev/null)")
+//         local last_exit_code="$?"
+//         local working_directory="$PWD"
+//         if [[ "$working_directory" =~ ^$HOME(.*) ]]; then
+//                 working_directory="~${BASH_REMATCH[1]}"
+//         fi
+//         PS1=$($DOTFILE_DIR/prompt \
+//                 $([[ $last_exit_code == '0' ]] || echo "attr=red $last_exit_code") \
+//                 attr=gray "$(date '+%I:%M:%S %p')" \
+//                 attr=red "$USER@$(hostname)" \
+//                 attr=blue $working_directory \
+//                 attr=bright_green "$(git branch --show-current 2>/dev/null)")
 // }
 // update_ps1
 // PROMPT_COMMAND=update_ps1
@@ -110,7 +110,7 @@ fn getTerminalWidth() ?usize {
     var winsize: std.posix.winsize = undefined;
     const err = std.posix.system.ioctl(std.posix.STDIN_FILENO, std.posix.T.IOCGWINSZ, @intFromPtr(&winsize));
     return if (std.posix.errno(err) == .SUCCESS)
-        winsize.ws_col
+        winsize.col
     else
         null;
 }

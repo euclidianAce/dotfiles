@@ -35,12 +35,13 @@
 
 const attribute_marker = "attr=";
 const pad_marker = "pad=";
-const line_color = Attribute.cyan;
+const line_color_marker = "line_color=";
+const prompt_marker = "prompt=";
+const prompt_color_marker = "prompt_color=";
 
-const prompt_str = "$ ";
-const prompt_color = Attribute.magenta;
-const root_prompt_str = "# ";
-const root_prompt_color = Attribute.red;
+var line_color = Attribute.cyan;
+var prompt_str: []const u8 = "$ ";
+var prompt_color = Attribute.magenta;
 
 var stdout: std.fs.File.Writer = undefined;
 pub fn main() void {
@@ -49,6 +50,14 @@ pub fn main() void {
     stdout.writeAll(begin_synchronized_update) catch {};
     defer stdout.writeAll(end_synchronized_update) catch {};
     printComponents() catch return;
+}
+
+// returns the rest
+inline fn startsWith(haystack: []const u8, needle: []const u8) ?[]const u8 {
+    return if (std.mem.startsWith(u8, haystack, needle))
+        haystack[needle.len..]
+    else
+        null;
 }
 
 fn parseArguments() !void {
@@ -64,14 +73,24 @@ fn parseArguments() !void {
     var pad: usize = 0;
 
     while (it.next()) |arg| {
-        if (std.mem.startsWith(u8, arg, attribute_marker)) {
-            if (std.meta.stringToEnum(Attribute, arg[attribute_marker.len..])) |attribute| {
-                attr = attribute;
-                continue;
-            }
+        if (startsWith(arg, attribute_marker)) |a| attr: {
+            attr = Attribute.parse(a) orelse break :attr;
+            continue;
         }
-        if (std.mem.startsWith(u8, arg, pad_marker)) pad: {
-            pad = std.fmt.parseInt(usize, arg[pad_marker.len..], 10) catch break :pad;
+        if (startsWith(arg, pad_marker)) |int| pad: {
+            pad = std.fmt.parseInt(usize, int, 10) catch break :pad;
+            continue;
+        }
+        if (startsWith(arg, line_color_marker)) |a| attr: {
+            line_color = Attribute.parse(a) orelse break :attr;
+            continue;
+        }
+        if (startsWith(arg, prompt_color_marker)) |a| attr: {
+            prompt_color = Attribute.parse(a) orelse break :attr;
+            continue;
+        }
+        if (startsWith(arg, prompt_marker)) |a| {
+            prompt_str = a;
             continue;
         }
 
@@ -82,18 +101,8 @@ fn parseArguments() !void {
 }
 
 fn printPrompt(writer: anytype) !void {
-    const is_root = if (builtin.target.os.tag == .linux)
-        std.os.linux.getuid() == 0
-    else
-        false;
-
-    if (is_root) {
-        try root_prompt_color.write(writer);
-        try writer.writeAll(root_prompt_str);
-    } else {
-        try prompt_color.write(writer);
-        try writer.writeAll(prompt_str);
-    }
+    try prompt_color.write(writer);
+    try writer.writeAll(prompt_str);
     try Attribute.none.write(writer);
 }
 
@@ -265,6 +274,10 @@ const Attribute = enum(u8) {
     pub inline fn write(self: @This(), writer: anytype) !void {
         try writer.print("\x1b[{}m", .{@intFromEnum(self)});
     }
+
+    pub fn parse(str: []const u8) ?@This() {
+        return std.meta.stringToEnum(Attribute, str);
+    }
 };
 
 const box = struct {
@@ -427,7 +440,6 @@ const wcwidth = struct {
         };
         return len;
     }
-
 };
 
 const MaybeUtf8Iterator = struct {

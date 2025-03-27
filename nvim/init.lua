@@ -140,9 +140,10 @@ set(vim.g, {
 
 set(vim.opt, {
 	termguicolors = true,
-	-- guicursor = "a:block",
+	guicursor = "a:block",
 	-- guicursor = "i-c-ci-ve:ver5,r-cr-o:hor25,n-v-sm:block,a:Cursor",
-	guicursor = "i-c-ci-ve-r-cr-o:block,n-v-sm:hor15,a:Cursor",
+	-- guicursor = "i-c-ci-ve-r-cr-o:block,n-v-sm:hor15,a:Cursor",
+	-- guicursor = "i-c-ci:ver5,ve-r-cr-o:block,n-v-sm:hor15,a:Cursor",
 	number = true,
 	relativenumber = true,
 	numberwidth = 4,

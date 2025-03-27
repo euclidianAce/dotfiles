@@ -5,27 +5,27 @@ export def command [...arguments] {
 }
 
 export def list-sessions-vars [
-       --activity             # Time of session last activity
-       --alerts               # List of window indexes with alerts
-       --attached             # Number of clients session is attached to
-       --attached-list        # List of clients session is attached to
-       --created              # Time session created
-       --format               # True if format is for a session
-       --group                # Name of session group
-       --group-attached       # Number of clients sessions in group are attached to
-       --group-attached-list  # List of clients sessions in group are attached to
-       --group-list           # List of sessions in group
-       --group-many-attached  # True if multiple clients attached to sessions in group
-       --group-size           # Size of session group
-       --grouped              # True if session in a group
-       --id                   # Unique session ID
-       --last-attached        # Time session last attached
-       --many-attached        # True if multiple clients attached
-       --marked               # True if this session contains the marked pane
-       --name                 # Session name
-       --path                 # Working directory of session
-       --stack                # Window indexes in most recent order
-       --windows              # Number of windows in session
+	--activity             # Time of session last activity
+	--alerts               # List of window indexes with alerts
+	--attached             # Number of clients session is attached to
+	--attached-list        # List of clients session is attached to
+	--created              # Time session created
+	--format               # True if format is for a session
+	--group                # Name of session group
+	--group-attached       # Number of clients sessions in group are attached to
+	--group-attached-list  # List of clients sessions in group are attached to
+	--group-list           # List of sessions in group
+	--group-many-attached  # True if multiple clients attached to sessions in group
+	--group-size           # Size of session group
+	--grouped              # True if session in a group
+	--id                   # Unique session ID
+	--last-attached        # Time session last attached
+	--many-attached        # True if multiple clients attached
+	--marked               # True if this session contains the marked pane
+	--name                 # Session name
+	--path                 # Working directory of session
+	--stack                # Window indexes in most recent order
+	--windows              # Number of windows in session
 ] {
 	let transform = [[name,include,tag,list_item];
 		[ 'activity',             $activity,            "time",   null ]

@@ -32,6 +32,30 @@ export const keys = [
 		}
 	}
 	{
+		name: fzf_find_file
+		modifier: control
+		keycode: char_f
+		mode: [emacs, vi_insert]
+		event: {
+			send: executehostcommand
+			cmd: "commandline edit (
+				run-external 'find' '.' '-type' 'f'
+				| lines
+				| str join (char -i 0)
+				| fzf --read0 --tiebreak=chunk --layout=reverse --height=70% --border=rounded
+				| decode utf-8
+				| str trim
+				| do {
+					let line = (commandline)
+					let cursor_pos = (commandline get-cursor)
+					let before = $line | str substring 0..$cursor_pos
+					let after = $line | str substring $cursor_pos..
+					$before + $in + $after
+				}
+			)"
+		}
+	}
+	{
 		name: help_menu
 		modifier: none
 		keycode: f1
@@ -315,19 +339,6 @@ export const keys = [
 			until: [
 				{send: menuleft}
 				{send: left}
-			]
-		}
-	}
-	{
-		name: move_right_or_take_history_hint
-		modifier: control
-		keycode: char_f
-		mode: emacs
-		event: {
-			until: [
-				{send: historyhintcomplete}
-				{send: menuright}
-				{send: right}
 			]
 		}
 	}

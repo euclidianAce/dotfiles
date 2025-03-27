@@ -26,10 +26,13 @@ local function on_key_wrapper(handler)
 end
 
 local function default_handler(file, line, column)
-   local cmd = "drop " .. file
+   vim.cmd("normal m'")
+   local cmd = "keepjumps drop " .. file
    vim.cmd(cmd)
    if line then
-      vim.api.nvim_win_set_cursor(0, { line, (column or 1) - 1 })
+      local c = (column or 1) - 1
+      vim.api.nvim_win_set_cursor(0, { line, c })
+      vim.cmd("normal m'")
    end
 end
 

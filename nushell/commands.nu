@@ -50,7 +50,7 @@ export def --wrapped throttle [
 export def --env root-shell [] {
 	let dot_dir = $env.DOTFILE_DIR
 	let env_vars = [ "DOTFILE_DIR", "TMUX", "SHELL_DEPTH" ]
-	
+
 	# maybe worth using --shell?
 	^sudo --preserve-env="DOTFILE_DIR,TMUX,SHELL_DEPTH" -- nu --config ($dot_dir | path join nushell config.nu) --env-config ($dot_dir | path join nushell env.nu)
 }

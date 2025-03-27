@@ -22,7 +22,7 @@ $env.PROMPT_COMMAND = {||
 		$current_git_head = "* " + $current_git_head
 	}
 
-	let working_directory = $env.PWD | replace-home-with-tilde 
+	let working_directory = $env.PWD | replace-home-with-tilde
 
 	let tmux_status = if env.TMUX? != null { "" } else { "not in tmux" }
 

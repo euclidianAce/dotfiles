@@ -178,6 +178,15 @@ set(vim.opt, {
 	signcolumn = "yes:1",
 
 	statusline = " %4n %t %{FugitiveStatusline()} %h%q%m%w %= Line %l of %L ",
+
+	cinoptions =
+		":0" -- case labels indented same as switch
+		.. ",=s"
+		.. ",l1" -- indent case statements normally
+		.. ",g0" -- c++ public/private
+		.. ",N0" -- namespace indent
+		.. ",Ws"
+	,
 })
 
 vim.api.nvim_create_autocmd("TextYankPost", {

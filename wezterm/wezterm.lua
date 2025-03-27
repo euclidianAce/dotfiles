@@ -9,8 +9,11 @@ local config = wezterm.config_builder and wezterm.config_builder() or {}
 -- config.font_size = 10
 
 config.font = wezterm.font "Terminus (TTF)"
-config.font_size = 10
+config.font_size = 9
 
+-- config.font = wezterm.font "Atkinson Hyperlegible Mono"
+
+-- Works around a rendering bug
 config.front_end = "WebGpu"
 
 config.colors = {

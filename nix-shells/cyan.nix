@@ -3,51 +3,25 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     # TODO: make this configurable?
     # lua5_1
-    # lua51Packages.luasystem
-    # lua51Packages.argparse
-    # lua51Packages.luafilesystem
-    # lua51Packages.busted
-    # lua51Packages.inspect
-    # lua51Packages.compat53
+    # lua51Packages.luarocks
 
     # luajit
-    # luajitPackages.luasystem
-    # luajitPackages.argparse
-    # luajitPackages.luafilesystem
-    # luajitPackages.busted
-    # luajitPackages.inspect
-    # luajitPackages.compat53
+    # luajitPackages.luarocks
 
     # lua5_2
-    # lua52Packages.luasystem
-    # lua52Packages.argparse
-    # lua52Packages.luafilesystem
-    # lua52Packages.busted
-    # lua52Packages.compat53
-    # lua52Packages.inspect
+    # lua52Packages.luarocks
 
     # lua5_3
-    # lua53Packages.luasystem
     # lua53Packages.luarocks
-    # lua53Packages.argparse
-    # lua53Packages.luafilesystem
-    # lua53Packages.busted
-    # lua53Packages.compat53
-    # lua53Packages.inspect
 
     lua5_4
-    lua54Packages.luasystem
     lua54Packages.luarocks
-    lua54Packages.argparse
-    lua54Packages.luafilesystem
-    lua54Packages.busted
-    lua54Packages.compat53
-    lua54Packages.inspect
 
     gcc
     glibc
     gnumake
     gdb
+    tree-sitter
   ];
   shellHook = ''
     append-to-path () {
@@ -80,8 +54,10 @@ pkgs.mkShell {
     append-to-lua-path "$HOME/dev/cyan/src"
     append-to-path "$HOME/dev/cyan/bin"
 
-    append-to-lua-cpath "$HOME/.cache/tree-sitter/lib"
+    prepend-to-path "$HOME/dev/cyan/lua_modules/bin"
+    prepend-to-lua-path "$HOME/dev/cyan/lua_modules/share/lua/5.4"
+    prepend-to-lua-cpath "$HOME/dev/cyan/lua_modules/lib/lua/5.4"
 
-    prepend-to-lua-path "."
+    append-to-lua-cpath "$HOME/.cache/tree-sitter/lib"
   '';
 }

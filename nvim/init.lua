@@ -323,3 +323,20 @@ if lspconfig then
 		vim.lsp.inlay_hint.enable()
 	end
 end
+
+local err_jump = optional_require "error-jump"
+if err_jump then
+	vim.api.nvim_create_autocmd("BufFilePost", {
+		callback = function(ev)
+			local name = vim.api.nvim_buf_get_name(ev.buf)
+			if name:sub(1, 7) ~= "term://" then
+				return
+			end
+
+			vim.keymap.set("n", "<cr>", err_jump.on_key_wrapper(err_jump.default_handler), {
+				buffer = ev.buf,
+				desc = "Goto compile error location under the cursor",
+			})
+		end
+	})
+end

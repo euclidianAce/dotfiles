@@ -24,7 +24,7 @@ $env.PROMPT_COMMAND = {||
 
 	let working_directory = $env.PWD | replace-home-with-tilde
 
-	let tmux_status = if env.TMUX? != null { "" } else { "not in tmux" }
+	let tmux_status = if $env.TMUX? != null { "" } else { "not in tmux" }
 
 	let nix_shell_status = match $env.IN_NIX_SHELL? {
 		null => ""

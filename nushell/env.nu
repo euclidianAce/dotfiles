@@ -33,19 +33,22 @@ $env.PROMPT_COMMAND = {||
 
 	let ssh_status = if $env.SSH_CLIENT? != null { "(ssh) " } else { "" }
 
-	let shell_depth = match $env.SHELL_DEPTH? {
-		null | 1 => ""
-		$x => $"Nested shell ($x - 1)"
+	let shell_depth = match ($env.SHLVL | default 0 | into int) {
+		0 => ""
+		$x => $"Nested shell ($x)"
 	}
 
 	let is_root = try { ^id -u | into int | $in == 0 } catch { false }
+	let line_color = if $is_root { "red" } else { "cyan" }
+	let prompt_str = if $is_root { "# " } else { "$ " }
+	let prompt_color = if $is_root { "red" } else { "magenta" }
 
 	(
 		run-external
 		$prompt
-		$"line_color=(if $is_root { "red" } else { "cyan" })"
-		$"prompt=(if $is_root { "#" } else { "$" }) "
-		$"prompt_color=(if $is_root { "red" } else { "magenta" })"
+		("line_color=" + $line_color)
+		("prompt=" + $prompt_str)
+		("prompt_color=" + $prompt_color)
 		attr=red $exit_code
 		attr=bright_yellow $shell_depth
 		attr=yellow $tmux_status
@@ -78,5 +81,3 @@ $env.MANPAGER = if $env.NVIM? != null { "less" } else { "nvim +Man!" }
 if $env.DOTFILE_DIR? == null {
 	$env.DOTFILE_DIR = ($env.HOME | path join "dotfiles")
 }
-
-$env.SHELL_DEPTH = (($env.SHELL_DEPTH? | default 0) | into int) + 1

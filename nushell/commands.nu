@@ -11,6 +11,10 @@ export def --wrapped gs [--long (-l), ...rest] {
 	^git status $flag ...$rest
 }
 
+export def --wrapped gsw [...rest] {
+	^git switch ...$rest
+}
+
 export def --wrapped ga [...arguments] {
 	^git add ...$arguments
 	^git status --short

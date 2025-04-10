@@ -39,6 +39,8 @@ const line_color_marker = "line_color=";
 const prompt_marker = "prompt=";
 const prompt_color_marker = "prompt_color=";
 
+const truncation_char = "┄";
+
 var line_color = Attribute.cyan;
 var prompt_str: []const u8 = "$ ";
 var prompt_color = Attribute.magenta;
@@ -122,8 +124,35 @@ const begin_synchronized_update = "\x1b[?2026h";
 const end_synchronized_update = "\x1b[?2026l";
 
 fn printComponents() !void {
-    const components = static.components.slice();
+    if (static.components.len == 0) {
+        try printPrompt(stdout);
+        return;
+    }
 
+    const terminal_width = getTerminalWidth() orelse 0;
+
+    if (terminal_width < 16) {
+        try printPrompt(stdout);
+        return;
+    }
+
+    const leading_pad = 4;
+    const trailing_pad = 3;
+
+    const components, const inner_content_width, const was_truncated = components: {
+        const cs = static.components.slice();
+
+        var total_len: usize = cs.len -| 1;
+        for (cs) |c| total_len += c.width();
+
+        var n = cs.len;
+        while (n > 0 and total_len + trailing_pad + leading_pad >= terminal_width) {
+            total_len -= cs[n - 1].width();
+            if (n > 1) total_len -= 1;
+            n -= 1;
+        }
+        break :components .{ cs[0..n], total_len, n < cs.len };
+    };
     if (components.len == 0) {
         try printPrompt(stdout);
         return;
@@ -141,35 +170,25 @@ fn printComponents() !void {
 
     // middle, component contents
     {
-        const terminal_width = getTerminalWidth() orelse 0;
-        var remaining_width: usize = terminal_width;
-
         try stdout.writeAll(box.top_left ++ box.horizontal ** 2 ++ box.left);
-        remaining_width -|= 4;
-
-        const padding = 3;
 
         for (components, 0..) |component, i| {
-            const width = component.width();
-            if (remaining_width -| width < padding)
-                break;
             if (i > 0) {
                 try line_color.write(stdout);
                 try stdout.writeAll(box.vertical);
-                remaining_width -|= 1;
             }
             try component.write(stdout);
-            remaining_width -|= width;
         }
         try line_color.write(stdout);
 
-        if (remaining_width >= padding) {
-            try stdout.writeAll(box.right);
-            try stdout.writeBytesNTimes(box.horizontal, remaining_width - padding);
-            try stdout.writeAll(box.left ++ "\n");
-        } else {
-            try stdout.writeAll(box.vertical ++ "\n");
+        try stdout.writeAll(box.right);
+        var lines_to_write = terminal_width - inner_content_width - leading_pad - trailing_pad;
+        if (was_truncated) {
+            try stdout.writeAll(truncation_char);
+            lines_to_write -= 1;
         }
+        try stdout.writeBytesNTimes(box.horizontal, lines_to_write);
+        try stdout.writeAll(box.left ++ "\n");
     }
 
     // bottom line
@@ -191,21 +210,14 @@ const Component = struct {
     attribute: Attribute,
     padding: usize,
     contents: []const u8,
+    content_width: usize,
 
     pub fn width(self: @This()) usize {
-        const content_width = wcwidth.utf8Width(self.contents);
-        return if (content_width < self.padding)
-            self.padding
-        else
-            content_width;
+        return @max(self.padding, self.content_width);
     }
 
     fn neededSpaces(self: @This()) usize {
-        const content_width = wcwidth.utf8Width(self.contents);
-        return if (content_width < self.padding)
-            self.padding - content_width
-        else
-            0;
+        return self.padding -| self.content_width;
     }
 
     pub fn write(self: @This(), writer: anytype) !void {
@@ -242,6 +254,7 @@ const static = struct {
         const component = components.addOne() catch return oom;
         component.* = .{
             .contents = try copyBytes(contents),
+            .content_width = wcwidth.utf8Width(contents),
             .padding = padding,
             .attribute = attribute,
         };

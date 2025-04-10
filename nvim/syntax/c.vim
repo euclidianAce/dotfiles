@@ -114,8 +114,9 @@ syntax match cNumberSuffix /[uU][lL]\{0,2\}/ contained
 syntax match cNumberSuffix /[lL]\{1,2\}/ contained
 syntax match cNumberSuffix /[uU]\?[wW][bB]/ contained
 
-syntax match cIdentifierUnderscore /_/ contained
-syntax match cIdentifier /\K\k*/ contains=cIdentifierUnderscore
+syntax match cUnimportant /_/ contained
+
+syntax match cIdentifier /\K\k*/ contains=cUnimportant
 
 syntax match cComment /\/\/.*/
 syntax region cComment start="\/\*" end="\*\/"
@@ -218,6 +219,8 @@ syntax keyword cConstant
 	\ cw_success
 	\ cw_failure
 
+syntax match cUnimportant /\<cw_/ contained
+
 hi link cKeyword Keyword
 hi link cOperator Operator
 hi link cStorageClass Type
@@ -233,7 +236,7 @@ hi link cStringEscape Special
 hi link cString Constant
 hi link cCharacter Constant
 hi link cIdentifier Identifier
-hi link cIdentifierUnderscore Delimiter
+hi link cUnimportant Delimiter
 hi link cBinaryDigits Constant
 hi link cBinaryZero Delimiter
 hi link cBinaryOne Constant

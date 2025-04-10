@@ -1,0 +1,11 @@
+Source	Target	Via
+.Xresources	$HOME/$Source	symlink
+.tmux.conf	$HOME/$Source	symlink
+awesome	$XDG_CONFIG_HOME/$Source	symlink
+git	$XDG_CONFIG_HOME/$Source	symlink
+nushell	$XDG_CONFIG_HOME/$Source	symlink
+nvim	$XDG_CONFIG_HOME/$Source	symlink
+wezterm	$XDG_CONFIG_HOME/$Source	symlink
+zathura	$XDG_CONFIG_HOME/$Source	symlink
+
+prompt.zig	$DOTFILE_DIR/prompt	^zig build-exe $Source --name prompt

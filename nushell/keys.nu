@@ -114,7 +114,14 @@ export const keys = [
 		modifier: control
 		keycode: char_l
 		mode: [emacs, vi_normal, vi_insert]
-		event: { send: clearscreen }
+		# Using the clear command instead of:
+		#   event: { send: clearscreen }
+		# redraws the prompt, so if I shrink a terminal in the middle
+		# of typing something, I can resize the prompt
+		event: {
+			send: executehostcommand
+			cmd: "clear"
+		}
 	}
 	{
 		name: search_history

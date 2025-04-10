@@ -48,7 +48,7 @@ export const keys = [
 				| do {
 					let line = (commandline)
 					let cursor_pos = (commandline get-cursor)
-					let before = $line | str substring 0..$cursor_pos
+					let before = $line | str substring 0..($cursor_pos - 1)
 					let after = $line | str substring $cursor_pos..
 					$before + $in + $after
 				}

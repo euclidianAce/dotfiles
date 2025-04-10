@@ -56,13 +56,6 @@ export const keys = [
 		}
 	}
 	{
-		name: help_menu
-		modifier: none
-		keycode: f1
-		mode: [emacs, vi_insert, vi_normal]
-		event: { send: menu name: help_menu }
-	}
-	{
 		name: completion_previous_menu
 		modifier: shift
 		keycode: backtab
@@ -122,13 +115,6 @@ export const keys = [
 			send: executehostcommand
 			cmd: "clear"
 		}
-	}
-	{
-		name: search_history
-		modifier: control
-		keycode: char_q
-		mode: [emacs, vi_normal, vi_insert]
-		event: { send: searchhistory }
 	}
 	{
 		name: open_command_editor

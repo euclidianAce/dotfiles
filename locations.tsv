@@ -9,3 +9,6 @@ wezterm	$XDG_CONFIG_HOME/$Source	symlink
 zathura	$XDG_CONFIG_HOME/$Source	symlink
 
 prompt.zig	$DOTFILE_DIR/prompt	^zig build-exe $Source --name prompt
+
+# userChrome.css	$HOME/.mozilla/firefox/$FIREFOX_PROFILE/chrome/$Source	symlink
+userChrome.css	$HOME/.librewolf/$LIBREWOLF_PROFILE/chrome/$Source	symlink

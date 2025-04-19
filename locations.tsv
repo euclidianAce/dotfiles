@@ -1,6 +1,6 @@
 Source	Target	Via
-.Xresources	$HOME/$Source	symlink
-.tmux.conf	$HOME/$Source	symlink
+Xresources	$HOME/.Xresources	symlink
+tmux.conf	$HOME/.tmux.conf	symlink
 awesome	$XDG_CONFIG_HOME/$Source	symlink
 git	$XDG_CONFIG_HOME/$Source	symlink
 nushell	$XDG_CONFIG_HOME/$Source	symlink

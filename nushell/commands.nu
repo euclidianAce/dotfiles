@@ -1,5 +1,3 @@
-use std
-
 # Invokes $EDITOR with the given arguments
 export def --wrapped e [...arguments: path] {
 	# accomodate pre v0.102

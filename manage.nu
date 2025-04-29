@@ -13,7 +13,7 @@ def "main install" [
 	--force (-f) # Uninstall before installing
 	--dry-run # Do not install anything, just print what would be done
 	--other-vars: record = {} # Variables for substitution in locations.tsv
-	...sources # What to install. (Leave empty to install everything)
+	...sources: string # What to install. (Leave empty to install everything)
 ]: nothing -> nothing {
 	if $force { main uninstall --dry-run=$dry_run ...$sources }
 	let spec = load-locations-tsv ($dotfile_dir | path join locations.tsv) (substitution-record $other_vars) ...$sources
@@ -35,7 +35,7 @@ def "main install" [
 
 def "main uninstall" [
 	--dry-run # Do not uninstall anything, just print what would be done
-	...sources # What to uninstall. (Leave empty to uninstall everything)
+	...sources: string # What to uninstall. (Leave empty to uninstall everything)
 ]: nothing -> nothing {
 	let prev = load-installed
 	let sources_to_delete: list<string> = if ($sources | length) == 0 {

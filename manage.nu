@@ -2,9 +2,9 @@
 
 use nushell/log.nu
 
-def main [] { help main }
+def main []: nothing -> nothing { help main }
 
-def "main help" [] { help main }
+def "main help" []: nothing -> nothing { help main }
 
 let dotfile_dir = $env.DOTFILE_DIR
 let installed_db = $dotfile_dir | path join .installed.nuon
@@ -13,8 +13,8 @@ def "main install" [
 	--force (-f) # Uninstall before installing
 	--dry-run # Do not install anything, just print what would be done
 	--other-vars: record = {} # Variables for substitution in locations.tsv
-	...sources # Specific files to install. (Leave empty to install everything)
-] {
+	...sources # What to install. (Leave empty to install everything)
+]: nothing -> nothing {
 	if $force { main uninstall --dry-run=$dry_run ...$sources }
 	let spec = load-locations-tsv ($dotfile_dir | path join locations.tsv) (substitution-record $other_vars) ...$sources
 
@@ -36,7 +36,7 @@ def "main install" [
 def "main uninstall" [
 	--dry-run # Do not uninstall anything, just print what would be done
 	...sources # What to uninstall. (Leave empty to uninstall everything)
-] {
+]: nothing -> nothing {
 	let prev = load-installed
 	let sources_to_delete: list<string> = if ($sources | length) == 0 {
 		$prev | columns
@@ -62,7 +62,7 @@ def "main uninstall" [
 	$prev | reject ...$deleted_sources | save-installed $in --dry-run=$dry_run
 }
 
-def "main list-installed" [] {
+def "main list-installed" []: nothing -> nothing {
 	load-installed
 		| items {|key, value| echo $"($key): ($value)" }
 		| str join "\n"
@@ -101,12 +101,16 @@ def substitute [substitutions: record]: string -> string {
 	iterate --init "" {|src, acc|
 		# TODO: allow $$ as an escape for a single $
 		# TODO: should probably use ${foo} or $(foo) or something instead of just $foo
-		match ($src | parse --regex '(?<head>.*)\$(?<var>\w+)?(?<tail>.*)' | get --ignore-errors 0) {
-			null => [null, ($src + $acc)]
-			$parsed => (match ($substitutions | get --ignore-errors $parsed.var) {
-				null => (error make --unspanned { msg: $"Variable ‘($parsed.var)’ not found in substitution record: ($substitutions)" })
-				$sub => [ $parsed.head, ($sub + $parsed.tail + $acc) ]
-			})
+		let parsed = $src | parse --regex '(?<head>.*)\$(?<var>\w+)?(?<tail>.*)' | get --ignore-errors 0
+		if $parsed == null { return [null, ($src + $acc)] }
+		let sub = $substitutions | get --ignore-errors $parsed.var
+		if $sub == null {
+			error make {
+				msg: $"Variable ‘($parsed.var)’ not found in substitution record: ($substitutions)"
+				span: (metadata $substitutions).span
+			}
+		} else {
+			[ $parsed.head, ($sub + $parsed.tail + $acc) ]
 		}
 	}
 }

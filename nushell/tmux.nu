@@ -4,7 +4,11 @@ export def command [...arguments] {
 	^tmux ...$arguments
 }
 
-export def list-sessions-vars [
+export def ls [] {
+	list-sessions --activity --alerts --attached --attached-list --created --format --group --group-attached --group-attached-list --group-list --group-many-attached --group-size --grouped --id --last-attached --many-attached --marked --name --path --stack --windows
+}
+
+export def list-sessions [
 	--activity             # Time of session last activity
 	--alerts               # List of window indexes with alerts
 	--attached             # Number of clients session is attached to
@@ -67,15 +71,19 @@ export def list-sessions-vars [
 		$data = ($data
 			| update $tf.name {|it| $it
 				| get $tf.name
-				| match $tf.tag {
-					"bool" => { into bool }
-					"int" => { into int }
-					"time" => { into int | $in * 1_000_000_000 | into datetime }
-					"str" => { into string }
-					"list" => { split row ',' | filter { length | $in == 0 } | match $tf.list_item {
+				| if $in == "" {
+					null
+				} else {
+					match $tf.tag {
+						"bool" => { into bool }
 						"int" => { into int }
-						_ => { into string }
-					} }
+						"time" => { into int | $in * 1_000_000_000 | into datetime }
+						"str" => { into string }
+						"list" => { split row ',' | filter { length | $in == 0 } | match $tf.list_item {
+							"int" => { into int }
+							_ => { into string }
+						} }
+					}
 				}
 			}
 		)
@@ -85,8 +93,8 @@ export def list-sessions-vars [
 }
 
 export def new-or-attach [] {
-	let unattached_session_name = list-sessions-vars --name --attached
-		| where not attached 
+	let unattached_session_name = list-sessions --name --attached
+		| where not attached
 		| where not ($it.name | str ends-with '*')
 		| get 0?.name
 

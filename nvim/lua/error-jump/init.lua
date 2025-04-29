@@ -1,5 +1,3 @@
-local pattern = "([^%s]+):(%d+):(%d+)"
-
 local Target = {}
 
 
@@ -14,11 +12,61 @@ local Found = {}
 
 
 
-local function find_pattern_on_cursor(line, cursor_index)
-   for start_, file, line_index, column, finish in line:gmatch("()" .. pattern .. "()") do
+
+
+
+
+
+
+
+local function match_unixy(line, cursor_index)
+   for start_, file, line_index, finish_ in line:gmatch("()([^%s:]+):(%d+)()") do
       local start = start_
-      if start <= cursor_index and cursor_index < finish then
+      local finish = finish_ - 1
+
+      local rest = line:sub(finish + 1, -1)
+      local column_str = rest:match("^:(%d+)")
+      if column_str then
+         finish = finish + #column_str
+      end
+
+      if start <= cursor_index and cursor_index <= finish then
+         return start, finish, { file = file, line = tonumber(line_index), column = tonumber(column_str) }
+      end
+   end
+end
+
+
+
+
+
+local function match_windowsy(line, cursor_index)
+   for start_, file, in_parens, finish_ in line:gmatch("()([^%s()]+)%(([^()]+)%)()") do
+      local start = start_
+      local finish = finish_ - 1
+
+      local line_index, column = in_parens:match("^%s*(%d+)%s*,%s*(%d+)%s*$")
+      if not line_index then
+         line_index = in_parens:match("^%s*(%d+)%s*$")
+      end
+
+      if start <= cursor_index and cursor_index <= finish then
          return start, finish, { file = file, line = tonumber(line_index), column = tonumber(column) }
+      end
+   end
+end
+
+local matchers = {
+   match_unixy,
+   match_windowsy,
+}
+
+
+local function find_pattern_on_cursor(line, cursor_index)
+   for _, match in ipairs(matchers) do
+      local a, b, c = match(line, cursor_index)
+      if a then
+         return a, b, c
       end
    end
 end
@@ -57,7 +105,7 @@ local function default_handler(found, target)
    ns,
    "Search",
    { found.line_number - 1, found.start_column - 1 },
-   { found.line_number - 1, found.end_column - 1 },
+   { found.line_number - 1, found.end_column + 1 },
    {})
 
    vim.defer_fn(function() vim.api.nvim_buf_clear_namespace(found.buffer, ns, 0, -1) end, 350)
@@ -68,6 +116,15 @@ local function default_handler(found, target)
       vim.api.nvim_win_set_cursor(0, { target.line, c })
       vim.cmd("normal m'")
    end
+
+   local msg = { ("Jumped to file ‘%s’"):format(target.file) }
+   if target.line then
+      table.insert(msg, ", line " .. tostring(target.line))
+   end
+   if target.column then
+      table.insert(msg, ", column " .. tostring(target.column))
+   end
+   vim.notify(table.concat(msg), vim.log.levels.INFO, {})
 end
 
 return {

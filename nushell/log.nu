@@ -10,16 +10,10 @@ def do-log [
 	--no-newline,
 	...args
 ] {
-	print --no-newline $color $prefix $reset
-	for arg in $args {
-		mut first = true
-		for line in ($arg | into string | lines) {
-			if not $first {
-				print --no-newline $color "\n     ... "  $reset
-			}
-			print --no-newline $line
-			$first = false
-		}
+	let lines = ($args | each { into string } | str join | lines)
+	print --no-newline $color $prefix $reset $lines.0
+	for line in ($lines | skip 1) {
+		print --no-newline $color "\n     ... "  $reset $line
 	}
 	if not $no_newline {
 		print --no-newline "\n"

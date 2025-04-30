@@ -4,10 +4,6 @@ export def command [...arguments] {
 	^tmux ...$arguments
 }
 
-export def ls [] {
-	list-sessions --activity --alerts --attached --attached-list --created --format --group --group-attached --group-attached-list --group-list --group-many-attached --group-size --grouped --id --last-attached --many-attached --marked --name --path --stack --windows
-}
-
 export def list-sessions [
 	--activity             # Time of session last activity
 	--alerts               # List of window indexes with alerts
@@ -30,7 +26,7 @@ export def list-sessions [
 	--path                 # Working directory of session
 	--stack                # Window indexes in most recent order
 	--windows              # Number of windows in session
-] {
+]: nothing -> table {
 	let transform = [[name,include,tag,list_item];
 		[ 'activity',             $activity,            "time",   null ]
 		[ 'alerts',               $alerts,              "list",   "int" ]
@@ -55,47 +51,49 @@ export def list-sessions [
 		[ 'windows',              $windows,             "int",    null ]
 	]
 
+	let all = not ($transform.include | any { $in })
+	let transform = $transform
+		| if $all { $in } else { where include }
+
 	let names_and_format = $transform
-		| where include
 		| reduce --fold [] {|it, acc|
 			$acc | append {name: $it.name, format: ('#{session_' + $it.name + '}')}
 		}
 
 	let format_string = $names_and_format | get format | str join ';'
 
-	mut data = (^tmux list-sessions -F $format_string e> (std null-device))
+	let data = (^tmux list-sessions -F $format_string e> (std null-device))
 		| from csv --noheaders --separator ';'
-		| rename ...($names_and_format | get name)
+		| rename ...$names_and_format.name
 
-	for tf in ($transform | where include) {
-		$data = ($data
-			| update $tf.name {|it| $it
-				| get $tf.name
-				| if $in == "" {
-					null
-				} else {
-					match $tf.tag {
-						"bool" => { into bool }
-						"int" => { into int }
-						"time" => { into int | $in * 1_000_000_000 | into datetime }
-						"str" => { into string }
-						"list" => { split row ',' | filter { length | $in == 0 } | match $tf.list_item {
-							"int" => { into int }
-							_ => { into string }
-						} }
-					}
-				}
-			}
-		)
+	$transform | reduce --fold $data {|tf, acc|
+		update $tf.name {|it|
+			let cell = $it | get $tf.name
+			if $cell == "" or $cell == null { return null }
+			$cell | convert $tf.tag ($tf.list_item | default "string")
+		}
 	}
+}
 
-	$data
+export alias ls = list-sessions
+
+def convert [tname: string, list_item: string]: any -> any {
+	match $tname {
+		"bool" => { into bool }
+		"int" => { into int }
+		"time" => { into int | $in * 1_000_000_000 | into datetime }
+		"str" => { into string }
+		"list" => {
+			split row ','
+			| where ($it | str length) > 0
+			| each { convert ($list_item | default "string") "string" }
+		}
+	}
 }
 
 export def new-or-attach [] {
 	let unattached_session_name = list-sessions --name --attached
-		| where not attached
-		| where not ($it.name | str ends-with '*')
+		| where not $it.attached and ($it.name | str ends-with '*')
 		| get 0?.name
 
 	if $unattached_session_name == null {

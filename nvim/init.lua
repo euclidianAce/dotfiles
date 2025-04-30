@@ -212,65 +212,19 @@ do
 	})
 end
 
-do
-	local ns = vim.api.nvim_create_namespace("whitespace-highlighter")
-
-	local function add_mark(bufnr, row, start, finish)
-		vim.api.nvim_buf_set_extmark(bufnr, ns, row, start - 1, {
-			ephemeral = true,
-			end_line = row,
-			end_col = finish,
-			hl_group = "EuclidianTrailingWhitespace",
-		})
-	end
-
-	local function check_line(bufnr, row, line, patt)
-		local start, finish = line:match(patt)
-		if start ~= finish then
-			add_mark(bufnr, row, start, finish)
-		end
-	end
-
-	local function enable()
-		vim.api.nvim_set_decoration_provider(ns, {
-			on_win = function(_, _winid, bufnr)
-				local name = vim.api.nvim_buf_get_name(bufnr)
-				if vim.startswith(name, "term://") then return false end
-				local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
-				if ft == "fugitive" then return false end
-				return true
-			end,
-			on_line = function(_, _winid, bufnr, row)
-				local ln = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1];
-				check_line(bufnr, row, ln, "()%s+()$")
-				check_line(bufnr, row, ln, "() +\t*()\t")
-				check_line(bufnr, row, ln, "()\t+ *() ")
-
-				return true
-			end,
-		})
-	end
-
-	local function disable()
-		vim.api.nvim_set_decoration_provider(ns, {})
-	end
-
-	enable()
-
-	vim.api.nvim_create_user_command("HighlightSpaces", function(args)
-		(args.bang and disable or enable)()
-	end, { bang = true })
-end
-
 vim.cmd "colorscheme euclidian"
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Make <Esc> be normal in terminal mode" })
-vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>", { desc = "Open fzf" })
-vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>", { desc = "Open ripgrep" })
 vim.keymap.set({"v", "n"}, "K", "<nop>", { desc = "Get rid of stupidly laggy man page mapping" })
 vim.keymap.set("n", "<leader>n", "<cmd>nohlsearch<cr>", { desc = "Clear search highlights" })
 vim.keymap.set("n", "<leader>dl", vim.diagnostic.setloclist, { desc = "Set location list from diagnostics" })
 
 vim.api.nvim_set_hl(0, "LspInlayHint", { link = "EuclidianDelimiter" })
+
+vim.keymap.set("n", "<leader>fz", "<cmd>FZF<cr>", { desc = "Open fzf" })
+vim.keymap.set("n", "<leader>rg", "<cmd>Rg<cr>", { desc = "Open ripgrep" })
+if os.getenv "TMUX" then
+	vim.g.fzf_layout = { tmux = '90%,70%' }
+end
 
 vim.api.nvim_create_user_command("Term", function(opts)
 	for _, id in ipairs(vim.api.nvim_list_bufs()) do
@@ -339,4 +293,13 @@ if err_jump then
 			})
 		end
 	})
+end
+
+local whitespace_highlighter = optional_require "whitespace-highlighter"
+if whitespace_highlighter then
+	whitespace_highlighter.enable()
+
+	vim.api.nvim_create_user_command("HighlightSpaces", function(args)
+		(args.bang and whitespace_highlighter.disable or whitespace_highlighter.enable)()
+	end, { bang = true })
 end

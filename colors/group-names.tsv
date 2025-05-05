@@ -58,33 +58,33 @@ ansi-terminal-13	bright.magenta
 ansi-terminal-14	bright.cyan
 ansi-terminal-15	bright.fg
 
-vim-TabLine	dark.red	normal.gray
-vim-TabLineSel	normal.red	normal.gray
-vim-TabLineFill		dark.gray
+@vim-TabLine	dark.red	normal.gray
+@vim-TabLineSel	normal.red	normal.gray
+@vim-TabLineFill		dark.gray
 
-vim-Title	dark.red
+@vim-Title	dark.red
 
-vim-FloatBorder	dark.fg	bright.bg
+@vim-FloatBorder	dark.fg	bright.bg
 
-vim-Cursor	dark.bg	bright.fg
+@vim-Cursor	dark.bg	bright.fg
 
-vim-Pmenu	normal.fg	bright.bg
-vim-PmenuSel		normal.gray
-vim-PmenuSbar		bright.gray
-vim-PmenuThumb		normal.gray
+@vim-Pmenu	normal.fg	bright.bg
+@vim-PmenuSel		normal.gray
+@vim-PmenuSbar		bright.gray
+@vim-PmenuThumb		normal.gray
 
-vim-Question	normal.green
+@vim-Question	normal.green
 
-vim-Folded	dark.red	bright.bg
-vim-FoldColumn	dark.red	dark.bg
-vim-SignColumn	bright.bg	dark.bg
-vim-NonText	bright.bg
+@vim-Folded	dark.red	bright.bg
+@vim-FoldColumn	dark.red	dark.bg
+@vim-SignColumn	bright.bg	dark.bg
+@vim-NonText	bright.bg
 
-vim-Directory	normal.blue
-vim-WarningMsg		normal.red
-vim-WildMenu	normal.bg	normal.yellow
+@vim-Directory	normal.blue
+@vim-WarningMsg		normal.red
+@vim-WildMenu	normal.bg	normal.yellow
 
-nu-filepath	bright.cyan
-nu-filesize	normal.cyan
-nu-header	bright.green
-nu-row_index	bright.green
+@nu-filepath	bright.cyan
+@nu-filesize	normal.cyan
+@nu-header	bright.green
+@nu-row_index	bright.green

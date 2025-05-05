@@ -1,19 +1,17 @@
-local non_newline_patt = "[^\n]+"
-
-local function split_on(text, on)
+local function split_on(text: string, on: string): string, string
 	local idx = text:find(on, 1, true)
 	if not idx then
 		return text, nil
 	end
-	local chopped = text:sub(0, idx - 1)
-	local rest = text:sub(idx + 1, -1)
+	local chopped <const> = text:sub(1, idx - 1)
+	local rest <const> = text:sub(idx + 1, -1)
 	return chopped, rest
 end
 
-local function columns(remaining)
-	return function()
+local function columns(remaining: string): function(): string
+	return function(): string
 		if remaining then
-			local result
+			local result: string
 			result, remaining = split_on(remaining, "\t")
 			return result
 		end
@@ -21,25 +19,25 @@ local function columns(remaining)
 end
 
 -- uses first column as map key
-local function parse_tsv(file_name)
-	local contents = assert(io.open(file_name)):read("*a")
-	local next_line = contents:gmatch(non_newline_patt)
+local function parse_tsv(file_name: string): {string:{string:string}}
+	local contents <const> = assert(io.open(file_name)):read("*a")
+	local next_line <const> = contents:gmatch("[^\n]+")
 
-	local names = {}
-	local first_line = next_line()
+	local names <const> = {}
+	local first_line <const> = next_line()
 	for col in columns(first_line) do
 		table.insert(names, col)
 	end
 
-	local named_rows = {}
+	local named_rows <const> = {}
 	local line_number = 1
 	for line in next_line do
 		line_number = line_number + 1
 
-		local row = {}
+		local row <const> = {}
 
-		local next_column = columns(line)
-		local row_name = next_column()
+		local next_column <const> = columns(line)
+		local row_name <const> = next_column()
 		if row_name then
 			named_rows[row_name] = row
 
@@ -62,23 +60,25 @@ local function parse_tsv(file_name)
 	return named_rows
 end
 
-local palette = parse_tsv "palette-dark.tsv"
+local palette <const> = parse_tsv "palette-dark.tsv"
 -- for _, entry in pairs(palette) do
 	-- for k, v in pairs(entry) do
 		-- entry[k] = tonumber(v, 16)
 	-- end
 -- end
 
-local function dump_ansi()
-	local keys = {}
+local function generate_ansi(): string
+	local keys <const> = {}
 	for k in pairs(palette) do
 		table.insert(keys, k)
 	end
 	table.sort(keys)
 
+	local lines <const> = {}
+
 	for _, k in ipairs(keys) do
-		local v = palette[k]
-		local buf = {}
+		local v <const> = palette[k]
+		local buf <const> = {}
 		for _, str_component in ipairs{ v.dark, v.normal, v.bright } do
 			local component = tonumber(str_component, 16)
 			table.insert(buf, ("\x1b[48;2;%d;%d;%dm      \x1b[0m"):format(
@@ -87,15 +87,17 @@ local function dump_ansi()
 				component & 0xff
 			))
 		end
-		print(k, table.concat(buf, " "))
+		table.insert(lines, k .. "\t" .. table.concat(buf, " "))
 	end
+
+	return table.concat(lines, "\n")
 end
 
-local groups = parse_tsv "group-names.tsv"
+local groups: {string:{string:string}}
 
-local function get_color_by_string(str)
+local function get_color_by_string(str: string): string
 	assert(str)
-	local a, b = split_on(str, ".")
+	local a <const>, b <const> = split_on(str, ".")
 	if not a or not b then
 		error("No group named " .. str)
 		return
@@ -111,8 +113,8 @@ local function get_color_by_string(str)
 	return palette[b][a]
 end
 
-local function add_all_groups_with_prefix(prefix, to_add_to)
-	for k, v in pairs(groups) do
+local function add_all_groups_with_prefix(prefix: string, to_add_to: {string:string})
+	for k in pairs(groups) do
 		if k:sub(1, #prefix) == prefix then
 			local name = k:sub(#prefix + 1, -1)
 			if to_add_to[name] then
@@ -123,37 +125,37 @@ local function add_all_groups_with_prefix(prefix, to_add_to)
 	end
 end
 
-local function generate_vim_colorscheme()
-	local lines = {
+local function generate_vim_colorscheme(): string
+	local lines <const> = {
 		"set background=dark",
 		"let g:colors_name = 'euclidian'"
 	}
 
-	local function ins(...)
+	local function ins(...: string)
 		table.insert(lines, table.concat{...})
 	end
 
-	local quirky_groups = {
+	local quirky_groups <const>: {string:boolean} = {
 		["Normal"] = true,
 		["EuclidianYankHighlight"] = true,
 		["EuclidianTrailingWhitespace"] = true,
 	}
 
-	local function hi(vim_group_name, group)
-		local theme_group_name = quirky_groups[vim_group_name]
+	local function hi(vim_group_name: string, group: {string:string})
+		local theme_group_name <const> = quirky_groups[vim_group_name]
 			and vim_group_name
 			or "Euclidian" .. vim_group_name:sub(1, 1):upper() .. vim_group_name:sub(2, -1):gsub("%-([a-z])", string.upper)
 
-		local buf = { "hi ", theme_group_name }
+		local buf <const> = { "hi ", theme_group_name }
 
 		if group.foreground then
-			local actual = get_color_by_string(group.foreground)
+			local actual <const> = get_color_by_string(group.foreground)
 			table.insert(buf, " guifg=#")
 			table.insert(buf, actual)
 		end
 
 		if group.background then
-			local actual = get_color_by_string(group.background)
+			local actual <const> = get_color_by_string(group.background)
 			table.insert(buf, " guibg=#")
 			table.insert(buf, actual)
 		end
@@ -169,7 +171,7 @@ local function generate_vim_colorscheme()
 		end
 	end
 
-	local vim_group_to_group = {
+	local vim_group_to_group <const>: {string:string} = {
 		["Normal"] = "normal-fg-bg",
 		["Visual"] = "highlighted-text",
 		["Search"] = "searched-highlighted-text",
@@ -226,13 +228,13 @@ local function generate_vim_colorscheme()
 		["EuclidianTrailingWhitespace"] = "trailing-whitespace",
 	}
 
-	add_all_groups_with_prefix("vim-", vim_group_to_group)
+	add_all_groups_with_prefix("@vim-", vim_group_to_group)
 
-	local p = {}
+	local p <const> = {}
 	for k, v in pairs(vim_group_to_group) do
 		table.insert(p, {k,v})
 	end
-	table.sort(p, function(a, b) return a[1] < b[1] end)
+	table.sort(p, function(a: {string}, b: {string}): boolean return a[1] < b[1] end)
 
 	for _, pair in ipairs(p) do
 		if groups[pair[2]] then
@@ -247,18 +249,18 @@ local function generate_vim_colorscheme()
 	return table.concat(lines, "\n")
 end
 
-local function generate_nushell_colorscheme()
-	local lines = {}
+local function generate_nushell_colorscheme(): string
+	local lines <const> = {}
 
-	local function ins(...)
+	local function ins(...: string)
 		table.insert(lines, table.concat{...})
 	end
 
-	local function to_var_name(group_name)
+	local function to_var_name(group_name: string): string
 		return group_name:gsub("%-", "_") .. "_color"
 	end
 
-	local nu_group_to_group = {
+	local nu_group_to_group <const>: {string:string} = {
 		separator = "syntax-delimiter",
 
 		date = "syntax-literal",
@@ -334,16 +336,16 @@ local function generate_nushell_colorscheme()
 		-- shape_table: blue_bold
 	}
 
-	add_all_groups_with_prefix("nu-", nu_group_to_group)
+	add_all_groups_with_prefix("@nu-", nu_group_to_group)
 
 	do
-		local consts_to_make = {}
-		local seen_vars = {}
+		local consts_to_make <const> = {}
+		local seen_vars <const> = {}
 		for _, v in pairs(nu_group_to_group) do
 			if not seen_vars[v] then
 				seen_vars[v] = true
-				local color = assert(groups[v], "No group named " .. v)
-				local var_value = { "{" }
+				local color <const> = assert(groups[v], "No group named " .. v)
+				local var_value <const> = { "{" }
 				if color.foreground then
 					table.insert(var_value, " fg: " .. ("%q"):format('#' .. get_color_by_string(color.foreground)))
 				end
@@ -356,7 +358,7 @@ local function generate_nushell_colorscheme()
 			end
 		end
 
-		table.sort(consts_to_make, function(a, b) return a[1] < b[1] end)
+		table.sort(consts_to_make, function(a: {string}, b: {string}): boolean return a[1] < b[1] end)
 
 		for _, v in ipairs(consts_to_make) do
 			ins("const ", v[1], " = ", v[2])
@@ -367,7 +369,7 @@ local function generate_nushell_colorscheme()
 	for k, v in pairs(nu_group_to_group) do
 		table.insert(p, { k, v })
 	end
-	table.sort(p, function(a, b) return a[1] < b[1] end)
+	table.sort(p, function(a: {string}, b: {string}): boolean return a[1] < b[1] end)
 
 	ins("export const theme = {")
 	for _, pair in ipairs(p) do
@@ -382,8 +384,8 @@ local function generate_nushell_colorscheme()
 	return table.concat(lines, "\n")
 end
 
-local function generate_css()
-	local lines = {}
+local function generate_css(): string
+	local lines <const> = {}
 
 	for name, entry in pairs(palette) do
 		table.insert(lines, string.format("--palette-%s-dark: #%s;", name, entry.dark))
@@ -391,13 +393,13 @@ local function generate_css()
 		table.insert(lines, string.format("--palette-%s-bright: #%s;", name, entry.bright))
 	end
 
-	local function swap(a, b) return b, a end
+	local function swap<A, B>(a: A, b: B): B, A return b, a end
 
 	for k, v in pairs(groups) do
 		if k:sub(1, 7) == "syntax-" then
 			table.insert(
 				lines,
-				string.format(".%s { color: var(--palette-%s-%s); }", k, swap(v.foreground:match("(%w+)%.(%w+)")))
+				string.format(".%s { color: var(--palette-%s-%s); }", k, swap(v.foreground:match("(%w+)%.(%w+)") as (string, string)))
 			)
 		end
 	end
@@ -407,8 +409,8 @@ local function generate_css()
 	return table.concat(lines, "\n")
 end
 
-local function generate_ppm()
-	io.write("P6\n5 11\n255\n")
+local function generate_ppm(): string
+	local buf <const> = { "P6\n5 11\n255\n" }
 
 	for _, row in ipairs{
 		"bg", "fg",
@@ -416,32 +418,42 @@ local function generate_ppm()
 		"orange", "yellow", "green",
 		"blue", "cyan", "gray",
 	} do
-		for _, col in ipairs{"darker","dark","normal","bright","brighter"} do
-			local str = palette[row][col]
-			local r = tonumber(str:sub(1, 2), 16)
-			local g = tonumber(str:sub(3, 4), 16)
-			local b = tonumber(str:sub(5, 6), 16)
-			io.write(string.char(r, g, b))
+		for _, col in ipairs{"dark","normal","bright"} do
+			local str <const> = palette[row][col]
+			local r <const> = tonumber(str:sub(1, 2), 16)
+			local g <const> = tonumber(str:sub(3, 4), 16)
+			local b <const> = tonumber(str:sub(5, 6), 16)
+			table.insert(buf, string.char(r, g, b))
 		end
 	end
+
+	return table.concat(buf)
 end
 
-local to_generate = ...
+local to_generate <const>, tsv = ...
+groups = tsv and parse_tsv(tsv) or parse_tsv "group-names.tsv"
 
-if to_generate == "vim" then
-	print(generate_vim_colorscheme())
-elseif to_generate == "nu" then
-	print(generate_nushell_colorscheme())
-elseif to_generate == "css" then
-	print(generate_css())
-elseif to_generate == "ansi" then
-	dump_ansi()
-elseif to_generate == "ppm" then
-	print(generate_ppm())
-elseif to_generate then
-	io.stderr:write(("Unknown target %q\n   Expected 'vim', 'nu', 'css', 'ppm', or 'ansi'\n"):format(to_generate))
+local actions <const>: {string:function(): string} = {
+	vim = generate_vim_colorscheme,
+	nu = generate_nushell_colorscheme,
+	css = generate_css,
+	ansi = generate_ansi,
+	pmm = generate_ppm,
+}
+
+local function actions_list(): string
+	local keys <const> = {}
+	for k in pairs(actions) do table.insert(keys, "‘" .. k .. "’") end
+	table.sort(keys)
+	return table.concat(keys, ", ")
+end
+
+if not to_generate then
+	io.stderr:write("Usage: generate.lua <target>\n   target: one of ", actions_list(), "\n")
 	os.exit(1)
+elseif actions[to_generate] then
+	print(actions[to_generate]())
 else
-	io.stderr:write("Usage: generate.lua <target>\n   target: one of 'vim', 'nu', 'css', 'ppm', or 'ansi'\n")
+	io.stderr:write(("Unknown target “%s”\n   Expected one of "):format(to_generate), actions_list())
 	os.exit(1)
 end

@@ -60,7 +60,17 @@ local function parse_tsv(file_name: string): {string:{string:string}}
 	return named_rows
 end
 
+local function ordered_keys<T>(t: {string:T}): {string}
+	local keys <const> = {}
+	for k in pairs(t) do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+	return keys
+end
+
 local palette <const> = parse_tsv "palette-dark.tsv"
+local palette_names <const> = ordered_keys(palette)
 -- for _, entry in pairs(palette) do
 	-- for k, v in pairs(entry) do
 		-- entry[k] = tonumber(v, 16)
@@ -94,6 +104,7 @@ local function generate_ansi(): string
 end
 
 local groups: {string:{string:string}}
+local group_names: {string}
 
 local function get_color_by_string(str: string): string
 	assert(str)
@@ -384,6 +395,8 @@ local function generate_nushell_colorscheme(): string
 	return table.concat(lines, "\n")
 end
 
+local function swap<A, B>(a: A, b: B): B, A return b, a end
+
 local function generate_css(): string
 	local lines <const> = {}
 
@@ -392,8 +405,6 @@ local function generate_css(): string
 		table.insert(lines, string.format("--palette-%s-normal: #%s;", name, entry.normal))
 		table.insert(lines, string.format("--palette-%s-bright: #%s;", name, entry.bright))
 	end
-
-	local function swap<A, B>(a: A, b: B): B, A return b, a end
 
 	for k, v in pairs(groups) do
 		if k:sub(1, 7) == "syntax-" then
@@ -407,6 +418,51 @@ local function generate_css(): string
 	table.sort(lines)
 
 	return table.concat(lines, "\n")
+end
+
+local function generate_c23_header(): string
+	local lines <const> = {}
+	local function line(fmt: string, ...)
+		table.insert(lines, string.format(fmt, ...))
+	end
+
+	for _, name in ipairs(palette_names) do
+		local entry <const> = palette[name]
+		line("constexpr theme_rgb palette_%s_dark = 0x%s;", name, entry.dark)
+		line("constexpr theme_rgb palette_%s_normal = 0x%s;", name, entry.normal)
+		line("constexpr theme_rgb palette_%s_bright = 0x%s;", name, entry.bright)
+	end
+
+	local function palette_name(group_entry: string): string
+		if not group_entry then
+			return "theme_nil"
+		end
+		return ("palette_%s_%s"):format(swap(split_on(group_entry, ".")))
+	end
+
+	for _, name in ipairs(group_names) do
+		if name:sub(1, 1) ~= "@" then
+			local group <const> = groups[name]
+			line(
+				"constexpr theme_entry theme_%s = { %s, %s, %s };",
+				name:gsub("%-", "_"),
+				palette_name(group.foreground),
+				palette_name(group.background),
+				group.extra == "emphasis" and "theme_emphasis" or "0"
+			)
+		end
+	end
+
+	return
+		"#ifndef THEME_H\n"
+		.. "#define THEME_H\n"
+		.. "#include <stdint.h>\n"
+		.. "typedef uint32_t theme_rgb;\n"
+		.. "constexpr theme_rgb theme_nil = 0xffffffff;\n"
+		.. "constexpr unsigned theme_emphasis = 1;\n"
+		.. "struct { theme_rgba foreground, background; unsigned extra_flags; } typedef theme_entry;\n"
+		.. table.concat(lines, "\n")
+		.. "\n#endif // THEME_H\n"
 end
 
 local function generate_ppm(): string
@@ -432,6 +488,7 @@ end
 
 local to_generate <const>, tsv = ...
 groups = tsv and parse_tsv(tsv) or parse_tsv "group-names.tsv"
+group_names = ordered_keys(groups)
 
 local actions <const>: {string:function(): string} = {
 	vim = generate_vim_colorscheme,
@@ -439,6 +496,7 @@ local actions <const>: {string:function(): string} = {
 	css = generate_css,
 	ansi = generate_ansi,
 	pmm = generate_ppm,
+	["c23-header"] = generate_c23_header,
 }
 
 local function actions_list(): string

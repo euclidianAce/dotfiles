@@ -61,5 +61,5 @@ export def --wrapped throttle [
 # Enter a nested `nu` instance via `sudo` with the current config,
 export def --env root-shell [] {
 	# maybe worth using --shell?
-	^sudo --preserve-env="DOTFILE_DIR,TMUX,SHLVL" -- nu --no-history --config $nu.config-path --env-config $nu.env-path
+	^sudo --preserve-env="DOTFILE_DIR,TMUX,SHLVL" -- $nu.current-exe --no-history --config $nu.config-path --env-config $nu.env-path
 }

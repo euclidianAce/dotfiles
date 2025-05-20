@@ -7,6 +7,7 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+syntax sync fromstart
 syntax case match
 
 syntax keyword cDeprecated
@@ -163,7 +164,7 @@ syntax keyword cPreprocessor _Pragma
 syntax keyword cPreprocessor __VA_ARGS__ __VA_OPT__
 syntax keyword cPreprocessor __FILE__ __LINE__
 syntax keyword cPreprocessor __STDC__ __STDC_VERSION__
-syntax keyword cPreprocessor __has_include
+syntax keyword cPreprocessor __has_include __has_c_attribute
 
 syntax region cAttribute start=/\[\[/ end=/\]\]/
 
@@ -191,6 +192,8 @@ syntax keyword cOperator
 	\ cw_cast_ignore_qualifiers
 	\ cw_ptr_remove_qualifiers
 	\ cw_reinterpret
+	\ cw_natural_last
+	\ cw_integer_first cw_integer_last
 
 syntax keyword cType
 	\ cw_size
@@ -210,6 +213,9 @@ syntax keyword cType
 	\ cw_allocator_vtable
 	\ cw_sink
 	\ cw_sink_vtable
+	\ cw_source
+	\ cw_source_vtable
+	\ cw_file
 
 syntax keyword cKeyword
 	\ cw_inline
@@ -218,8 +224,29 @@ syntax keyword cKeyword
 syntax keyword cConstant
 	\ cw_success
 	\ cw_failure
+	\ cw_break
+	\ cw_continue
+	\ cw_machine_word_max
+	\ cw_machine_word_bits
+
+syntax keyword cUnimportant cw_in cw_out
+
+syntax keyword cPreprocessor
+	\ cw_current_os
+	\ cw_config_freestanding
+	\ cw_config_vla
+	\ cw_config_use_builtins
+	\ cw_config_use_memory_poisoning
+
+" custom print formatting
+syntax match cStringEscape /\~\(([^)]*)\)\?/ contained
 
 syntax match cUnimportant /\<cw_/ contained
+
+" my custom keywords
+syntax keyword cKeyword
+	\ let let_aliased
+	\ mut mut_aliased
 
 hi link cKeyword Keyword
 hi link cOperator Operator

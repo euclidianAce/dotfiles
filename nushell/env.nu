@@ -33,8 +33,8 @@ $env.PROMPT_COMMAND = {||
 
 	let ssh_status = if $env.SSH_CLIENT? != null { "(ssh) " } else { "" }
 
-	let shell_depth = match ($env.SHLVL? | default 0 | into int) {
-		0 => ""
+	let shell_depth = match ($env.SHLVL? | default 1 | into int) {
+		0 | 1 => ""
 		$x => $"Nested shell ($x)"
 	}
 

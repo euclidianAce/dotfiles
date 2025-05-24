@@ -63,3 +63,58 @@ export def --env root-shell [] {
 	# maybe worth using --shell?
 	^sudo --preserve-env="DOTFILE_DIR,TMUX,SHLVL" -- $nu.current-exe --no-history --config $nu.config-path --env-config $nu.env-path
 }
+
+def extensions []: string -> list<string> {
+	let arr = split row '.'
+	let len = $arr | length
+	1..($len - 1) | reduce --fold [] {|it, acc|
+		$acc | append (
+			$arr | skip ($len - $it) | str join '.'
+		)
+	}
+}
+
+export def extract [
+	archive: path
+	--format: string
+	--verbose (-v)
+	--dry-run
+] {
+	let exts = if $format != null {
+		[$format]
+	} else {
+		$archive | extensions
+	}
+
+	for extension in $exts {
+		let cmd = match $extension {
+			"tar.xz" => ["tar" ("Jxf" | if $verbose { "v" + $in } else { $in }) $archive]
+			"tar.gz" => ["tar" ("zxf" | if $verbose { "v" + $in } else { $in }) $archive]
+			"tar" => ["tar" ("xf" | if $verbose { "v" + $in } else { $in }) $archive]
+			"xz" => { ["xz" "-d"] | if $verbose { $in | append "-v" } else { $in } | append $archive }
+			"gzip" => { ["gunzip"] | if $verbose { $in | append "-v" } else { $in } | append $archive }
+			"zip" => ["unzip" $archive]
+
+			_ => continue
+		}
+
+		if $dry_run {
+			print $cmd
+		} else {
+			run-external $cmd.0 ...($cmd | skip 1)
+		}
+		return
+	}
+
+	if $format != null {
+		error make {
+			msg: $"Unknown format ‘($format)’"
+			span: (metadata $format).span
+		}
+	} else {
+		error make {
+			msg: $"Unable to determine format of archive ‘($archive)’, use --format to specify"
+			span: (metadata $archive).span
+		}
+	}
+}

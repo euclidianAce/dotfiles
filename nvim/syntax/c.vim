@@ -196,9 +196,10 @@ syntax keyword cOperator
 	\ cw_integer_first cw_integer_last
 
 syntax keyword cType
-	\ cw_size
+	\ cw_size cw_half_size
 	\ cw_address
 	\ cw_machine_word cw_signed_machine_word
+	\ cw_machine_half_word cw_signed_machine_half_word
 	\ cw_status
 	\ cw_i8 cw_i16 cw_i32 cw_i64 cw_i128
 	\ cw_n8 cw_n16 cw_n32 cw_n64 cw_n128

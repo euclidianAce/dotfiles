@@ -5,8 +5,18 @@ This repo is mostly so that I have a remote location to update my configs on my 
 The configs I keep track of here are for
 
 - AwesomeWM
-- Zathura
-- Bash
-	- both my .bashrc and my PS1 script to make it look nice: ps1Getter.c
+- Firefox/Librewolf
+- Git
 - Neovim
-- tmux
+- Nushell
+- Tmux
+- Wezterm
+- Xresources
+- Zathura
+
+Along with:
+
+- A nushell script to do symlinking/copying
+- Fancy prompt thingy: prompt.zig
+- My colorscheme in tsv format
+- Random nix-shells

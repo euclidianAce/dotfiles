@@ -49,13 +49,18 @@ var stdout: std.fs.File.Writer = undefined;
 pub fn main() void {
     stdout = std.io.getStdOut().writer();
     parseArguments() catch return;
+
     stdout.writeAll(begin_synchronized_update) catch {};
     defer stdout.writeAll(end_synchronized_update) catch {};
-    printComponents() catch return;
+
+    stdout.writeAll(begin_prompt) catch {};
+    defer stdout.writeAll(end_prompt) catch {};
+
+    printComponents() catch {};
 }
 
 // returns the rest
-inline fn startsWith(haystack: []const u8, needle: []const u8) ?[]const u8 {
+inline fn trimPrefix(haystack: []const u8, needle: []const u8) ?[]const u8 {
     return if (std.mem.startsWith(u8, haystack, needle))
         haystack[needle.len..]
     else
@@ -75,23 +80,23 @@ fn parseArguments() !void {
     var pad: usize = 0;
 
     while (it.next()) |arg| {
-        if (startsWith(arg, attribute_marker)) |a| attr: {
+        if (trimPrefix(arg, attribute_marker)) |a| attr: {
             attr = Attribute.parse(a) orelse break :attr;
             continue;
         }
-        if (startsWith(arg, pad_marker)) |int| pad: {
+        if (trimPrefix(arg, pad_marker)) |int| pad: {
             pad = std.fmt.parseInt(usize, int, 10) catch break :pad;
             continue;
         }
-        if (startsWith(arg, line_color_marker)) |a| attr: {
+        if (trimPrefix(arg, line_color_marker)) |a| attr: {
             line_color = Attribute.parse(a) orelse break :attr;
             continue;
         }
-        if (startsWith(arg, prompt_color_marker)) |a| attr: {
+        if (trimPrefix(arg, prompt_color_marker)) |a| attr: {
             prompt_color = Attribute.parse(a) orelse break :attr;
             continue;
         }
-        if (startsWith(arg, prompt_marker)) |a| {
+        if (trimPrefix(arg, prompt_marker)) |a| {
             prompt_str = a;
             continue;
         }
@@ -122,6 +127,12 @@ fn getTerminalWidth() ?usize {
 // TODO: is it worth testing for support?
 const begin_synchronized_update = "\x1b[?2026h";
 const end_synchronized_update = "\x1b[?2026l";
+
+// OSC 133 tells where a terminal prompt begins and ends.
+// Some terminals (e.g. neovim's embedded one) use this to be able to jump
+// between different command invocations
+const begin_prompt = "\x1b]133;A\x07";
+const end_prompt = "\x1b]133;B\x07";
 
 fn printComponents() !void {
     if (static.components.len == 0) {

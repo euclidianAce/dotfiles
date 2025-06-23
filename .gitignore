@@ -3,3 +3,4 @@
 /.netrwhist
 /prompt
 /prompt.o
+/wezterm/colors.lua

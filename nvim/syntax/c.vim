@@ -50,6 +50,41 @@ syntax keyword cOperator
 	\ or or_eq
 	\ xor xor_eq
 
+" limits.h + stdint.h
+syntax keyword cConstant
+	\ BOOL_WIDTH
+	\ CHAR_BIT
+	\ SHRT_WIDTH   USHRT_WIDTH
+	\ INT_WIDTH    UINT_WIDTH
+	\ LONG_WIDTH   ULONG_WIDTH
+	\ LLONG_WIDTH  ULLONG_WIDTH
+	\ INTPTR_WIDTH UINTPTR_WIDTH
+	\ INTMAX_WIDTH UINTMAX_WIDTH
+	\ PTRDIFF_WIDTH
+	\ SIZE_WIDTH
+	\ WCHAR_WIDTH
+	\ WINT_WIDTH
+	\ BITINT_MAXWIDTH
+	\ MB_LEN_MAX
+	\
+	\ SHRT_MIN   SHRT_MAX   USHRT_MAX
+	\ INT_MIN    INT_MAX    UINT_MAX
+	\ LONG_MIN   LONG_MAX   ULONG_MAX
+	\ LLONG_MIN  LLONG_MAX  ULLONG_MAX
+	\ INTPTR_MIN INTPTR_MAX UINTPTR_MAX
+	\
+	\ INT8_WIDTH  UINT8_WIDTH  INT_LEAST8_WIDTH  INT_FAST8_WIDTH
+	\ INT16_WIDTH UINT16_WIDTH INT_LEAST16_WIDTH INT_FAST16_WIDTH
+	\ INT32_WIDTH UINT32_WIDTH INT_LEAST32_WIDTH INT_FAST32_WIDTH
+	\ INT64_WIDTH UINT64_WIDTH INT_LEAST64_WIDTH INT_FAST64_WIDTH
+
+syntax keyword cOperator
+	\ INT8_C UINT8_C
+	\ INT16_C UINT16_C
+	\ INT32_C UINT32_C
+	\ INT64_C UINT64_C
+	\ INTMAX_C UINTMAX_C
+
 syntax keyword cStorageClass
 	\ register
 	\ restrict
@@ -180,6 +215,9 @@ syntax keyword cType
 	\ va_list
 	\ FILE
 	\ errno_t
+
+syntax keyword cPreprocessor
+	\ unreachable
 
 syntax keyword cConstant
 	\ EOF

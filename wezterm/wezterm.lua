@@ -4,7 +4,7 @@ local config = wezterm.config_builder and wezterm.config_builder() or {}
 
 do
 	config.colors = {}
-	local ok, color_entries = pcall(require, "color")
+	local ok, color_entries = pcall(require, "colors")
 	if ok then
 		for k, v in pairs(color_entries) do
 			config.colors[k] = v

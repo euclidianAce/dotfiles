@@ -506,9 +506,14 @@ local function generate_ppm(): string
 	return table.concat(buf)
 end
 
-local to_generate <const>, tsv <const> = ...
+local to_generate <const>, tsv <const>, target_name <const> = ...
 groups = tsv and parse_tsv(tsv) or parse_tsv "group-names.tsv"
 group_names = ordered_keys(groups)
+
+if target_name then
+	local file <const> = assert(io.open(target_name, "w"))
+	io.output(file)
+end
 
 local actions <const>: {string:function(): string} = {
 	vim = generate_vim_colorscheme,

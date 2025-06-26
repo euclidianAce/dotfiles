@@ -10,5 +10,7 @@ zathura	$XDG_CONFIG_HOME/$Source	symlink
 
 prompt.zig	$DOTFILE_DIR/prompt	^zig build-exe $Source --name prompt
 
+wezterm-colors	$DOTFILE_DIR/wezterm/colors.lua	^tl run $DOTFILE_DIR/colors/generate.tl wezterm $DOTFILE_DIR/colors/group-names.tsv $Target
+
 # userChrome.css	$HOME/.mozilla/firefox/$FIREFOX_PROFILE/chrome/$Source	symlink
 userChrome.css	$HOME/.librewolf/$LIBREWOLF_PROFILE/chrome/$Source	symlink

@@ -15,55 +15,70 @@ end
 -- Returns the inclusive range of the found target and the target
 local type Matcher = function(string, integer): integer, integer, Target
 
+local error_jump <const> = {
+	Target = Target,
+	Found = Found,
+	Matcher = Matcher,
+	matchers: {Matcher} = {},
+}
+
 -- matches things like
 --
 -- foo.c:1
 -- foo.c:1:2
-local function match_unixy(line: string, cursor_index: integer): integer, integer, Target
+function error_jump.match_unixy(line: string, cursor_index: integer): integer, integer, Target
+	print("cursor_index = " .. cursor_index)
 	for start_, file, line_index, finish_ in line:gmatch("()([^%s:]+):(%d+)()") do
 		local start <const> = start_ as integer
-		local finish = finish_ as integer - 1
+		local finish_inclusive = finish_ as integer - 1
 
-		local rest <const> = line:sub(finish + 1, -1)
+		local rest <const> = line:sub(finish_inclusive + 1, -1)
 		local column_str <const> = rest:match("^:(%d+)")
 		if column_str then
-			finish = finish + #column_str
+			finish_inclusive = finish_inclusive + #column_str + 1 -- +1 for the colon
 		end
 
-		if start <= cursor_index and cursor_index <= finish then
-			return start, finish, { file = file, line = tonumber(line_index) as integer, column = tonumber(column_str) as integer }
+		if start <= cursor_index and cursor_index <= finish_inclusive then
+			return start, finish_inclusive, {
+				file = file,
+				line = tonumber(line_index) as integer,
+				column = tonumber(column_str) as integer,
+			}
 		end
 	end
 end
+
+table.insert(error_jump.matchers, error_jump.match_unixy)
 
 -- matches things like
 --
 -- foo.c(1)
 -- foo.c(1,2)
-local function match_windowsy(line: string, cursor_index: integer): integer, integer, Target
+function error_jump.match_windowsy(line: string, cursor_index: integer): integer, integer, Target
 	for start_, file, in_parens, finish_ in line:gmatch("()([^%s()]+)%(([^()]+)%)()") do
 		local start <const> = start_ as integer
-		local finish = finish_ as integer - 1
+		local finish_inclusive = finish_ as integer - 1
 
 		local line_index, column = in_parens:match("^%s*(%d+)%s*,%s*(%d+)%s*$")
 		if not line_index then
 			line_index = in_parens:match("^%s*(%d+)%s*$")
 		end
 
-		if start <= cursor_index and cursor_index <= finish then
-			return start, finish, { file = file, line = tonumber(line_index) as integer, column = tonumber(column) as integer }
+		if start <= cursor_index and cursor_index <= finish_inclusive then
+			return start, finish_inclusive, {
+				file = file,
+				line = tonumber(line_index) as integer,
+				column = tonumber(column) as integer,
+			}
 		end
 	end
 end
 
-local matchers <const>: {Matcher} = {
-	match_unixy,
-	match_windowsy,
-}
+table.insert(error_jump.matchers, error_jump.match_windowsy)
 
 -- returns line index, found target
 local function find_pattern_on_cursor(line: string, cursor_index: integer): integer, integer, Target
-	for _, match in ipairs(matchers) do
+	for _, match in ipairs(error_jump.matchers) do
 		local a, b, c = match(line, cursor_index)
 		if a then
 			return a, b, c
@@ -73,7 +88,7 @@ end
 
 global unpack: function<T>({T}): T...
 
-local function under_cursor(window?: integer): Found, Target
+function error_jump.under_cursor(window?: integer): Found, Target
 	window = window or 0
 	local line_number <const>, column_zero_index <const> = unpack(vim.api.nvim_win_get_cursor(window))
 	local buf <const> = vim.api.nvim_win_get_buf(window)
@@ -89,23 +104,23 @@ local function under_cursor(window?: integer): Found, Target
 	end
 end
 
-local function on_key_wrapper(handler: function(Found, Target)): function()
+function error_jump.on_key_wrapper(handler: function(Found, Target)): function()
 	return function()
-		local found <const>, target <const> = under_cursor(0)
+		local found <const>, target <const> = error_jump.under_cursor(0)
 		if found then handler(found, target) end
 	end
 end
 
 local ns <const> = vim.api.nvim_create_namespace("")
 
-local function default_handler(found: Found, target: Target)
+function error_jump.default_handler(found: Found, target: Target)
 	vim.cmd "normal m'"
 	vim.highlight.range(
 		found.buffer,
 		ns,
 		"Search",
 		{ found.line_number - 1, found.start_column - 1 },
-		{ found.line_number - 1, found.end_column + 1 },
+		{ found.line_number - 1, found.end_column },
 		{}
 	)
 	vim.defer_fn(function() vim.api.nvim_buf_clear_namespace(found.buffer, ns, 0, -1) end, 350)
@@ -127,10 +142,4 @@ local function default_handler(found: Found, target: Target)
 	vim.notify(table.concat(msg), vim.log.levels.INFO, {})
 end
 
-return {
-	on_key_wrapper = on_key_wrapper,
-	default_handler = default_handler,
-	under_cursor = under_cursor,
-	Found = Found,
-	Target = Target,
-}
+return error_jump

@@ -15,55 +15,70 @@ local Found = {}
 
 
 
+local error_jump = {
+   Target = Target,
+   Found = Found,
+   Matcher = Matcher,
+   matchers = {},
+}
 
 
 
 
-local function match_unixy(line, cursor_index)
+
+function error_jump.match_unixy(line, cursor_index)
+   print("cursor_index = " .. cursor_index)
    for start_, file, line_index, finish_ in line:gmatch("()([^%s:]+):(%d+)()") do
       local start = start_
-      local finish = finish_ - 1
+      local finish_inclusive = finish_ - 1
 
-      local rest = line:sub(finish + 1, -1)
+      local rest = line:sub(finish_inclusive + 1, -1)
       local column_str = rest:match("^:(%d+)")
       if column_str then
-         finish = finish + #column_str
+         finish_inclusive = finish_inclusive + #column_str + 1
       end
 
-      if start <= cursor_index and cursor_index <= finish then
-         return start, finish, { file = file, line = tonumber(line_index), column = tonumber(column_str) }
+      if start <= cursor_index and cursor_index <= finish_inclusive then
+         return start, finish_inclusive, {
+            file = file,
+            line = tonumber(line_index),
+            column = tonumber(column_str),
+         }
       end
    end
 end
 
+table.insert(error_jump.matchers, error_jump.match_unixy)
 
 
 
 
-local function match_windowsy(line, cursor_index)
+
+function error_jump.match_windowsy(line, cursor_index)
    for start_, file, in_parens, finish_ in line:gmatch("()([^%s()]+)%(([^()]+)%)()") do
       local start = start_
-      local finish = finish_ - 1
+      local finish_inclusive = finish_ - 1
 
       local line_index, column = in_parens:match("^%s*(%d+)%s*,%s*(%d+)%s*$")
       if not line_index then
          line_index = in_parens:match("^%s*(%d+)%s*$")
       end
 
-      if start <= cursor_index and cursor_index <= finish then
-         return start, finish, { file = file, line = tonumber(line_index), column = tonumber(column) }
+      if start <= cursor_index and cursor_index <= finish_inclusive then
+         return start, finish_inclusive, {
+            file = file,
+            line = tonumber(line_index),
+            column = tonumber(column),
+         }
       end
    end
 end
 
-local matchers = {
-   match_unixy,
-   match_windowsy,
-}
+table.insert(error_jump.matchers, error_jump.match_windowsy)
 
 
 local function find_pattern_on_cursor(line, cursor_index)
-   for _, match in ipairs(matchers) do
+   for _, match in ipairs(error_jump.matchers) do
       local a, b, c = match(line, cursor_index)
       if a then
          return a, b, c
@@ -73,7 +88,7 @@ end
 
 
 
-local function under_cursor(window)
+function error_jump.under_cursor(window)
    window = window or 0
    local line_number, column_zero_index = unpack(vim.api.nvim_win_get_cursor(window))
    local buf = vim.api.nvim_win_get_buf(window)
@@ -89,23 +104,23 @@ local function under_cursor(window)
    end
 end
 
-local function on_key_wrapper(handler)
+function error_jump.on_key_wrapper(handler)
    return function()
-      local found, target = under_cursor(0)
+      local found, target = error_jump.under_cursor(0)
       if found then handler(found, target) end
    end
 end
 
 local ns = vim.api.nvim_create_namespace("")
 
-local function default_handler(found, target)
+function error_jump.default_handler(found, target)
    vim.cmd("normal m'")
    vim.highlight.range(
    found.buffer,
    ns,
    "Search",
    { found.line_number - 1, found.start_column - 1 },
-   { found.line_number - 1, found.end_column + 1 },
+   { found.line_number - 1, found.end_column },
    {})
 
    vim.defer_fn(function() vim.api.nvim_buf_clear_namespace(found.buffer, ns, 0, -1) end, 350)
@@ -127,10 +142,4 @@ local function default_handler(found, target)
    vim.notify(table.concat(msg), vim.log.levels.INFO, {})
 end
 
-return {
-   on_key_wrapper = on_key_wrapper,
-   default_handler = default_handler,
-   under_cursor = under_cursor,
-   Found = Found,
-   Target = Target,
-}
+return error_jump

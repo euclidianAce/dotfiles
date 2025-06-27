@@ -256,8 +256,13 @@ if lspconfig then
 		client.server_capabilities["semanticTokensProvider"] = nil
 	end
 
-	lspconfig.zls.setup {}
-	lspconfig.rust_analyzer.setup {}
+	local function is_executable(str)
+		return vim.fn.executable(str) ~= 0
+	end
+
+	if is_executable "zls" then lspconfig.zls.setup {} end
+	if is_executable "rust-analyzer" then lspconfig.rust_analyzer.setup {} end
+	if is_executable "harper-ls" then lspconfig.harper_ls.setup {} end
 
 	vim.api.nvim_create_autocmd("LspAttach", {
 		callback = function(ev)
@@ -291,6 +296,10 @@ if err_jump then
 				buffer = ev.buf,
 				desc = "Goto compile error location under the cursor",
 			})
+			--vim.keymap.set("v", "<cr>", err_jump.on_key_wrapper(err_jump.default_handler), {
+			--	buffer = ev.buf,
+			--	desc = "Goto visually selected compile error location",
+			--})
 		end
 	})
 end

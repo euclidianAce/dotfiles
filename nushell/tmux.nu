@@ -63,7 +63,7 @@ export def list-sessions [
 	let format_string = $names_and_format | get format | str join ';'
 
 	let data = (^tmux list-sessions -F $format_string e> (std null-device))
-		| from csv --noheaders --separator ';'
+		| from csv --noheaders --separator ';' --no-infer
 		| rename ...$names_and_format.name
 
 	$transform | reduce --fold $data {|tf, acc|

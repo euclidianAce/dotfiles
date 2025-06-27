@@ -27,7 +27,6 @@ local error_jump <const> = {
 -- foo.c:1
 -- foo.c:1:2
 function error_jump.match_unixy(line: string, cursor_index: integer): integer, integer, Target
-	print("cursor_index = " .. cursor_index)
 	for start_, file, line_index, finish_ in line:gmatch("()([^%s:]+):(%d+)()") do
 		local start <const> = start_ as integer
 		local finish_inclusive = finish_ as integer - 1
@@ -35,7 +34,11 @@ function error_jump.match_unixy(line: string, cursor_index: integer): integer, i
 		local rest <const> = line:sub(finish_inclusive + 1, -1)
 		local column_str <const> = rest:match("^:(%d+)")
 		if column_str then
-			finish_inclusive = finish_inclusive + #column_str + 1 -- +1 for the colon
+			local n <const> = #column_str + 1 -- +1 for the colon
+			finish_inclusive = finish_inclusive + n
+			if rest:sub(n + 1, n + 1) == ":" then
+				finish_inclusive = finish_inclusive + 1
+			end
 		end
 
 		if start <= cursor_index and cursor_index <= finish_inclusive then
@@ -103,6 +106,10 @@ function error_jump.under_cursor(window?: integer): Found, Target
 		}, target
 	end
 end
+
+-- TODO: getting the text of the current selection is non-trivial
+-- function error_jump.in_visual_selection(): Found, Target
+-- end
 
 function error_jump.on_key_wrapper(handler: function(Found, Target)): function()
 	return function()

@@ -27,7 +27,6 @@ local error_jump = {
 
 
 function error_jump.match_unixy(line, cursor_index)
-   print("cursor_index = " .. cursor_index)
    for start_, file, line_index, finish_ in line:gmatch("()([^%s:]+):(%d+)()") do
       local start = start_
       local finish_inclusive = finish_ - 1
@@ -35,7 +34,11 @@ function error_jump.match_unixy(line, cursor_index)
       local rest = line:sub(finish_inclusive + 1, -1)
       local column_str = rest:match("^:(%d+)")
       if column_str then
-         finish_inclusive = finish_inclusive + #column_str + 1
+         local n = #column_str + 1
+         finish_inclusive = finish_inclusive + n
+         if rest:sub(n + 1, n + 1) == ":" then
+            finish_inclusive = finish_inclusive + 1
+         end
       end
 
       if start <= cursor_index and cursor_index <= finish_inclusive then
@@ -103,6 +106,10 @@ function error_jump.under_cursor(window)
       }, target
    end
 end
+
+
+
+
 
 function error_jump.on_key_wrapper(handler)
    return function()

@@ -85,9 +85,10 @@ syntax keyword cOperator
 	\ INT64_C UINT64_C
 	\ INTMAX_C UINTMAX_C
 
+syntax keyword cPreprocessor __STDC_ENDIAN_NATIVE__ __STDC_ENDIAN_LITTLE__ __STDC_ENDIAN_BIG__
+
 syntax keyword cStorageClass
 	\ register
-	\ restrict
 	\ extern
 	\ inline
 	\ alignas
@@ -97,6 +98,7 @@ syntax keyword cStorageClass
 
 syntax keyword cQualifier
 	\ _Atomic
+	\ restrict
 	\ volatile
 	\ const
 
@@ -163,43 +165,64 @@ syntax region cString start=/"/ end=/"/ skip=/\\"/ contains=cStringEscape
 
 syntax match cCharacter /'.'/
 syntax match cCharacter /'\\.'/
+syntax match cCharacter /'\\x[0-9a-fA-F][0-9a-fA-F]'/
 
-syntax match cPreprocessor /#/
+syntax match cPreprocessor /^\s*#/
 
-syntax match cPreprocessor /#\s*include\s*"[^"]*"/
-syntax match cPreprocessor /#\s*include\s*<[^"]*>/
+syntax match cPreprocessor /^\s*#\s*include\s*"[^"]*"/
+syntax match cPreprocessor /^\s*#\s*include\s*<[^"]*>/
 
-syntax match cPreprocessor /#\s*define/
-syntax match cPreprocessor /#\s*undef/
+syntax match cPreprocessor /^\s*#\s*define\>/
+syntax match cPreprocessor /^\s*#\s*undef\>/
 
-syntax match cPreprocessor /#\s*if/
-syntax match cPreprocessor /#\s*ifdef/
-syntax match cPreprocessor /#\s*ifndef/
+syntax match cPreprocessor /^\s*#\s*if\>/
+syntax match cPreprocessor /^\s*#\s*ifdef\>/
+syntax match cPreprocessor /^\s*#\s*ifndef\>/
 
-syntax match cPreprocessor /#\s*elif/
-syntax match cPreprocessor /#\s*elifdef/
-syntax match cPreprocessor /#\s*elifndef/
+syntax match cPreprocessor /^\s*#\s*elif/
+syntax match cPreprocessor /^\s*#\s*elifdef/
+syntax match cPreprocessor /^\s*#\s*elifndef/
 
-syntax match cPreprocessor /#\s*else/
+syntax match cPreprocessor /^\s*#\s*else\>/
 
-syntax match cPreprocessor /#\s*endif/
+syntax match cPreprocessor /^\s*#\s*endif\>/
 
-syntax match cPreprocessor /#\s*line/
+syntax match cPreprocessor /^\s*#\s*line\>/
 
-syntax match cPreprocessor /#\s*embed/
+syntax match cPreprocessor /^\s*#\s*embed\>/
 
-syntax match cPreprocessor /#\s*error/
-syntax match cPreprocessor /#\s*warning/
-syntax match cPreprocessor /#\s*pragma/
+syntax match cPreprocessor /^\s*#\s*error\>/
+syntax match cPreprocessor /^\s*#\s*warning\>/
+syntax match cPreprocessor /^\s*#\s*pragma\>/
 
 syntax match cPreprocessor /\\/
 
 syntax keyword cPreprocessor defined
 syntax keyword cPreprocessor _Pragma
 syntax keyword cPreprocessor __VA_ARGS__ __VA_OPT__
-syntax keyword cPreprocessor __FILE__ __LINE__
-syntax keyword cPreprocessor __STDC__ __STDC_VERSION__
-syntax keyword cPreprocessor __has_include __has_c_attribute
+syntax keyword cPreprocessor __has_include __has_embed __has_c_attribute
+syntax keyword cPreprocessor
+	\ __FILE__ __LINE__ __DATE__ __TIME__
+	\ __STDC__ __STDC_VERSION__ __STDC_HOSTED__
+	\ __STDC_UTF_16__ __STDC_UTF_32__
+	\ __STDC_EMBED_NOT_FOUND__ __STDC_EMBED_FOUND__ __STDC_EMBED_EMPTY__
+	\ __STDC_ISO_10646__
+	\ __STDC_MB_MIGHT_NEQ_WC__
+	\ __STDC_ANALYZABLE__
+	\ __STDC_LIB_EXT1__
+	\ __STDC_NO_ATOMICS__
+	\ __STDC_NO_COMPLEX__
+	\ __STDC_NO_THREADS__
+	\ __STDC_NO_VLA__
+	\ __STDC_IEC_60559_BFP__
+	\ __STDC_IEC_60559_DFP__
+	\ __STDC_IEC_60559_COMPLEX__
+	\ __STDC_IEC_60559_TYPES__
+
+syntax keyword cDeprecated
+	\ __STDC_IEC_559__ __STDC_IEC_559_COMPLEX__
+
+syntax keyword cConstant __func__
 
 syntax region cAttribute start=/\[\[/ end=/\]\]/
 
@@ -229,6 +252,7 @@ syntax keyword cOperator
 	\ cw_cast
 	\ cw_cast_ignore_qualifiers
 	\ cw_ptr_remove_qualifiers
+	\ cw_cast_ignore_qualifiers
 	\ cw_reinterpret
 	\ cw_natural_last
 	\ cw_integer_first cw_integer_last
@@ -273,7 +297,7 @@ syntax keyword cUnimportant cw_in cw_out
 syntax keyword cPreprocessor
 	\ cw_current_os
 	\ cw_config_freestanding
-	\ cw_config_vla
+	\ cw_config_use_vla
 	\ cw_config_use_builtins
 	\ cw_config_use_memory_poisoning
 
@@ -281,11 +305,6 @@ syntax keyword cPreprocessor
 syntax match cStringEscape /\~\(([^)]*)\)\?/ contained
 
 syntax match cUnimportant /\<cw_/ contained
-
-" my custom keywords
-syntax keyword cKeyword
-	\ let let_aliased
-	\ mut mut_aliased
 
 hi link cKeyword Keyword
 hi link cOperator Operator

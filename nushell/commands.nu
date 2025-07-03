@@ -58,10 +58,9 @@ export def --wrapped throttle [
 	^cpulimit $v --foreground --monitor-forks --limit $limit -- ...$rest
 }
 
-# Enter a nested `nu` instance via `sudo` with the current config,
+# Enter a nested `nu` instance via `doas` with the current config,
 export def --env root-shell [] {
-	# maybe worth using --shell?
-	^sudo --preserve-env="DOTFILE_DIR,TMUX,SHLVL" -- $nu.current-exe --no-history --config $nu.config-path --env-config $nu.env-path
+	doas $nu.current-exe --no-history --config $nu.config-path --env-config $nu.env-path
 }
 
 def extensions []: string -> list<string> {
